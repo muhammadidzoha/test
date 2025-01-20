@@ -7,7 +7,7 @@ const init = () => {
 
     const app = express();
     app.get('/', (req: Request, res: Response) => {
-        res.send('ok2222');
+        res.send('ok');
     })
 
     app.listen(port, () => {
