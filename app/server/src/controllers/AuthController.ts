@@ -9,8 +9,10 @@ export class AuthController {
     async register(req: Request, res: Response) {
         try {
             validatePayload(registerPayloadSchema, req.body);
-            const { username, password } = req.body;
-            const { newUser } = await this.authService.register(username, password);
+            const { username, password, email, role } = req.body;
+            console.log({ username, password, email, role });
+            const { newUser } = await this.authService.register({ username, email, password, roleId: role ?? 4, isVerified: false });
+
             res.status(201).json({
                 status: 'Success',
                 message: 'User Registered Successfully',
