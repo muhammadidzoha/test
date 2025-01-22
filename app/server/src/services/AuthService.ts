@@ -49,7 +49,7 @@ export class AuthService {
         }
     }
 
-    async registerForInstitution(payload: IInstitution & { username: string, password: string, roleId: number }, institutionType: 1 | 2) {
+    async registerForInstitution(payload: IInstitution & Omit<RegisterPayloadType, 'isVerified'>) {
         const isUserExistsOnDatabase = await this.isUserExistsOnDatabase(payload.username, payload.email);
         if (isUserExistsOnDatabase) {
             throw new InvariantError('User already exists');
@@ -66,14 +66,14 @@ export class AuthService {
                     create: {
                         name: payload.name,
                         address: payload.address,
-                        phone_number: payload.phone,
+                        phone_number: payload.phoneNumber,
                         email: payload.email,
                         head_name: payload.headName,
                         head_nip: payload.headNIP,
                         license_document: payload.licenseDocument,
                         institution_type: {
                             connect: {
-                                id: institutionType
+                                id: payload.roleId === 2 ? 1 : 2
                             }
                         }
                     }
@@ -98,8 +98,9 @@ export class AuthService {
                 }
             }
         })
-
-        return userInstitution;
+        return {
+            userInstitution
+        }
     }
 
 

@@ -1,6 +1,10 @@
 import { Request, Response } from "express";
 import { AuthService } from "../services/AuthService";
 import { handleError, validatePayload, registerPayloadSchema } from "../common/http";
+import { IInstitution, RegisterPayloadType } from "../types/auth";
+import { InvariantError } from "../common/exception";
+import { PayloadError } from "../common/exception/PayloadError";
+import fs from 'fs';
 
 export class AuthController {
     constructor(public authService: AuthService) {
@@ -39,5 +43,35 @@ export class AuthController {
             handleError(error, res);
         }
 
+    }
+
+    async registerForInstitution(req: Request, res: Response) {
+        try {
+            if (!req.file) {
+                throw new PayloadError('License Document is Required (upload legal document to prove legal institute)');
+            }
+            if (+req.body.roleId !== 2 && +req.body.roleId !== 3) {
+                throw new InvariantError('Role must be 2 (School) or 3 (Healthcare)');
+            }
+
+            const { username, email, password, roleId, address, headNIP, headName, name, phoneNumber, institutionId }: Omit<IInstitution, 'licenseDocument'> & Omit<RegisterPayloadType, 'is_verified'> & {
+                institutionId: string
+            } = req.body;
+            const licenseDocument = req.file.filename;
+
+            const { userInstitution } = await this.authService.registerForInstitution({ username, email, password, roleId: +roleId, address, headNIP, headName, licenseDocument, name, phoneNumber });
+
+
+            res.status(201).json({
+                status: 'Success',
+                message: 'User Registered Successfully',
+                data: userInstitution
+            })
+        } catch (error: any) {
+            if (req.file) {
+                fs.unlinkSync(req.file.path);
+            };
+            handleError(error, res);
+        }
     }
 }

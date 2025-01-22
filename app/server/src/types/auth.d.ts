@@ -5,10 +5,9 @@ export interface RegisterPayloadType {
 export interface IInstitution {
     name: string;
     address: string;
-    phone: string;
+    phoneNumber: string;
     email: string;
     headName: string
     headNIP: string;
     licenseDocument: string;
-    description: string;
 }

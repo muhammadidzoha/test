@@ -6,6 +6,8 @@ import { prismaDBClient } from '../config/prisma';
 // route
 import { authRouter } from './routes/AuthRouter';
 
+// Middleware
+
 dotenv.config();
 const seedService = new SeedService(prismaDBClient);
 
@@ -16,7 +18,8 @@ const init = async () => {
     await seedService.seed();
     const app = express();
     app.use(express.json());
-    app.use(express.urlencoded({ extended: false }));
+    app.use(express.urlencoded({ extended: true }));
+    app.use('/public', express.static('uploads'))
 
     app.use('/auth', authRouter);
 
