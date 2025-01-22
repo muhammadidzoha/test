@@ -1,4 +1,6 @@
 import { InvariantError, NotFoundError } from "../exception";
+import { AuthenticationError } from "../exception/AuthenticationError";
+import { ClientError } from "../exception/ClientError";
 
 export const handleError = (error: any, res: any) => {
     if (error instanceof InvariantError) {
@@ -15,11 +17,12 @@ export const handleError = (error: any, res: any) => {
         });
     }
 
-    // if (error instanceof AuthenticationError) {
-    //     return res.status(401).json({
-    //         error: error.message
-    //     });
-    // }
+    if (error instanceof AuthenticationError) {
+        return res.status(401).json({
+            status: 'Fail',
+            message: error.message
+        });
+    }
 
     // if (error instanceof AuthorizationError) {
     //     return res.status(403).json({

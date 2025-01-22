@@ -1,6 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import { InvariantError, NotFoundError } from "../common/exception";
 import { IInstitution, RegisterPayloadType } from "../types/auth";
+import { AuthenticationError } from "../common/exception/AuthenticationError";
 
 
 export class AuthService {
@@ -55,11 +56,13 @@ export class AuthService {
             throw new InvariantError('User already exists');
         }
 
+        const newPassword = await this.bcrypt.hash(payload.password, 10);
+
         const userInstitution = await this.prismaClient.user.create({
             data: {
                 username: payload.username,
                 email: payload.email,
-                password: payload.password,
+                password: newPassword,
                 role_id: payload.roleId,
                 is_verified: false,
                 institution: {
@@ -132,7 +135,10 @@ export class AuthService {
 
         const isPasswordMatch = await this.bcrypt.compare(password, userOnDatabase.password);
         if (!isPasswordMatch) {
-            throw new InvariantError('Password is incorrect');
+            throw new AuthenticationError('Password is incorrect');
+        }
+        if (!userOnDatabase.is_verified) {
+            throw new AuthenticationError('User not verified');
         }
         const userRole = await this.prismaClient.role.findUnique({
             where: {
