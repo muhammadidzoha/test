@@ -14,8 +14,24 @@ export class AuthController {
         try {
             validatePayload(registerPayloadSchema, req.body);
             const { username, password, email, role } = req.body;
-            console.log({ username, password, email, role });
-            const { newUser } = await this.authService.register({ username, email, password, roleId: role ?? 4, isVerified: false });
+            const { newUser } = await this.authService.register({ username, email, password, roleId: role, isVerified: false });
+
+            res.status(201).json({
+                status: 'Success',
+                message: 'User Registered Successfully',
+                data: newUser
+            })
+        } catch (error: any) {
+            handleError(error, res);
+        }
+    }
+
+    async registerForParent(req: Request, res: Response) {
+        try {
+            validatePayload(registerPayloadSchema, req.body);
+            const { username, password, email } = req.body;
+            console.log({ username, password, email });
+            const { newUser } = await this.authService.register({ username, email, password, roleId: 4, isVerified: true });
 
             res.status(201).json({
                 status: 'Success',

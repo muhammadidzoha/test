@@ -17,8 +17,8 @@ const authController = new AuthController(authService);
 
 export const authRouter = express.Router();
 
-authRouter.post('/register', async (req, res) => {
-    await authController.register(req, res);
+authRouter.post('/register/parent', async (req, res) => {
+    await authController.registerForParent(req, res);
 });
 
 authRouter.post('/login', async (req, res) => {

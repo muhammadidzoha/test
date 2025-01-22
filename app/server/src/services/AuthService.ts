@@ -104,6 +104,7 @@ export class AuthService {
     }
 
 
+
     async isUserExistsOnDatabase(username: string, email: string): Promise<boolean> {
         const userOnDatabase = await this.prismaClient.user.findFirst({
             where: {
