@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import bcrypt from 'bcrypt';
 
 export class SeedService {
     constructor(public prismaClient: PrismaClient) {
@@ -7,6 +8,7 @@ export class SeedService {
     async seed() {
         await this.seedRole();
         await this.seedInstitutionType();
+        await this.seedAdminAccount();
     }
 
     async seedRole() {
@@ -53,5 +55,22 @@ export class SeedService {
             })
         }
         console.log('Institution Type seeded');
+    }
+
+    async seedAdminAccount() {
+        const isUserExist = await this.prismaClient.user.findMany();
+        if (!isUserExist.length) {
+            await this.prismaClient.user.create({
+                data: {
+                    id: 1,
+                    username: process.env.ADMIN_USERNAME ?? 'admin',
+                    password: process.env.ADMIN_PASSWORD ?? bcrypt.hashSync('admin', 10),
+                    email: process.env.SMTP_EMAIL ?? 'admin@gmail.com',
+                    is_verified: true,
+                    role_id: 1,
+                }
+            })
+        }
+        console.log('Admin account seeded');
     }
 }

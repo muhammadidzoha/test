@@ -11,3 +11,11 @@ export interface IInstitution {
     headNIP: string;
     licenseDocument: string;
 }
+
+export interface IPayloadToken {
+    id: userOnDatabase.id,
+    username: userOnDatabase.username,
+    role: 'admin' | 'school' | 'parent' | 'healthcare'
+}
+
+export type Role = 'admin' | 'school' | 'parent' | 'healthcare'

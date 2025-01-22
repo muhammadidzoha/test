@@ -10,6 +10,7 @@ import jwt from 'jsonwebtoken';
 
 // Middlewares
 import { multerMiddleware } from '../middlewares/MulterMiddleware';
+import { AuthorizationMiddleware } from '../middlewares/AuthorizationMiddleware';
 
 
 const authService = new AuthService(prismaDBClient, bcrypt, jwt);
@@ -36,6 +37,6 @@ authRouter.post('/', multerMiddleware.single('image'), (req, res) => {
     res.send('ok');
 })
 
-authRouter.post('/email', async (req, res) => {
+authRouter.post('/email', AuthorizationMiddleware(['admin']), async (req, res) => {
     await authController.sendEmailVerification(req, res);
 });
