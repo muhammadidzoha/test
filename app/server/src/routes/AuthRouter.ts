@@ -1,17 +1,21 @@
 
 import express from 'express';
 
-import { AuthService } from "../services/AuthService";
+import { AuthService, EmailService } from '../services';
 import { AuthController } from "../controllers/AuthController";
 import { prismaDBClient } from "../../config/prisma";
 
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+
+// Middlewares
 import { multerMiddleware } from '../middlewares/MulterMiddleware';
 
-const authService = new AuthService(prismaDBClient, bcrypt, jwt);
 
-const authController = new AuthController(authService);
+const authService = new AuthService(prismaDBClient, bcrypt, jwt);
+const emailService = new EmailService();
+
+const authController = new AuthController(authService, emailService);
 
 export const authRouter = express.Router();
 
@@ -31,3 +35,7 @@ authRouter.post('/', multerMiddleware.single('image'), (req, res) => {
     console.log(req.file);
     res.send('ok');
 })
+
+authRouter.post('/email', async (req, res) => {
+    await authController.sendEmailVerification(req, res);
+});

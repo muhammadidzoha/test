@@ -1,13 +1,16 @@
-import { Request, Response } from "express";
-import { AuthService } from "../services/AuthService";
-import { handleError, validatePayload, registerPayloadSchema } from "../common/http";
-import { IInstitution, RegisterPayloadType } from "../types/auth";
-import { InvariantError } from "../common/exception";
-import { PayloadError } from "../common/exception/PayloadError";
+import jwt from 'jsonwebtoken';
 import fs from 'fs';
 
+import { Request, Response } from "express";
+import { handleError, validatePayload, registerPayloadSchema, verifyEmailSchema } from "../common/http";
+import { IInstitution, RegisterPayloadType } from "../types/auth";
+import { InvariantError, PayloadError } from "../common/exception";
+import { EmailService, AuthService } from "../services";
+import { INodemailerMessage } from '../types/email';
+import { generateFutureDate } from '../common/utils';
+
 export class AuthController {
-    constructor(public authService: AuthService) {
+    constructor(public authService: AuthService, public emailService: EmailService) {
     }
 
     async register(req: Request, res: Response) {
@@ -91,5 +94,42 @@ export class AuthController {
             handleError(error, res);
         }
 
+    }
+
+    async sendEmailVerification(req: Request, res: Response) {
+        try {
+            validatePayload(verifyEmailSchema, req.body);
+            const { email } = req.body;
+            const { user } = await this.authService.getUserByUniqueIdentity(email);
+            const generatedToken = jwt.sign({
+                id: user.id,
+                email: user.email,
+                username: user.username,
+                role: user.role_id
+            }, process.env.SECRET_ACCESS_TOKEN ?? 'SECRET_TOKEN_RAHASIA', {
+                expiresIn: '7h'
+            });
+
+            const generatedDate = generateFutureDate(7);
+
+            const payload: INodemailerMessage = {
+                from: process.env.SMTP_EMAIL,
+                to: email,
+                subject: 'Email Verification',
+                html: `
+                <h1>Email Verification</h1>
+                <p>Click this link before <strong>${generatedDate}</strong> to verify your email: <a href="${process.env.API_BASE_URL}/auth/email/verify?token=${generatedToken}">Verify Email</a></p>
+                `
+            }
+
+            await this.emailService.sendEmail(payload);
+
+            res.status(200).json({
+                status: 'Success',
+                message: 'Email Verification Sent Successfully',
+            })
+        } catch (error: any) {
+            handleError(error, res);
+        }
     }
 }

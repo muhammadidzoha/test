@@ -5,8 +5,7 @@ import { AuthenticationError } from "../common/exception/AuthenticationError";
 
 
 export class AuthService {
-    constructor(public prismaClient: PrismaClient, public bcrypt: any, public jwt: any) {
-    }
+    constructor(public prismaClient: PrismaClient, public bcrypt: any, public jwt: any) { }
 
     async register({
         username, email, password, roleId = 4, isVerified = false
@@ -158,4 +157,22 @@ export class AuthService {
             accessToken
         }
     };
+
+    async getUserByUniqueIdentity(uniqueIdentity: string) {
+        const user = await this.prismaClient.user.findFirst({
+            where: {
+                OR: [
+                    { username: uniqueIdentity },
+                    { email: uniqueIdentity }
+                ]
+            }
+        })
+
+        if (!user) {
+            throw new NotFoundError('User not found');
+        }
+        return {
+            user
+        }
+    }
 }

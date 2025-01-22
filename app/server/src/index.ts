@@ -1,5 +1,6 @@
-import express, { Request, Response } from 'express';
 import dotenv from 'dotenv';
+dotenv.config();
+import express, { Request, Response } from 'express';
 import { SeedService } from './services/SeedService';
 import { prismaDBClient } from '../config/prisma';
 
@@ -8,13 +9,10 @@ import { authRouter } from './routes/AuthRouter';
 
 // Middleware
 
-dotenv.config();
 const seedService = new SeedService(prismaDBClient);
 
 const init = async () => {
     const port = process.env.API_PORT ? +process.env.API_PORT : 5000;
-    console.log(process.env.API_PORT);
-    console.log(process.env.DB_HOST);
     await seedService.seed();
     const app = express();
     app.use(express.json());
