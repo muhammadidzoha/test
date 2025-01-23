@@ -1,3 +1,4 @@
+import cors from 'cors';
 import dotenv from 'dotenv';
 import dotenvExpand from 'dotenv-expand';
 dotenvExpand.expand(dotenv.config());
@@ -16,6 +17,7 @@ const init = async () => {
     const port = process.env.API_PORT ? +process.env.API_PORT : 5000;
     await seedService.seed();
     const app = express();
+    app.use(cors());
     app.use(express.json());
     app.use(express.urlencoded({ extended: true }));
     app.use('/public', express.static('uploads'))
