@@ -2,10 +2,13 @@ import { PrismaClient } from "@prisma/client";
 import { InvariantError, NotFoundError } from "../common/exception";
 import { IInstitution, IPayloadToken, RegisterPayloadType } from "../types/auth";
 import { AuthenticationError } from "../common/exception/AuthenticationError";
+import { generateFutureDate } from "../common/utils";
+import { INodemailerMessage } from "../types/email";
+import { EmailService } from "./EmailService";
 
 
 export class AuthService {
-    constructor(public prismaClient: PrismaClient, public bcrypt: any, public jwt: any) { }
+    constructor(public prismaClient: PrismaClient, public bcrypt: any, public jwt: any, public emailService: EmailService) { }
 
     async register({
         username, email, password, roleId = 4, isVerified = false
@@ -105,7 +108,37 @@ export class AuthService {
         }
     }
 
+    async sendEmailVerification(email: string) {
+        const { user } = await this.getUserByUniqueIdentity(email);
+        const generatedToken = this.jwt.sign({
+            id: user.id,
+            email: user.email,
+            username: user.username,
+            role: user.role_id
+        }, process.env.SECRET_ACCESS_TOKEN ?? 'SECRET_TOKEN_RAHASIA', {
+            expiresIn: 3600 * 24 * 7
+        });
 
+        if (user.is_verified) {
+            return {
+                user: null
+            };
+        }
+        const generatedDate = generateFutureDate(7);
+
+        const payload: INodemailerMessage = {
+            from: process.env.SMTP_EMAIL ?? 'admin@gmail.com',
+            to: email,
+            subject: 'Email Verification',
+            html: `
+                        <p>Click this link before <strong>${generatedDate}</strong> to verify your email: <a href="${process.env.API_BASE_URL ?? 'http://localhost:5000'}/auth/email/verify?token=${generatedToken}">Verify Email</a></p>
+                        `
+        }
+
+        await this.emailService.sendEmail(payload);
+
+        return { user }
+    }
 
     async isUserExistsOnDatabase(username: string, email: string): Promise<boolean> {
         const userOnDatabase = await this.prismaClient.user.findFirst({
