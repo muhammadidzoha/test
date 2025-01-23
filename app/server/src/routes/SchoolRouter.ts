@@ -17,3 +17,7 @@ schoolRouter.put('/:schoolId/health-education', AuthorizationMiddleware(['school
 schoolRouter.put('/:schoolId/health-service', AuthorizationMiddleware(['school', 'admin']), (req, res) => {
     schoolController.createOrUpdateHealthService(req, res);
 })
+
+schoolRouter.put('/:schoolId/school-environment', AuthorizationMiddleware(['school', 'admin']), (req, res) => {
+    schoolController.createOrUpdateSchoolEnvironment(req, res);
+})

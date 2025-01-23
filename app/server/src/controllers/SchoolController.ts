@@ -5,6 +5,7 @@ import { HealthEducationSchema } from "../common/http/requestvalidator/HealthEdu
 import { IHealthEducation, IHealthServicePayload } from "../types/school";
 import { InvariantError } from "../common/exception";
 import { HealthServiceSchema } from "../common/http/requestvalidator/HealthServiceValidator";
+import { schoolEnvironmentSchema } from "../common/http/requestvalidator/SchoolEnvironmentValidator";
 
 export class SchoolController {
     constructor(public schoolService: SchoolService) { }
@@ -53,4 +54,24 @@ export class SchoolController {
         }
     }
 
+
+    async createOrUpdateSchoolEnvironment(req: Request, res: Response) {
+        try {
+            validatePayload(schoolEnvironmentSchema, req.body);
+            const { schoolId } = req.params;
+            if (!schoolId) {
+                throw new InvariantError('School Id is required in Parameter');
+            }
+
+            const payload = req.body;
+            const { schoolEnvironment } = await this.schoolService.createOrUpdateSchoolEnvironment(+schoolId, payload);
+            res.status(201).json({
+                status: 'Success',
+                message: `School Environment for School ${schoolId} is Created or Updated`,
+                data: schoolEnvironment
+            })
+        } catch (err: any) {
+            handleError(err, res);
+        }
+    }
 };

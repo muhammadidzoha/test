@@ -21,3 +21,10 @@ export interface IHealthServicePayload {
     consulingFacility: boolean;
     periodicScreeningInspection: boolean;
 }
+
+export interface ISchoolEnvironment {
+    canteen: boolean;
+    greenSpace: boolean;
+    trashCan: boolean;
+    unprotectedAreaPolicy: boolean;
+}

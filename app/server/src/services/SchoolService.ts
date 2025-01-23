@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { IHealthEducation, IHealthServicePayload } from "../types/school";
+import { IHealthEducation, IHealthServicePayload, ISchoolEnvironment } from "../types/school";
 import { NotFoundError } from "../common/exception";
 
 export class SchoolService {
@@ -130,5 +130,55 @@ export class SchoolService {
         })
 
         return { healthService };
+    }
+
+    // School Environment Service
+    async createOrUpdateSchoolEnvironment(schoolId: number, payload: ISchoolEnvironment) {
+        const { schoolEnvironment } = await this.getSchoolEnvironment(schoolId);
+        if (!schoolEnvironment) {
+            return await this.createSchoolEnvironment(schoolId, payload);
+        }
+
+        return await this.updateSchoolEnvironment(schoolId, payload);
+    }
+
+    async getSchoolEnvironment(schoolId: number) {
+        const schoolEnvironment = await this.prismaClient.schoolEnvironment.findUnique({
+            where: {
+                school_id: schoolId
+            }
+        });
+
+        return { schoolEnvironment };
+    }
+
+    async createSchoolEnvironment(schoolId: number, payload: ISchoolEnvironment) {
+        const schoolEnvironment = await this.prismaClient.schoolEnvironment.create({
+            data: {
+                canteen: payload.canteen,
+                green_space: payload.greenSpace,
+                trash_can: payload.trashCan,
+                unprotected_area_policy: payload.unprotectedAreaPolicy,
+                school_id: schoolId
+            }
+        });
+
+        return { schoolEnvironment };
+    }
+
+    async updateSchoolEnvironment(schoolId: number, payload: ISchoolEnvironment) {
+        const schoolEnvironment = await this.prismaClient.schoolEnvironment.update({
+            where: {
+                school_id: schoolId
+            },
+            data: {
+                canteen: payload.canteen,
+                green_space: payload.greenSpace,
+                trash_can: payload.trashCan,
+                unprotected_area_policy: payload.unprotectedAreaPolicy,
+            }
+        });
+
+        return { schoolEnvironment };
     }
 }

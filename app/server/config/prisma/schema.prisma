@@ -57,10 +57,10 @@ model Institution {
   user             User   @relation(fields: [user_id], references: [id])
   type             Int    @db.Int
 
-  institution_type InstitutionType  @relation(fields: [type], references: [id])
-  health_education HealthEducation?
-  health_service   HealthService?
-  // school_environment SchoolEnvironment?
+  institution_type   InstitutionType    @relation(fields: [type], references: [id])
+  health_education   HealthEducation?
+  health_service     HealthService?
+  school_environment SchoolEnvironment?
 
   @@map("institutions")
 }
@@ -118,18 +118,18 @@ model HealthService {
   @@map("health_services")
 }
 
-// model SchoolEnvironment {
-//   id                    Int     @id @default(autoincrement())
-//   school_id             Int     @unique
-//   canteen               Boolean @default(false)
-//   green_space           Boolean @default(false)
-//   trash_can             Boolean @default(false)
-//   unprotected_area_rule Boolean @default(false)
+model SchoolEnvironment {
+  id                      Int     @id @default(autoincrement())
+  school_id               Int     @unique
+  canteen                 Boolean @default(false)
+  green_space             Boolean @default(false)
+  trash_can               Boolean @default(false)
+  unprotected_area_policy Boolean @default(false)
 
-//   school Institution @relation(fields: [school_id], references: [id])
+  school Institution @relation(fields: [school_id], references: [id])
 
-//   @@map("school_environments")
-// }
+  @@map("school_environments")
+}
 
 // model UKSManagement {
 //   id Int @id @default(autoincrement())
