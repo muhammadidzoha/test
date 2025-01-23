@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { InvariantError, NotFoundError } from "../common/exception";
-import { IInstitution, RegisterPayloadType } from "../types/auth";
+import { IInstitution, IPayloadToken, RegisterPayloadType } from "../types/auth";
 import { AuthenticationError } from "../common/exception/AuthenticationError";
 
 
@@ -174,5 +174,32 @@ export class AuthService {
         return {
             user
         }
+    }
+
+    async verifyEmail(token: string) {
+        const decodedToken: IPayloadToken = this.jwt.verify(token, process.env.SECRET_ACCESS_TOKEN ?? 'secretaccesstoken');
+        const user = await this.prismaClient.user.findUnique({
+            where: {
+                id: decodedToken.id
+            }
+        })
+
+        if (!user) {
+            throw new NotFoundError('User not found');
+        }
+        if (!user.is_verified) {
+            const updatedUser = await this.prismaClient.user.update({
+                data: {
+                    is_verified: true
+                },
+                where: {
+                    id: decodedToken.id
+                }
+            })
+            return { user: updatedUser, message: 'User Verified Successfully' }
+
+        }
+
+        return { user: null, message: 'User already verified' };
     }
 }

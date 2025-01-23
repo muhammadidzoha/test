@@ -31,7 +31,14 @@ export const handleError = (error: any, res: any) => {
         });
     }
 
-    return res.status(500).json({
+    if (error.name === 'TokenExpiredError') {
+        return res.status(401).json({
+            status: 'Fail',
+            message: 'Token is already expired'
+        })
+    }
+
+    res.status(500).json({
         status: 'Fail',
         message: `Internal server error: ${error.message}`
     });

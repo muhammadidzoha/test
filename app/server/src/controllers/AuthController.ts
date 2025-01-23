@@ -4,7 +4,7 @@ import fs from 'fs';
 import { Request, Response } from "express";
 import { handleError, validatePayload, registerPayloadSchema, verifyEmailSchema } from "../common/http";
 import { IInstitution, RegisterPayloadType } from "../types/auth";
-import { InvariantError, PayloadError } from "../common/exception";
+import { InvariantError, NotFoundError, PayloadError } from "../common/exception";
 import { EmailService, AuthService } from "../services";
 import { INodemailerMessage } from '../types/email';
 import { generateFutureDate } from '../common/utils';
@@ -45,8 +45,6 @@ export class AuthController {
             handleError(error, res);
         }
     }
-
-
 
     async registerForInstitution(req: Request, res: Response) {
         try {
@@ -106,8 +104,14 @@ export class AuthController {
                 username: user.username,
                 role: user.role_id
             }, process.env.SECRET_ACCESS_TOKEN ?? 'SECRET_TOKEN_RAHASIA', {
-                expiresIn: '7h'
+                expiresIn: 3600 * 24 * 7
             });
+            if (user.is_verified) {
+                return res.status(200).json({
+                    status: 'Not Changed',
+                    message: 'User Already Verified'
+                })
+            }
 
             const generatedDate = generateFutureDate(7);
 
@@ -128,7 +132,31 @@ export class AuthController {
                 message: 'Email Verification Sent Successfully',
             })
         } catch (error: any) {
+            console.log({ error });
             handleError(error, res);
+        }
+    }
+
+    async verifyEmail(req: Request, res: Response) {
+        try {
+            const { token } = req.query;
+            if (typeof token !== 'string') {
+                throw new PayloadError('Token is required');
+            }
+            const { user, message } = await this.authService.verifyEmail(token);
+            if (!user) {
+                return res.status(200).json({
+                    status: 'Not Changed',
+                    message: 'User Already Verified'
+                })
+            }
+            res.status(200).json({
+                status: 'Success',
+                message,
+                data: user
+            })
+        } catch (err: any) {
+            handleError(err, res);
         }
     }
 }
