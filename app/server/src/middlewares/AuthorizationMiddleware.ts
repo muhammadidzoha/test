@@ -24,10 +24,14 @@ export const AuthorizationMiddleware = (role: Role[]) => {
                 return;
             }
             const decodedToken = jwt.verify(token, process.env.SECRET_ACCESS_TOKEN! ?? 'secrettokenrahasia') as IPayloadToken;
+            if (!role.length) {
+                (req as any).user = decodedToken;
+                next();
+            }
             if (!role.includes(decodedToken.role)) {
                 res.status(403).json({
                     status: 'Fail',
-                    message: 'You are not authorized to access this resource'
+                    message: `Only ${role} can access this resource`
                 })
                 return;
             }
