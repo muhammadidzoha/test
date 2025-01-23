@@ -38,8 +38,10 @@ model User {
   updated_at  DateTime @default(now()) @db.Timestamp(2)
   is_verified Boolean  @default(false)
 
-  institution Institution?
+  institution        Institution?
+  health_care_member HealthCareMember?
   // parent      Parent?
+  healthCareId       Int?
 
   @@map("users")
 }
@@ -61,6 +63,7 @@ model Institution {
   health_education   HealthEducation?
   health_service     HealthService?
   school_environment SchoolEnvironment?
+  health_care        HealthCare?
 
   @@map("institutions")
 }
@@ -131,10 +134,59 @@ model SchoolEnvironment {
   @@map("school_environments")
 }
 
-// model UKSManagement {
-//   id Int @id @default(autoincrement())
+model HealthCare {
+  id        Int    @id @default(autoincrement())
+  name      String @db.VarChar(255)
+  lead_name String @db.VarChar(255)
+  school_id Int    @unique
 
-//   @@map("UKS_managements")
+  school              Institution        @relation(fields: [school_id], references: [id])
+  health_care_members HealthCareMember[]
+
+  @@map("health_cares")
+}
+
+model HealthCareMember {
+  id             Int    @id @default(autoincrement())
+  name           String @db.VarChar(255)
+  health_care_id Int    @db.Int
+  position_id    Int    @db.Int
+  user_id        Int    @unique @db.Int
+
+  user        User       @relation(fields: [user_id], references: [id])
+  position    Position   @relation(fields: [position_id], references: [id])
+  health_care HealthCare @relation(fields: [health_care_id], references: [id])
+
+  @@map("health_care_members")
+}
+
+model Position {
+  id      Int    @id @default(autoincrement())
+  name    String @db.VarChar(255)
+  modules String @db.VarChar(255)
+
+  health_care_members HealthCareMember[]
+
+  @@map("positions")
+}
+
+// model HealthCareFacility {
+//   id        Int    @id @default(autoincrement())
+//   name      String @db.VarChar(255)
+//   status_id Int    @db.Int
+
+//   status HealthCareFacilityStatus @relation(fields: [status_id], references: [id])
+
+//   @@map("health_care_facilities")
+// }
+
+// model HealthCareFacilityStatus {
+//   id   Int    @id @default(autoincrement())
+//   name String @db.VarChar(255)
+
+//   facility HealthCareFacility[]
+
+//   @@map("health_care_facility_status")
 // }
 
 // model Parent {

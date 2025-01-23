@@ -31,6 +31,10 @@ export class SeedService {
                     {
                         id: 4,
                         name: 'parent'
+                    },
+                    {
+                        id: 5,
+                        name: 'uks'
                     }
                 ]
             })
