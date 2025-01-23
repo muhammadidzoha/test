@@ -2,7 +2,7 @@
 CREATE TABLE `health_services` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `school_id` INTEGER NOT NULL,
-    `heatlh_check_routine` BOOLEAN NOT NULL DEFAULT false,
+    `health_check_routine` BOOLEAN NOT NULL DEFAULT false,
     `referral_handling` BOOLEAN NOT NULL DEFAULT false,
     `consuling_facility` BOOLEAN NOT NULL DEFAULT false,
     `periodic_screening_inspection` BOOLEAN NOT NULL DEFAULT false,

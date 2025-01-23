@@ -108,7 +108,7 @@ model HealthEducation {
 model HealthService {
   id                            Int     @id @default(autoincrement()) @db.Int
   school_id                     Int     @unique
-  heatlh_check_routine          Boolean @default(false)
+  health_check_routine          Boolean @default(false)
   referral_handling             Boolean @default(false)
   consuling_facility            Boolean @default(false)
   periodic_screening_inspection Boolean @default(false)

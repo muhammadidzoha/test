@@ -13,3 +13,7 @@ export const schoolRouter = express.Router();
 schoolRouter.put('/:schoolId/health-education', AuthorizationMiddleware(['school', 'admin']), (req, res) => {
     schoolController.createOrUpdateHealthEducation(req, res);
 });
+
+schoolRouter.put('/:schoolId/health-service', AuthorizationMiddleware(['school', 'admin']), (req, res) => {
+    schoolController.createOrUpdateHealthService(req, res);
+})

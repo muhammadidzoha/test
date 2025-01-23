@@ -1,18 +1,18 @@
 import { PrismaClient } from "@prisma/client";
-import { IHealthEducation } from "../types/school";
+import { IHealthEducation, IHealthServicePayload } from "../types/school";
 import { NotFoundError } from "../common/exception";
 
 export class SchoolService {
     constructor(public prismaClient: PrismaClient) { }
-
+    // Health Education Services
     async createOrUpdateHealthEducation(schoolId: number, payload: IHealthEducation) {
         const { healthEducation } = await this.getHealthEducation(schoolId);
         console.log({ healthEducation });
         if (!healthEducation) {
-            return this.createHealthEducation(schoolId, payload);
+            return await this.createHealthEducation(schoolId, payload);
         }
 
-        return this.updateHealthEducation(schoolId, payload);
+        return await this.updateHealthEducation(schoolId, payload);
     }
 
     async createHealthEducation(schoolId: number, payload: IHealthEducation) {
@@ -77,5 +77,58 @@ export class SchoolService {
         });
 
         return { healthEducation };
+    }
+
+
+    // Health Services Service
+    async createOrUpdateHealthServices(schoolId: number, payload: IHealthServicePayload) {
+        const { healthService } = await this.getHealthService(schoolId);
+        if (!healthService) {
+            return await this.createHealthService(schoolId, payload);
+        }
+
+        return await this.updateHealthService(schoolId, payload);
+    }
+
+    async getHealthService(schoolId: number) {
+        const healthService = await this.prismaClient.healthService.findUnique({
+            where: {
+                school_id: schoolId
+            }
+        });
+
+        return {
+            healthService
+        }
+    }
+
+    async createHealthService(schoolId: number, payload: IHealthServicePayload) {
+        const healthService = await this.prismaClient.healthService.create({
+            data: {
+                health_check_routine: payload.healthCheckRoutine,
+                referral_handling: payload.referralHandling,
+                consuling_facility: payload.consulingFacility,
+                periodic_screening_inspection: payload.periodicScreeningInspection,
+                school_id: schoolId
+            }
+        });
+
+        return { healthService };
+    }
+
+    async updateHealthService(schoolId: number, payload: IHealthServicePayload) {
+        const healthService = await this.prismaClient.healthService.update({
+            where: {
+                school_id: schoolId
+            },
+            data: {
+                referral_handling: payload.referralHandling,
+                consuling_facility: payload.consulingFacility,
+                periodic_screening_inspection: payload.periodicScreeningInspection,
+                health_check_routine: payload.healthCheckRoutine
+            }
+        })
+
+        return { healthService };
     }
 }

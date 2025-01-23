@@ -1,3 +1,5 @@
+import { boolean } from "joi";
+
 export interface IHealthEducation {
     healthEducationPlan: boolean;
     healthEducation: boolean
@@ -11,4 +13,11 @@ export interface IHealthEducation {
     nutritionEducation: boolean
     healthyLivingImplementation: boolean
     parentInvolvement: boolean
+}
+
+export interface IHealthServicePayload {
+    healthCheckRoutine: boolean;
+    referralHandling: boolean;
+    consulingFacility: boolean;
+    periodicScreeningInspection: boolean;
 }
