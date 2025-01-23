@@ -21,8 +21,7 @@ export const AuthorizationMiddleware = (role: Role[]) => {
             });
             return;
         }
-        const decodedToken = jwt.verify(token, process.env.SECRET_ACCESS_TOKEN!) as IPayloadToken;
-        console.log({ decodedToken });
+        const decodedToken = jwt.verify(token, process.env.SECRET_ACCESS_TOKEN! ?? 'secrettokenrahasia') as IPayloadToken;
         if (!role.includes(decodedToken.role)) {
             res.status(403).json({
                 status: 'Fail',

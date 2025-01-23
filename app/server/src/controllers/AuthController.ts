@@ -79,9 +79,8 @@ export class AuthController {
     }
 
     async login(req: Request, res: Response) {
-        const { uniqueIdentity, password } = req.body;
-
         try {
+            const { uniqueIdentity, password } = req.body;
             const { accessToken } = await this.authService.login(uniqueIdentity, password);
             res.status(200).json({
                 status: 'Success',
@@ -113,12 +112,12 @@ export class AuthController {
             const generatedDate = generateFutureDate(7);
 
             const payload: INodemailerMessage = {
-                from: process.env.SMTP_EMAIL,
+                from: process.env.SMTP_EMAIL ?? 'admin@gmail.com',
                 to: email,
                 subject: 'Email Verification',
                 html: `
                 <h1>Email Verification</h1>
-                <p>Click this link before <strong>${generatedDate}</strong> to verify your email: <a href="${process.env.API_BASE_URL}/auth/email/verify?token=${generatedToken}">Verify Email</a></p>
+                <p>Click this link before <strong>${generatedDate}</strong> to verify your email: <a href="${process.env.API_BASE_URL ?? 'http://localhost:5000'}/auth/email/verify?token=${generatedToken}">Verify Email</a></p>
                 `
             }
 

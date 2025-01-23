@@ -1,5 +1,6 @@
 import dotenv from 'dotenv';
-dotenv.config();
+import dotenvExpand from 'dotenv-expand';
+dotenvExpand.expand(dotenv.config());
 import express, { Request, Response } from 'express';
 import { SeedService } from './services/SeedService';
 import { prismaDBClient } from '../config/prisma';
