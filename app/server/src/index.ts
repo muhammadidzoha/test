@@ -1,13 +1,29 @@
-import express, { Request, Response } from 'express';
 import dotenv from 'dotenv';
-dotenv.config();
+import dotenvExpand from 'dotenv-expand';
+dotenvExpand.expand(dotenv.config());
+import express, { Request, Response } from 'express';
+import { SeedService } from './services/SeedService';
+import { prismaDBClient } from '../config/prisma';
 
-const init = () => {
+// route
+import { authRouter } from './routes/AuthRouter';
+
+// Middleware
+
+const seedService = new SeedService(prismaDBClient);
+
+const init = async () => {
     const port = process.env.API_PORT ? +process.env.API_PORT : 5000;
-
+    await seedService.seed();
     const app = express();
+    app.use(express.json());
+    app.use(express.urlencoded({ extended: true }));
+    app.use('/public', express.static('uploads'))
+
+    app.use('/auth', authRouter);
+
     app.get('/', (req: Request, res: Response) => {
-        res.send('ok2222');
+        res.send('ok');
     })
 
     app.listen(port, () => {
@@ -15,4 +31,4 @@ const init = () => {
     })
 };
 
-init();
+init()

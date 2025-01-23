@@ -1,0 +1,78 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Test {
+  id   Int    @id @db.Int
+  name String @db.VarChar(255)
+}
+
+model Role {
+  id    Int    @id @default(autoincrement())
+  name  String @unique @db.VarChar(255)
+  users User[]
+
+  @@map("roles")
+}
+
+model User {
+  id          Int      @id @default(autoincrement())
+  username    String   @unique() @db.VarChar(255)
+  email       String   @unique @default("") @db.VarChar(255)
+  password    String   @db.VarChar(255)
+  role_id     Int      @db.Int
+  role        Role     @relation(fields: [role_id], references: [id])
+  created_at  DateTime @default(now()) @db.Timestamp(2)
+  updated_at  DateTime @default(now()) @db.Timestamp(2)
+  is_verified Boolean  @default(false)
+
+  institution Institution?
+  // parent      Parent?
+
+  @@map("users")
+}
+
+model Institution {
+  id               Int             @id @default(autoincrement())
+  name             String          @db.VarChar(255)
+  address          String          @db.Text
+  phone_number     String          @db.VarChar(255)
+  email            String          @db.VarChar(255)
+  head_name        String          @db.VarChar(255)
+  head_nip         String          @db.VarChar(255)
+  license_document String          @db.VarChar(255)
+  user_id          Int             @unique @db.Int
+  user             User            @relation(fields: [user_id], references: [id])
+  type             Int             @db.Int
+  institution_type InstitutionType @relation(fields: [type], references: [id])
+
+  @@map("institutions")
+}
+
+model InstitutionType {
+  id           Int           @id @default(autoincrement())
+  name         String        @db.VarChar(255)
+  institutions Institution[]
+}
+
+// model Parent {
+//   id           Int     @id @default(autoincrement())
+//   full_name    String? @db.VarChar(255)
+//   phone_number String? @db.VarChar(255)
+//   user_id      Int     @unique @db.Int
+//   user         User    @relation(fields: [user_id], references: [id])
+
+//   @@map("parents")
+// }
