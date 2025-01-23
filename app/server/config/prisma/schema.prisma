@@ -38,25 +38,32 @@ model User {
   updated_at  DateTime @default(now()) @db.Timestamp(2)
   is_verified Boolean  @default(false)
 
-  institution Institution?
+  institution        Institution?
+  health_care_member HealthCareMember?
   // parent      Parent?
+  healthCareId       Int?
 
   @@map("users")
 }
 
 model Institution {
-  id               Int             @id @default(autoincrement())
-  name             String          @db.VarChar(255)
-  address          String          @db.Text
-  phone_number     String          @db.VarChar(255)
-  email            String          @db.VarChar(255)
-  head_name        String          @db.VarChar(255)
-  head_nip         String          @db.VarChar(255)
-  license_document String          @db.VarChar(255)
-  user_id          Int             @unique @db.Int
-  user             User            @relation(fields: [user_id], references: [id])
-  type             Int             @db.Int
-  institution_type InstitutionType @relation(fields: [type], references: [id])
+  id               Int    @id @default(autoincrement())
+  name             String @db.VarChar(255)
+  address          String @db.Text
+  phone_number     String @db.VarChar(255)
+  email            String @db.VarChar(255)
+  head_name        String @db.VarChar(255)
+  head_nip         String @db.VarChar(255)
+  license_document String @db.VarChar(255)
+  user_id          Int    @unique @db.Int
+  user             User   @relation(fields: [user_id], references: [id])
+  type             Int    @db.Int
+
+  institution_type   InstitutionType    @relation(fields: [type], references: [id])
+  health_education   HealthEducation?
+  health_service     HealthService?
+  school_environment SchoolEnvironment?
+  health_care        HealthCare?
 
   @@map("institutions")
 }
@@ -67,12 +74,126 @@ model InstitutionType {
   institutions Institution[]
 }
 
+// model SchoolFacility {
+//   id                   Int    @id @default(autoincrement()) @db.Int
+//   school_id            Int    @db.Int
+//   facility_category_id Int    @db.Int
+//   name                 String @db.VarChar(255)
+//   total
+// }
+
+// model FacilityCategory {
+//   id   Int    @id @default(autoincrement())
+//   name String @db.VarChar(255)
+// }
+
+model HealthEducation {
+  id                                Int     @id @default(autoincrement()) @db.Int
+  school_id                         Int     @unique @db.Int
+  health_education_plan             Boolean @default(false)
+  health_education                  Boolean @default(false)
+  physical_education                Boolean @default(false)
+  extracurricular_health_activities Boolean @default(false)
+  literacy_health_program           Boolean @default(false)
+  cader_coaching                    Boolean @default(false)
+  healthy_breakfast_program         Boolean @default(false)
+  physical_class_activities         Boolean @default(false)
+  fitness_test                      Boolean @default(false)
+  nutrition_education               Boolean @default(false)
+  healthy_living_implementation     Boolean @default(false)
+  parent_involvement                Boolean @default(false)
+
+  school Institution @relation(fields: [school_id], references: [id])
+
+  @@map("health_educations")
+}
+
+model HealthService {
+  id                            Int     @id @default(autoincrement()) @db.Int
+  school_id                     Int     @unique
+  health_check_routine          Boolean @default(false)
+  referral_handling             Boolean @default(false)
+  consuling_facility            Boolean @default(false)
+  periodic_screening_inspection Boolean @default(false)
+
+  school Institution @relation(fields: [school_id], references: [id])
+
+  @@map("health_services")
+}
+
+model SchoolEnvironment {
+  id                      Int     @id @default(autoincrement())
+  school_id               Int     @unique
+  canteen                 Boolean @default(false)
+  green_space             Boolean @default(false)
+  trash_can               Boolean @default(false)
+  unprotected_area_policy Boolean @default(false)
+
+  school Institution @relation(fields: [school_id], references: [id])
+
+  @@map("school_environments")
+}
+
+model HealthCare {
+  id        Int    @id @default(autoincrement())
+  name      String @db.VarChar(255)
+  lead_name String @db.VarChar(255)
+  school_id Int    @unique
+
+  school              Institution        @relation(fields: [school_id], references: [id])
+  health_care_members HealthCareMember[]
+
+  @@map("health_cares")
+}
+
+model HealthCareMember {
+  id             Int    @id @default(autoincrement())
+  name           String @db.VarChar(255)
+  health_care_id Int    @db.Int
+  position_id    Int    @db.Int
+  user_id        Int    @unique @db.Int
+
+  user        User       @relation(fields: [user_id], references: [id])
+  position    Position   @relation(fields: [position_id], references: [id])
+  health_care HealthCare @relation(fields: [health_care_id], references: [id])
+
+  @@map("health_care_members")
+}
+
+model Position {
+  id      Int    @id @default(autoincrement())
+  name    String @db.VarChar(255)
+  modules String @db.VarChar(255)
+
+  health_care_members HealthCareMember[]
+
+  @@map("positions")
+}
+
+// model HealthCareFacility {
+//   id        Int    @id @default(autoincrement())
+//   name      String @db.VarChar(255)
+//   status_id Int    @db.Int
+
+//   status HealthCareFacilityStatus @relation(fields: [status_id], references: [id])
+
+//   @@map("health_care_facilities")
+// }
+
+// model HealthCareFacilityStatus {
+//   id   Int    @id @default(autoincrement())
+//   name String @db.VarChar(255)
+
+//   facility HealthCareFacility[]
+
+//   @@map("health_care_facility_status")
+// }
+
 // model Parent {
 //   id           Int     @id @default(autoincrement())
 //   full_name    String? @db.VarChar(255)
 //   phone_number String? @db.VarChar(255)
 //   user_id      Int     @unique @db.Int
-//   user         User    @relation(fields: [user_id], references: [id])
 
 //   @@map("parents")
 // }

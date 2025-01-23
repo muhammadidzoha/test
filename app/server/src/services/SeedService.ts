@@ -31,6 +31,10 @@ export class SeedService {
                     {
                         id: 4,
                         name: 'parent'
+                    },
+                    {
+                        id: 5,
+                        name: 'uks'
                     }
                 ]
             })
@@ -64,7 +68,7 @@ export class SeedService {
                 data: {
                     id: 1,
                     username: process.env.ADMIN_USERNAME ?? 'admin',
-                    password: process.env.ADMIN_PASSWORD ?? bcrypt.hashSync('admin', 10),
+                    password: bcrypt.hashSync(process.env.ADMIN_PASSWORD ?? 'admin', 10),
                     email: process.env.SMTP_EMAIL ?? 'admin@gmail.com',
                     is_verified: true,
                     role_id: 1,

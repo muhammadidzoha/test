@@ -13,10 +13,10 @@ import { multerMiddleware } from '../middlewares/MulterMiddleware';
 import { AuthorizationMiddleware } from '../middlewares/AuthorizationMiddleware';
 
 
-const authService = new AuthService(prismaDBClient, bcrypt, jwt);
 const emailService = new EmailService();
+const authService = new AuthService(prismaDBClient, bcrypt, jwt, emailService);
 
-const authController = new AuthController(authService, emailService);
+const authController = new AuthController(authService);
 
 export const authRouter = express.Router();
 

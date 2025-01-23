@@ -8,6 +8,7 @@ import { prismaDBClient } from '../config/prisma';
 
 // route
 import { authRouter } from './routes/AuthRouter';
+import { schoolRouter } from './routes/SchoolRouter';
 
 // Middleware
 
@@ -23,6 +24,7 @@ const init = async () => {
     app.use('/public', express.static('uploads'))
 
     app.use('/auth', authRouter);
+    app.use('/institutions/schools', schoolRouter)
 
     app.get('/', (req: Request, res: Response) => {
         res.send('ok');
