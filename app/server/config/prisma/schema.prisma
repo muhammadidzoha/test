@@ -59,7 +59,7 @@ model Institution {
 
   institution_type InstitutionType  @relation(fields: [type], references: [id])
   health_education HealthEducation?
-  // health_service     HealthService?
+  health_service   HealthService?
   // school_environment SchoolEnvironment?
 
   @@map("institutions")
@@ -105,18 +105,18 @@ model HealthEducation {
   @@map("health_educations")
 }
 
-// model HealthService {
-//   id                            Int     @id @default(autoincrement()) @db.Int
-//   school_id                     Int     @unique
-//   heatlh_check_routine          Boolean @default(false)
-//   referral_handling             Boolean @default(false)
-//   consuling_facility            Boolean @default(false)
-//   periodic_screening_inspection Boolean @default(false)
+model HealthService {
+  id                            Int     @id @default(autoincrement()) @db.Int
+  school_id                     Int     @unique
+  heatlh_check_routine          Boolean @default(false)
+  referral_handling             Boolean @default(false)
+  consuling_facility            Boolean @default(false)
+  periodic_screening_inspection Boolean @default(false)
 
-//   school Institution @relation(fields: [school_id], references: [id])
+  school Institution @relation(fields: [school_id], references: [id])
 
-//   @@map("health_services")
-// }
+  @@map("health_services")
+}
 
 // model SchoolEnvironment {
 //   id                    Int     @id @default(autoincrement())

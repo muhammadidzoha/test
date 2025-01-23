@@ -10,10 +10,6 @@ const schoolController = new SchoolController(schoolService);
 
 export const schoolRouter = express.Router();
 
-
-
 schoolRouter.put('/:schoolId/health-education', AuthorizationMiddleware(['school', 'admin']), (req, res) => {
     schoolController.createOrUpdateHealthEducation(req, res);
 });
-
-// how to parameter in route
