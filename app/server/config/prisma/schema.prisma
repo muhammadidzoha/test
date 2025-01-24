@@ -73,19 +73,6 @@ model InstitutionType {
   institutions Institution[]
 }
 
-// model SchoolFacility {
-//   id                   Int    @id @default(autoincrement()) @db.Int
-//   school_id            Int    @db.Int
-//   facility_category_id Int    @db.Int
-//   name                 String @db.VarChar(255)
-//   total
-// }
-
-// model FacilityCategory {
-//   id   Int    @id @default(autoincrement())
-//   name String @db.VarChar(255)
-// }
-
 model HealthEducation {
   id                                Int     @id @default(autoincrement()) @db.Int
   school_id                         Int     @unique @db.Int
@@ -195,4 +182,17 @@ model Position {
 //   user_id      Int     @unique @db.Int
 
 //   @@map("parents")
+// }
+
+// model SchoolFacility {
+//   id                   Int    @id @default(autoincrement()) @db.Int
+//   school_id            Int    @db.Int
+//   facility_category_id Int    @db.Int
+//   name                 String @db.VarChar(255)
+//   total
+// }
+
+// model FacilityCategory {
+//   id   Int    @id @default(autoincrement())
+//   name String @db.VarChar(255)
 // }
