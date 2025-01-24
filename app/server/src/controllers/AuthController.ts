@@ -77,9 +77,11 @@ export class AuthController {
     async sendEmailCompleteRegistration(req: Request, res: Response) {
         try {
             validatePayload(CompleteRegistrationSchema, req.body);
-            const { schoolId, healthCareId, email } = req.body;
+            const { schoolId, healthCareId } = req.params;
+            const { email, fullName } = req.body;
+            const { email: senderEmail } = (req as any).user;
 
-            await this.authService.sendEmailRegistration({ schoolId, healthCareId, email });
+            await this.authService.sendEmailRegistration({ schoolId: +schoolId, healthCareId: +healthCareId, email, name: fullName, senderEmail });
             res.status(200).json({
                 status: 'Success',
                 message: 'Email for Registration Sent Successfully',

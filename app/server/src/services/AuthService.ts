@@ -140,20 +140,19 @@ export class AuthService {
         return { user }
     }
 
-    async sendEmailRegistration({ schoolId, healthCareId, email }: { schoolId: number, healthCareId: number, email: string }) {
-        const { user: instituteUser } = await this.getUserByKey('school_id', schoolId);
+    async sendEmailRegistration(payload: { schoolId: number, healthCareId: number, email: string, name: string, senderEmail: string }) {
         const generatedToken = this.jwt.sign({
-            schoolId,
-            healthCareId,
-            email
+            schoolId: payload.schoolId,
+            healthCareId: payload.healthCareId,
+            email: payload.email,
+            name: payload.name,
         }, process.env.SECRET_ACCESS_TOKEN, {
             expiresIn: 3600 * 24 * 7
         })
-
         const generatedDate = generateFutureDate(7);
         await this.emailService.sendEmail({
-            from: instituteUser.email,
-            to: email,
+            from: payload.senderEmail,
+            to: payload.email,
             subject: 'Email Registration',
             html: `
                 <p>Click this link to complete your registration before <strong>${generatedDate}</strong> <a href="${process.env.FRONT_END_COMPLETE_REGISTRATION_URL}?token=${generatedToken}">Complete Registration</a></p>
@@ -161,10 +160,12 @@ export class AuthService {
         })
     }
 
-    async getUserByKey(key: string, value: any) {
+    async getUserByKey(value: any) {
         const user = await this.prismaClient.user.findFirst({
             where: {
-                [key]: value
+                institution: {
+                    id: value
+                }
             }
         })
 
@@ -216,6 +217,7 @@ export class AuthService {
         const accessToken = this.jwt.sign({
             id: userOnDatabase.id,
             username: userOnDatabase.username,
+            email: userOnDatabase.email,
             role: userRole?.name ?? 'parent'
         }, process.env.SECRET_ACCESS_TOKEN ?? 'accesstokenrahasia', {
             expiresIn: 3600 * 3
@@ -269,5 +271,37 @@ export class AuthService {
         }
 
         return { user: null, message: 'User already verified' };
+    }
+
+    async verifyHealthcareMemberRegistrationEmail(token: string, payload: RegisterPayloadType) {
+        const { schoolId, healthCareId, email, name } = this.jwt.verify(token, process.env.SECRET_ACCESS_TOKEN);
+        const newHealthCaremember = await this.prismaClient.healthCareMember.create({
+            data: {
+                user: {
+                    create: {
+                        username: payload.username,
+                        email: payload.email,
+                        password: payload.password,
+                        role_id: 5,
+                        is_verified: true,
+                    }
+                },
+                health_care: {
+                    connect: {
+                        id: healthCareId
+                    }
+                },
+                name,
+                position: {
+                    connect: {
+                        id: 2
+                    }
+                }
+            }
+        });
+
+        return {
+            healthCareMember: newHealthCaremember
+        }
     }
 }
