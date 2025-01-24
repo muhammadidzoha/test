@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client";
-import { IHealthEducation, IHealthServicePayload, ISchoolEnvironment } from "../types/school";
-import { NotFoundError } from "../common/exception";
+import { IHealthCare, IHealthCareMember, IHealthEducation, IHealthServicePayload, ISchoolEnvironment } from "../types/school";
+import { InvariantError, NotFoundError } from "../common/exception";
 
 export class SchoolService {
     constructor(public prismaClient: PrismaClient) { }
@@ -180,5 +180,84 @@ export class SchoolService {
         });
 
         return { schoolEnvironment };
+    }
+
+    async createOrUpdateHealthCare(schoolId: number, payload: IHealthCare) {
+        const { healthCare } = await this.getHealthCareBySchoolId(schoolId);
+
+        if (!healthCare) {
+            return await this.createHealthCare(schoolId, payload);
+        }
+
+        return await this.updateHealthCare(schoolId, payload);
+    }
+
+    async createHealthCare(schoolId: number, payload: IHealthCare) {
+        const newHealthCare = await this.prismaClient.healthCare.create({
+            data: {
+                school_id: schoolId,
+                lead_name: payload.leadName,
+                name: payload.name,
+            }
+        });
+
+        return {
+            healthCare: newHealthCare
+        }
+    }
+
+    async updateHealthCare(schoolId: number, payload: IHealthCare) {
+        const updatedHealthCare = await this.prismaClient.healthCare.update({
+            where: {
+                school_id: schoolId
+            },
+            data: {
+                lead_name: payload.leadName,
+                name: payload.name
+            }
+        });
+
+        return {
+            healthCare: updatedHealthCare
+        }
+    }
+
+    async getHealthCareBySchoolId(schoolId: number) {
+        const healthCare = await this.prismaClient.healthCare.findUnique({
+            where: {
+                school_id: schoolId
+            }
+        });
+
+        return { healthCare };
+    }
+
+    async addHealthCareMember(payload: IHealthCareMember) {
+        const healthCare = await this.prismaClient.healthCareMember.create({
+            data: {
+                name: payload.name,
+                health_care: {
+                    connect: {
+                        id: payload.healthCareId
+                    }
+                },
+                position: {
+                    connect: {
+                        id: payload.positionId
+                    }
+                },
+                ...(payload.userId && ({
+                    user: {
+                        connect: {
+                            id: payload.userId
+                        }
+                    }
+                }))
+            }
+        })
+
+        return {
+            healthCare
+        };
     }
 }

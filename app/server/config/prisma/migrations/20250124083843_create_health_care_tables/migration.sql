@@ -1,6 +1,3 @@
--- AlterTable
-ALTER TABLE `users` ADD COLUMN `healthCareId` INTEGER NULL;
-
 -- CreateTable
 CREATE TABLE `health_cares` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
@@ -18,7 +15,7 @@ CREATE TABLE `health_care_members` (
     `name` VARCHAR(255) NOT NULL,
     `health_care_id` INTEGER NOT NULL,
     `position_id` INTEGER NOT NULL,
-    `user_id` INTEGER NOT NULL,
+    `user_id` INTEGER NULL,
 
     UNIQUE INDEX `health_care_members_user_id_key`(`user_id`),
     PRIMARY KEY (`id`)
@@ -37,7 +34,7 @@ CREATE TABLE `positions` (
 ALTER TABLE `health_cares` ADD CONSTRAINT `health_cares_school_id_fkey` FOREIGN KEY (`school_id`) REFERENCES `institutions`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `health_care_members` ADD CONSTRAINT `health_care_members_user_id_fkey` FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `health_care_members` ADD CONSTRAINT `health_care_members_user_id_fkey` FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `health_care_members` ADD CONSTRAINT `health_care_members_position_id_fkey` FOREIGN KEY (`position_id`) REFERENCES `positions`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;

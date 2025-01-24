@@ -2,10 +2,11 @@ import { Request, Response } from "express";
 import { SchoolService } from "../services/SchoolService";
 import { handleError, validatePayload } from "../common/http";
 import { HealthEducationSchema } from "../common/http/requestvalidator/HealthEducationValidator";
-import { IHealthEducation, IHealthServicePayload } from "../types/school";
+import { IHealthCare, IHealthEducation, IHealthServicePayload } from "../types/school";
 import { InvariantError } from "../common/exception";
 import { HealthServiceSchema } from "../common/http/requestvalidator/HealthServiceValidator";
 import { schoolEnvironmentSchema } from "../common/http/requestvalidator/SchoolEnvironmentValidator";
+import { CreateHealthCareSchema } from "../common/http/requestvalidator/HealhCareValidator";
 
 export class SchoolController {
     constructor(public schoolService: SchoolService) { }
@@ -19,7 +20,6 @@ export class SchoolController {
             }
 
             const reqPayload: IHealthEducation = req.body;
-            console.log({ reqPayload });
 
 
             const { healthEducation } = await this.schoolService.createOrUpdateHealthEducation(+schoolId, reqPayload);
@@ -74,4 +74,26 @@ export class SchoolController {
             handleError(err, res);
         }
     }
+
+    async createOrUpdateHealthCare(req: Request, res: Response) {
+        try {
+            validatePayload(CreateHealthCareSchema, req.body);
+            const { schoolId } = req.params;
+            if (!schoolId) {
+                throw new InvariantError('School Id is required in Parameter');
+            }
+            const payload: IHealthCare = req.body
+
+            const { healthCare } = await this.schoolService.createOrUpdateHealthCare(+schoolId, payload);
+            res.status(201).json({
+                status: 'Success',
+                message: `Health Care for School ${schoolId} is Created or Updated`,
+                data: healthCare
+            })
+        } catch (err: any) {
+            handleError(err, res);
+        }
+    }
+
+
 };
