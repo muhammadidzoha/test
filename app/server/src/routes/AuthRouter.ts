@@ -43,3 +43,7 @@ authRouter.get('/email/verify', async (req, res) => {
 authRouter.post('/register/schools/:schoolId/health-care/:healthCareId/email', AuthorizationMiddleware(['admin', 'school']), async (req, res) => {
     await authController.sendEmailCompleteRegistration(req, res);
 })
+
+authRouter.post('/register/schools/:schoolId/health-care/:healthCareId/member', AuthorizationMiddleware(['admin', 'school']), async (req, res) => {
+    await authController.verifyEmailCompleteRegistration(req, res);
+})

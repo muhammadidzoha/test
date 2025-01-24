@@ -141,11 +141,12 @@ export class AuthService {
     }
 
     async sendEmailRegistration(payload: { schoolId: number, healthCareId: number, email: string, name: string, senderEmail: string }) {
+        const { user } = await this.getUserByKey("email", payload.email);
+        if (!!user) {
+            throw new AuthenticationError('User already exists');
+        }
         const generatedToken = this.jwt.sign({
-            schoolId: payload.schoolId,
-            healthCareId: payload.healthCareId,
-            email: payload.email,
-            name: payload.name,
+            ...payload
         }, process.env.SECRET_ACCESS_TOKEN, {
             expiresIn: 3600 * 24 * 7
         })
@@ -160,18 +161,12 @@ export class AuthService {
         })
     }
 
-    async getUserByKey(value: any) {
+    async getUserByKey(key: string, value: any) {
         const user = await this.prismaClient.user.findFirst({
             where: {
-                institution: {
-                    id: value
-                }
+                [key]: value
             }
         })
-
-        if (!user) {
-            throw new NotFoundError('User not found');
-        }
 
         return { user }
     }
@@ -273,25 +268,30 @@ export class AuthService {
         return { user: null, message: 'User already verified' };
     }
 
-    async verifyHealthcareMemberRegistrationEmail(token: string, payload: RegisterPayloadType) {
-        const { schoolId, healthCareId, email, name } = this.jwt.verify(token, process.env.SECRET_ACCESS_TOKEN);
+    async verifyHealthcareMemberRegistrationEmail(token: string, payload: Omit<RegisterPayloadType, "email">) {
+        const decodedToken = this.jwt.verify(token, process.env.SECRET_ACCESS_TOKEN);
+        console.log({ decodedToken, payload, token })
+
+        const { newUser } = await this.register({
+            username: payload.username,
+            email: decodedToken.email,
+            password: payload.password,
+            roleId: 5,
+            isVerified: true
+        });
         const newHealthCaremember = await this.prismaClient.healthCareMember.create({
             data: {
                 user: {
-                    create: {
-                        username: payload.username,
-                        email: payload.email,
-                        password: payload.password,
-                        role_id: 5,
-                        is_verified: true,
+                    connect: {
+                        id: newUser.id
                     }
                 },
                 health_care: {
                     connect: {
-                        id: healthCareId
+                        id: decodedToken.healthCareId
                     }
                 },
-                name,
+                name: decodedToken.name,
                 position: {
                     connect: {
                         id: 2

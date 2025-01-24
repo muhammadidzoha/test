@@ -153,4 +153,25 @@ export class AuthController {
             handleError(err, res);
         }
     }
+
+    async verifyEmailCompleteRegistration(req: Request, res: Response) {
+        try {
+            const { token } = req.query;
+            if (!token) {
+                throw new PayloadError('Token is required');
+            }
+            const payload: Omit<RegisterPayloadType, "email"> = req.body;
+            if (!payload.username || !payload.password) {
+                throw new PayloadError('Username and Password is required');
+            }
+            const { healthCareMember } = await this.authService.verifyHealthcareMemberRegistrationEmail(token as string, payload);
+            res.status(200).json({
+                status: 'Success',
+                message: `User Registered Successfully as Health Care Member`,
+                data: healthCareMember
+            })
+        } catch (err: any) {
+            handleError(err, res);
+        }
+    }
 }
