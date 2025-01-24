@@ -3,6 +3,7 @@ import fs from 'fs';
 import { Request, Response } from "express";
 import { InvariantError, PayloadError } from "../common/exception";
 import { handleError, registerPayloadSchema, validatePayload, verifyEmailSchema } from "../common/http";
+import { CompleteRegistrationSchema } from '../common/http/requestvalidator/CompleteRegistrationValidator';
 import { AuthService } from "../services";
 import { IInstitution, RegisterPayloadType } from "../types/auth";
 
@@ -69,6 +70,21 @@ export class AuthController {
             if (req.file) {
                 fs.unlinkSync(req.file.path);
             };
+            handleError(error, res);
+        }
+    }
+
+    async sendEmailCompleteRegistration(req: Request, res: Response) {
+        try {
+            validatePayload(CompleteRegistrationSchema, req.body);
+            const { schoolId, healthCareId, email } = req.body;
+
+            await this.authService.sendEmailRegistration({ schoolId, healthCareId, email });
+            res.status(200).json({
+                status: 'Success',
+                message: 'Email for Registration Sent Successfully',
+            })
+        } catch (error: any) {
             handleError(error, res);
         }
     }

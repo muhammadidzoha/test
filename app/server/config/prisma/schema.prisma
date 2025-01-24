@@ -41,7 +41,6 @@ model User {
   institution        Institution?
   health_care_member HealthCareMember?
   // parent      Parent?
-  healthCareId       Int?
 
   @@map("users")
 }

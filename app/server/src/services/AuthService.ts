@@ -140,6 +140,41 @@ export class AuthService {
         return { user }
     }
 
+    async sendEmailRegistration({ schoolId, healthCareId, email }: { schoolId: number, healthCareId: number, email: string }) {
+        const { user: instituteUser } = await this.getUserByKey('school_id', schoolId);
+        const generatedToken = this.jwt.sign({
+            schoolId,
+            healthCareId,
+            email
+        }, process.env.SECRET_ACCESS_TOKEN, {
+            expiresIn: 3600 * 24 * 7
+        })
+
+        const generatedDate = generateFutureDate(7);
+        await this.emailService.sendEmail({
+            from: instituteUser.email,
+            to: email,
+            subject: 'Email Registration',
+            html: `
+                <p>Click this link to complete your registration before <strong>${generatedDate}</strong> <a href="${process.env.FRONT_END_COMPLETE_REGISTRATION_URL}?token=${generatedToken}">Complete Registration</a></p>
+            `
+        })
+    }
+
+    async getUserByKey(key: string, value: any) {
+        const user = await this.prismaClient.user.findFirst({
+            where: {
+                [key]: value
+            }
+        })
+
+        if (!user) {
+            throw new NotFoundError('User not found');
+        }
+
+        return { user }
+    }
+
     async isUserExistsOnDatabase(username: string, email: string): Promise<boolean> {
         const userOnDatabase = await this.prismaClient.user.findFirst({
             where: {

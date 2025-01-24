@@ -32,15 +32,14 @@ authRouter.post('/register/institution', multerMiddleware.single('image'), async
     await authController.registerForInstitution(req, res);
 })
 
-authRouter.post('/', multerMiddleware.single('image'), (req, res) => {
-    console.log(req.file);
-    res.send('ok');
-})
-
 authRouter.post('/email', AuthorizationMiddleware(['admin']), async (req, res) => {
     await authController.sendEmailVerification(req, res);
 });
 
 authRouter.get('/email/verify', async (req, res) => {
     await authController.verifyEmail(req, res);
+})
+
+authRouter.post('/email/register', AuthorizationMiddleware(['admin', 'school']), async (req, res) => {
+    await authController.sendEmailCompleteRegistration(req, res);
 })
