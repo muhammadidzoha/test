@@ -196,3 +196,85 @@ model Position {
 //   id   Int    @id @default(autoincrement())
 //   name String @db.VarChar(255)
 // }
+
+model Family {
+  id                Int     @id @default(autoincrement()) @db.Int
+  head_family       String  @db.VarChar(255)
+  kk_number         String? @db.VarChar(255)
+  head_phone_number String  @db.VarChar(255)
+  description       String? @db.Text
+
+  family_member FamilyMember[]
+
+  @@map("families")
+}
+
+enum GENDER {
+  L
+  P
+}
+
+enum EDUCATION {
+  SD
+  SMP
+  SMA
+  D3
+  S1
+  S2
+  S3
+}
+
+model FamilyMember {
+  id                     Int       @id @default(autoincrement()) @db.Int
+  full_name              String    @db.VarChar(255)
+  birth_date             DateTime
+  height                 Float
+  weight                 Float
+  education              EDUCATION
+  job_id                 Int       @db.Int
+  knowledge_nutrition_id Int       @unique @db.Int
+  relation               String    @db.VarChar(255)
+  residence_id           Int       @db.Int
+  gender                 GENDER
+  family_id              Int       @db.Int
+
+  family              Family             @relation(fields: [family_id], references: [id])
+  job                 Job                @relation(fields: [job_id], references: [id])
+  residence           Residence          @relation(fields: [residence_id], references: [id])
+  knowledge_nutrition KnowledgeNutrition @relation(fields: [knowledge_nutrition_id], references: [id])
+
+  @@map("family_members")
+}
+
+model Job {
+  id     Int    @id @default(autoincrement()) @db.Int
+  name   String @db.VarChar(255)
+  income BigInt @db.BigInt
+
+  family_members FamilyMember[]
+}
+
+model KnowledgeNutrition {
+  id           Int           @id @default(autoincrement()) @db.Int
+  knowledge    String        @db.Text
+  score        Int?          @db.Int
+  FamilyMember FamilyMember?
+
+  @@map("knowledge_nutritions")
+}
+
+enum RESIDENCESTATUS {
+  OWN
+  RENT
+  OTHER
+}
+
+model Residence {
+  id          Int             @id @default(autoincrement()) @db.Int
+  status      RESIDENCESTATUS
+  description String?         @db.VarChar(255)
+
+  family_member FamilyMember[]
+
+  @@map("residences")
+}
