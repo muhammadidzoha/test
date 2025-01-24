@@ -233,7 +233,17 @@ export class SchoolService {
     }
 
     async addHealthCareMember(payload: IHealthCareMember) {
-        const healthCare = await this.prismaClient.healthCareMember.create({
+        const { healthCareMember } = await this.getHealthCareMemberByName(payload.name);
+
+        if (payload.positionId === 1) {
+            await this.ensureLeadPositionIsNotOccupied(payload.positionId);
+        }
+
+        if (!!healthCareMember) {
+            throw new InvariantError('Health Care Member already exists');
+        }
+
+        const createdHealthCareMember = await this.prismaClient.healthCareMember.create({
             data: {
                 name: payload.name,
                 health_care: {
@@ -253,11 +263,46 @@ export class SchoolService {
                         }
                     }
                 }))
+            },
+            include: {
+                health_care: true,
+                position: true,
+                user: true
             }
         })
 
         return {
-            healthCare
+            healthCareMember: createdHealthCareMember
         };
+    }
+
+    async getHealthCareMemberByName(name: string) {
+        const healthCareMember = await this.prismaClient.healthCareMember.findFirst({
+            where: {
+                name: {
+                    contains: name
+                }
+            }
+        });
+
+        return {
+            healthCareMember
+        }
+    }
+
+    async ensureLeadPositionIsNotOccupied(positionId: number) {
+        const position = await this.prismaClient.healthCareMember.findFirst({
+            where: {
+                position_id: positionId
+            }
+        });
+
+        if (!!position) {
+            throw new InvariantError('Lead Position is already occupied');
+        }
+
+        return {
+            position
+        }
     }
 }

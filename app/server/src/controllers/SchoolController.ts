@@ -6,7 +6,7 @@ import { IHealthCare, IHealthEducation, IHealthServicePayload } from "../types/s
 import { InvariantError } from "../common/exception";
 import { HealthServiceSchema } from "../common/http/requestvalidator/HealthServiceValidator";
 import { schoolEnvironmentSchema } from "../common/http/requestvalidator/SchoolEnvironmentValidator";
-import { CreateHealthCareSchema } from "../common/http/requestvalidator/HealhCareValidator";
+import { addHealthCareMemberSchema, CreateHealthCareSchema } from "../common/http/requestvalidator/HealhCareValidator";
 
 export class SchoolController {
     constructor(public schoolService: SchoolService) { }
@@ -95,5 +95,24 @@ export class SchoolController {
         }
     }
 
+    async addHealthCareMember(req: Request, res: Response) {
+        try {
+            validatePayload(addHealthCareMemberSchema, req.body);
+            const { healthCareId } = req.params;
+            if (!healthCareId) {
+                throw new InvariantError('School Id and Health Care Id is required in Parameter');
+            }
 
+            const { name, positionId, userId } = req.body;
+            const { healthCareMember } = await this.schoolService.addHealthCareMember({ healthCareId: +healthCareId, name, positionId, userId });
+
+            res.status(201).json({
+                status: 'Success',
+                message: 'Health Care Member is added',
+                data: healthCareMember
+            })
+        } catch (err: any) {
+            handleError(err, res);
+        }
+    }
 };
