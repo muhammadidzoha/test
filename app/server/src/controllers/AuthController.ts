@@ -3,6 +3,7 @@ import fs from 'fs';
 import { Request, Response } from "express";
 import { InvariantError, PayloadError } from "../common/exception";
 import { handleError, registerPayloadSchema, validatePayload, verifyEmailSchema } from "../common/http";
+import { CompleteRegistrationSchema } from '../common/http/requestvalidator/CompleteRegistrationValidator';
 import { AuthService } from "../services";
 import { IInstitution, RegisterPayloadType } from "../types/auth";
 
@@ -73,6 +74,23 @@ export class AuthController {
         }
     }
 
+    async sendEmailCompleteRegistration(req: Request, res: Response) {
+        try {
+            validatePayload(CompleteRegistrationSchema, req.body);
+            const { schoolId, healthCareId } = req.params;
+            const { email, fullName } = req.body;
+            const { email: senderEmail } = (req as any).user;
+
+            await this.authService.sendEmailRegistration({ schoolId: +schoolId, healthCareId: +healthCareId, email, name: fullName, senderEmail });
+            res.status(200).json({
+                status: 'Success',
+                message: 'Email for Registration Sent Successfully',
+            })
+        } catch (error: any) {
+            handleError(error, res);
+        }
+    }
+
     async login(req: Request, res: Response) {
         try {
             const { uniqueIdentity, password } = req.body;
@@ -130,6 +148,27 @@ export class AuthController {
                 status: 'Success',
                 message,
                 data: user
+            })
+        } catch (err: any) {
+            handleError(err, res);
+        }
+    }
+
+    async verifyEmailCompleteRegistration(req: Request, res: Response) {
+        try {
+            const { token } = req.query;
+            if (!token) {
+                throw new PayloadError('Token is required');
+            }
+            const payload: Omit<RegisterPayloadType, "email"> = req.body;
+            if (!payload.username || !payload.password) {
+                throw new PayloadError('Username and Password is required');
+            }
+            const { healthCareMember } = await this.authService.verifyHealthcareMemberRegistrationEmail(token as string, payload);
+            res.status(200).json({
+                status: 'Success',
+                message: `User Registered Successfully as Health Care Member`,
+                data: healthCareMember
             })
         } catch (err: any) {
             handleError(err, res);

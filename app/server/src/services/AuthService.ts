@@ -140,6 +140,37 @@ export class AuthService {
         return { user }
     }
 
+    async sendEmailRegistration(payload: { schoolId: number, healthCareId: number, email: string, name: string, senderEmail: string }) {
+        const { user } = await this.getUserByKey("email", payload.email);
+        if (!!user) {
+            throw new AuthenticationError('User already exists');
+        }
+        const generatedToken = this.jwt.sign({
+            ...payload
+        }, process.env.SECRET_ACCESS_TOKEN, {
+            expiresIn: 3600 * 24 * 7
+        })
+        const generatedDate = generateFutureDate(7);
+        await this.emailService.sendEmail({
+            from: payload.senderEmail,
+            to: payload.email,
+            subject: 'Email Registration',
+            html: `
+                <p>Click this link to complete your registration before <strong>${generatedDate}</strong> <a href="${process.env.FRONT_END_COMPLETE_REGISTRATION_URL}?token=${generatedToken}">Complete Registration</a></p>
+            `
+        })
+    }
+
+    async getUserByKey(key: string, value: any) {
+        const user = await this.prismaClient.user.findFirst({
+            where: {
+                [key]: value
+            }
+        })
+
+        return { user }
+    }
+
     async isUserExistsOnDatabase(username: string, email: string): Promise<boolean> {
         const userOnDatabase = await this.prismaClient.user.findFirst({
             where: {
@@ -181,6 +212,7 @@ export class AuthService {
         const accessToken = this.jwt.sign({
             id: userOnDatabase.id,
             username: userOnDatabase.username,
+            email: userOnDatabase.email,
             role: userRole?.name ?? 'parent'
         }, process.env.SECRET_ACCESS_TOKEN ?? 'accesstokenrahasia', {
             expiresIn: 3600 * 3
@@ -234,5 +266,42 @@ export class AuthService {
         }
 
         return { user: null, message: 'User already verified' };
+    }
+
+    async verifyHealthcareMemberRegistrationEmail(token: string, payload: Omit<RegisterPayloadType, "email">) {
+        const decodedToken = this.jwt.verify(token, process.env.SECRET_ACCESS_TOKEN);
+        console.log({ decodedToken, payload, token })
+
+        const { newUser } = await this.register({
+            username: payload.username,
+            email: decodedToken.email,
+            password: payload.password,
+            roleId: 5,
+            isVerified: true
+        });
+        const newHealthCaremember = await this.prismaClient.healthCareMember.create({
+            data: {
+                user: {
+                    connect: {
+                        id: newUser.id
+                    }
+                },
+                health_care: {
+                    connect: {
+                        id: decodedToken.healthCareId
+                    }
+                },
+                name: decodedToken.name,
+                position: {
+                    connect: {
+                        id: 2
+                    }
+                }
+            }
+        });
+
+        return {
+            healthCareMember: newHealthCaremember
+        }
     }
 }

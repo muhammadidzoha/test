@@ -8,6 +8,7 @@ export class SeedService {
     async seed() {
         await this.seedRole();
         await this.seedInstitutionType();
+        await this.seedPositions();
         await this.seedAdminAccount();
     }
 
@@ -76,5 +77,25 @@ export class SeedService {
             })
         }
         console.log('Admin account seeded');
+    }
+
+    async seedPositions() {
+        const isPositionExist = await this.prismaClient.position.findMany();
+        if (!isPositionExist.length) {
+            await this.prismaClient.position.createMany({
+                data: [{
+                    id: 1,
+                    name: 'Kepala uks',
+                    modules: 'healthcare'
+                },
+                {
+                    id: 2,
+                    name: 'petugas kesehatan',
+                    modules: "healthcare"
+                },
+                ]
+            })
+        }
+        console.log('Position Seeded');
     }
 }

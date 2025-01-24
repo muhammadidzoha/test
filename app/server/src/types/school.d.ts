@@ -28,3 +28,15 @@ export interface ISchoolEnvironment {
     trashCan: boolean;
     unprotectedAreaPolicy: boolean;
 }
+
+export interface IHealthCare {
+    name: string;
+    leadName: string;
+}
+
+export interface IHealthCareMember {
+    name: string;
+    healthCareId: number;
+    positionId: number
+    userId?: number
+}

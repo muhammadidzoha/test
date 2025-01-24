@@ -41,7 +41,6 @@ model User {
   institution        Institution?
   health_care_member HealthCareMember?
   // parent      Parent?
-  healthCareId       Int?
 
   @@map("users")
 }
@@ -151,9 +150,9 @@ model HealthCareMember {
   name           String @db.VarChar(255)
   health_care_id Int    @db.Int
   position_id    Int    @db.Int
-  user_id        Int    @unique @db.Int
+  user_id        Int?   @unique @db.Int
 
-  user        User       @relation(fields: [user_id], references: [id])
+  user        User?      @relation(fields: [user_id], references: [id])
   position    Position   @relation(fields: [position_id], references: [id])
   health_care HealthCare @relation(fields: [health_care_id], references: [id])
 

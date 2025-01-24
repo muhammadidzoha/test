@@ -2,10 +2,11 @@ import { Request, Response } from "express";
 import { SchoolService } from "../services/SchoolService";
 import { handleError, validatePayload } from "../common/http";
 import { HealthEducationSchema } from "../common/http/requestvalidator/HealthEducationValidator";
-import { IHealthEducation, IHealthServicePayload } from "../types/school";
+import { IHealthCare, IHealthEducation, IHealthServicePayload } from "../types/school";
 import { InvariantError } from "../common/exception";
 import { HealthServiceSchema } from "../common/http/requestvalidator/HealthServiceValidator";
 import { schoolEnvironmentSchema } from "../common/http/requestvalidator/SchoolEnvironmentValidator";
+import { addHealthCareMemberSchema, CreateHealthCareSchema } from "../common/http/requestvalidator/HealhCareValidator";
 
 export class SchoolController {
     constructor(public schoolService: SchoolService) { }
@@ -19,7 +20,6 @@ export class SchoolController {
             }
 
             const reqPayload: IHealthEducation = req.body;
-            console.log({ reqPayload });
 
 
             const { healthEducation } = await this.schoolService.createOrUpdateHealthEducation(+schoolId, reqPayload);
@@ -69,6 +69,47 @@ export class SchoolController {
                 status: 'Success',
                 message: `School Environment for School ${schoolId} is Created or Updated`,
                 data: schoolEnvironment
+            })
+        } catch (err: any) {
+            handleError(err, res);
+        }
+    }
+
+    async createOrUpdateHealthCare(req: Request, res: Response) {
+        try {
+            validatePayload(CreateHealthCareSchema, req.body);
+            const { schoolId } = req.params;
+            if (!schoolId) {
+                throw new InvariantError('School Id is required in Parameter');
+            }
+            const payload: IHealthCare = req.body
+
+            const { healthCare } = await this.schoolService.createOrUpdateHealthCare(+schoolId, payload);
+            res.status(201).json({
+                status: 'Success',
+                message: `Health Care for School ${schoolId} is Created or Updated`,
+                data: healthCare
+            })
+        } catch (err: any) {
+            handleError(err, res);
+        }
+    }
+
+    async addHealthCareMember(req: Request, res: Response) {
+        try {
+            validatePayload(addHealthCareMemberSchema, req.body);
+            const { healthCareId } = req.params;
+            if (!healthCareId) {
+                throw new InvariantError('School Id and Health Care Id is required in Parameter');
+            }
+
+            const { name, positionId, userId } = req.body;
+            const { healthCareMember } = await this.schoolService.addHealthCareMember({ healthCareId: +healthCareId, name, positionId, userId });
+
+            res.status(201).json({
+                status: 'Success',
+                message: 'Health Care Member is added',
+                data: healthCareMember
             })
         } catch (err: any) {
             handleError(err, res);
