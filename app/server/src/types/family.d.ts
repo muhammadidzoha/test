@@ -32,4 +32,5 @@ export interface IFamilyMember {
     residence: IResidence & { id: number }
     gender: GENDER;
     relation: RELATION;
+    institutionId: number?;
 }

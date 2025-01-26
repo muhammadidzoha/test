@@ -48,5 +48,5 @@ export const addMemberSchema = joi.object({
         }
         return value;
     }),
-
+    institutionId: joi.number()
 })

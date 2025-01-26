@@ -117,13 +117,21 @@ export class FamilyService {
                             score: familyMember.knowledgeNutrition?.score
                         }
                     }
-                }))
+                })),
+                ...(familyMember.institutionId && {
+                    institution: {
+                        connect: {
+                            id: familyMember.institutionId
+                        }
+                    }
+                })
             },
             include: {
                 residence: true,
                 family: true,
                 job: true,
-                knowledge_nutrition: true
+                knowledge_nutrition: true,
+                institution: true
             }
         })
 

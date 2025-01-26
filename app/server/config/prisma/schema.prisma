@@ -58,6 +58,7 @@ model Institution {
   user             User   @relation(fields: [user_id], references: [id])
   type             Int    @db.Int
 
+  family_member      FamilyMember[]
   institution_type   InstitutionType    @relation(fields: [type], references: [id])
   health_education   HealthEducation?
   health_service     HealthService?
@@ -201,6 +202,9 @@ model FamilyMember {
   gender                 GENDER
   relation               RELATION
   family_id              Int       @db.Int
+  institution_id         Int?      @db.Int
+
+  institution Institution? @relation(fields: [institution_id], references: [id])
 
   family              Family              @relation(fields: [family_id], references: [id])
   job                 Job                 @relation(fields: [job_id], references: [id])
@@ -218,8 +222,6 @@ model Job {
   income BigInt @db.BigInt
 
   family_members FamilyMember[]
-
-  @@map("jobs")
 }
 
 model KnowledgeNutrition {
