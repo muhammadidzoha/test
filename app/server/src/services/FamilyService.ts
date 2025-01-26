@@ -1,6 +1,7 @@
 import { PrismaClient } from "@prisma/client";
-import { IFamily } from "../types/family";
+import { IFamily, IFamilyMember } from "../types/family";
 import { InvariantError, NotFoundError } from "../common/exception";
+import { FormatDate } from "../common/utils/FormatDate";
 
 export class FamilyService {
     constructor(public prismaClient: PrismaClient) { }
@@ -65,5 +66,71 @@ export class FamilyService {
         }
     }
 
+    async addFamilyMember(familyId: number, familyMember: IFamilyMember) {
 
+        const residenceLastRow = await this.getResidenceByDesc();
+        const jobLastRow = await this.getJobByDesc();
+
+
+        const newMember = await this.prismaClient.familyMember.create({
+            data: {
+                full_name: familyMember.fullName,
+                birth_date: familyMember.birthDate.toISOString(),
+                education: familyMember.education,
+                gender: familyMember.gender,
+                relation: familyMember.relation,
+                job: {
+                    connectOrCreate: {
+                        where: {
+                            id: familyMember.job.id ?? jobLastRow?.id ?? 1
+                        },
+                        create: {
+                            name: familyMember.job.name,
+                            income: familyMember.job.income
+                        }
+                    }
+                },
+                residence: {
+                    connectOrCreate: {
+                        where: {
+                            id: familyMember.residence.id ?? residenceLastRow?.id ?? 1
+                        },
+                        create: {
+                            status: familyMember.residence.status,
+                            address: familyMember.residence.address,
+                            description: familyMember.residence.description
+                        }
+                    }
+                },
+                family: {
+                    connect: {
+                        id: familyId
+                    }
+                }
+            },
+            include: {
+                residence: true,
+                family: true,
+                job: true
+            }
+        })
+
+        return { familyMember: newMember }
+    }
+
+    async getJobByDesc() {
+        return await this.prismaClient['job'].findFirst({
+            orderBy: {
+                id: 'desc'
+            }
+        })
+    }
+
+    async getResidenceByDesc() {
+        return await this.prismaClient['residence'].findFirst({
+            orderBy: {
+                id: 'desc'
+            }
+        })
+    }
 }
