@@ -70,6 +70,9 @@ export class FamilyService {
 
         const residenceLastRow = await this.getResidenceByDesc();
         const jobLastRow = await this.getJobByDesc();
+        const knowledgeNutritionLastRow = await this.getKnowledgeNutritionbyDesc();
+
+        console.log({ residenceLastRow, jobLastRow, knowledgeNutritionLastRow })
 
 
         const newMember = await this.prismaClient.familyMember.create({
@@ -106,12 +109,21 @@ export class FamilyService {
                     connect: {
                         id: familyId
                     }
-                }
+                },
+                ...(familyMember.knowledgeNutrition?.knowledge && ({
+                    knowledge_nutrition: {
+                        create: {
+                            knowledge: familyMember.knowledgeNutrition?.knowledge,
+                            score: familyMember.knowledgeNutrition?.score
+                        }
+                    }
+                }))
             },
             include: {
                 residence: true,
                 family: true,
-                job: true
+                job: true,
+                knowledge_nutrition: true
             }
         })
 
@@ -132,5 +144,13 @@ export class FamilyService {
                 id: 'desc'
             }
         })
+    }
+
+    async getKnowledgeNutritionbyDesc() {
+        return await this.prismaClient['knowledgeNutrition'].findFirst({
+            orderBy: {
+                id: 'desc'
+            }
+        });
     }
 }

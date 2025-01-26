@@ -36,6 +36,7 @@ export class FamilyController {
                 throw new InvariantError('Family id is required in params to add member');
             }
             const payload: IFamilyMember = req.body;
+            console.log({ payload });
 
             const { familyMember } = await this.familyService.addFamilyMember(+familyId, { ...payload, birthDate: new Date(payload.birthDate) });
             const returnedData = structuredClone(familyMember);

@@ -18,12 +18,17 @@ export interface IResidence {
     description: string?;
 }
 
+export interface IKnowledgeNutritions {
+    knowledge: string;
+    score: int?
+}
+
 export interface IFamilyMember {
     fullName: string;
     birthDate: Date;
     education: EDUCATION;
     job: IJOB & { id: number };
-    knowledgeNutritionId: number?;
+    knowledgeNutrition: (IKnowledgeNutritions & { id: number })?;
     residence: IResidence & { id: number }
     gender: GENDER;
     relation: RELATION;

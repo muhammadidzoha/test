@@ -21,7 +21,10 @@ export const addMemberSchema = joi.object({
         name: joi.string().required(),
         income: joi.number().required()
     }).required(),
-    knowledgeNutritionId: joi.number(),
+    knowledgeNutrition: {
+        knowledge: joi.string().required(),
+        score: joi.number()
+    },
     residence: joi.object({
         id: joi.number(),
         address: joi.string(),
