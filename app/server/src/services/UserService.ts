@@ -12,7 +12,7 @@ export class UserService {
         return !!user;
     }
 
-    async getUserByUniqueIdentity(uniqueIdentity: string) {
+    async getUserByUniqueIdentity(uniqueIdentity: string, includeParams?: any) {
         const user = await this.prismaClient.user.findFirst({
             where: {
                 OR: [
@@ -23,7 +23,10 @@ export class UserService {
                         username: uniqueIdentity
                     }
                 ]
-            }
+            },
+            ...(Object.keys(includeParams).length && {
+                include: includeParams
+            })
         });
 
         return { user };
@@ -80,5 +83,38 @@ export class UserService {
         });
 
         return { user }
+    }
+
+    async getUserWithRelation(uniqueValue: any, includeParams: any | undefined) {
+
+        if (typeof uniqueValue === 'string') {
+            const user = await this.prismaClient.user.findFirst({
+                where: {
+                    OR: [
+                        {
+                            email: uniqueValue
+                        },
+                        {
+                            username: uniqueValue
+                        }
+                    ]
+                },
+                ...(!!includeParams && {
+                    include: includeParams
+                })
+            });
+
+            return { user }
+        }
+        const user = await this.prismaClient.user.findUnique({
+            where: {
+                id: +uniqueValue
+            },
+            ...(includeParams && {
+                include: includeParams
+            }),
+        });
+
+        return { user };
     }
 };

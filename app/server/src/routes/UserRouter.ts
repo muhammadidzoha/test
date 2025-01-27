@@ -24,3 +24,7 @@ userRouter.get('/:id', AuthorizationMiddleware(['admin', 'school']), (req: Reque
 userRouter.get('/', AuthorizationMiddleware(['admin', 'school']), (req: Request, res: Response) => {
     userController.getUsers(req, res);
 });
+
+userRouter.get('/with-relation/:uniqueValue', AuthorizationMiddleware(['admin', 'school']), (req: Request, res: Response) => {
+    userController.getUserWithRelation(req, res);
+})

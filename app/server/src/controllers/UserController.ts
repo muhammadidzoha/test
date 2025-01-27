@@ -97,4 +97,27 @@ export class UserController {
             handleError(err, res);
         }
     }
+
+    async getUserWithRelation(req: Request, res: Response) {
+        try {
+            const query = req.query;
+            const { uniqueValue } = req.params;
+
+            const mappedQuery = Object.keys(query).reduce((acc: any, key) => {
+                return { ...acc, [key]: !!query[key] }
+            }, {})
+            console.log({ mappedQuery, query });
+            console.log(query['family_member'])
+
+            const { user } = await this.userService.getUserWithRelation(uniqueValue, mappedQuery);
+
+            res.status(200).json({
+                status: 'Success',
+                message: 'User retrieved',
+                data: user
+            })
+        } catch (err: any) {
+            handleError(err, res);
+        }
+    }
 }
