@@ -31,7 +31,6 @@ export class AuthController {
         try {
             validatePayload(registerPayloadSchema, req.body);
             const { username, password, email } = req.body;
-            console.log({ username, password, email });
             const { newUser } = await this.authService.register({ username, email, password, roleId: 4, isVerified: true });
 
             res.status(201).json({
@@ -78,10 +77,10 @@ export class AuthController {
         try {
             validatePayload(CompleteRegistrationSchema, req.body);
             const { schoolId, healthCareId } = req.params;
-            const { email, fullName } = req.body;
+            const { email, fullName, positionId } = req.body;
             const { email: senderEmail } = (req as any).user;
 
-            await this.authService.sendEmailRegistration({ schoolId: +schoolId, healthCareId: +healthCareId, email, name: fullName, senderEmail });
+            await this.authService.sendEmailRegistration({ schoolId: +schoolId, healthCareId: +healthCareId, email, name: fullName, senderEmail, positionId });
             res.status(200).json({
                 status: 'Success',
                 message: 'Email for Registration Sent Successfully',
@@ -126,7 +125,6 @@ export class AuthController {
                 message: 'Email Verification Sent Successfully',
             })
         } catch (error: any) {
-            console.log({ error });
             handleError(error, res);
         }
     }

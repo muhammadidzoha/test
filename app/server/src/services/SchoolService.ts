@@ -1,13 +1,13 @@
 import { PrismaClient } from "@prisma/client";
 import { IHealthCare, IHealthCareMember, IHealthEducation, IHealthServicePayload, ISchoolEnvironment } from "../types/school";
 import { InvariantError, NotFoundError } from "../common/exception";
+import { AuthService } from "./AuthService";
 
 export class SchoolService {
-    constructor(public prismaClient: PrismaClient) { }
+    constructor(public prismaClient: PrismaClient, public authService: AuthService) { }
     // Health Education Services
     async createOrUpdateHealthEducation(schoolId: number, payload: IHealthEducation) {
         const { healthEducation } = await this.getHealthEducation(schoolId);
-        console.log({ healthEducation });
         if (!healthEducation) {
             return await this.createHealthEducation(schoolId, payload);
         }
@@ -182,14 +182,20 @@ export class SchoolService {
         return { schoolEnvironment };
     }
 
-    async createOrUpdateHealthCare(schoolId: number, payload: IHealthCare) {
+    async createOrUpdateHealthCare(schoolId: number, payload: IHealthCare, senderEmail: string) {
         const { healthCare } = await this.getHealthCareBySchoolId(schoolId);
-
         if (!healthCare) {
-            return await this.createHealthCare(schoolId, payload);
+            return await this.createInitHealthCare(schoolId, payload, senderEmail);
         }
-
         return await this.updateHealthCare(schoolId, payload);
+    }
+
+    async createInitHealthCare(schoolId: number, payload: IHealthCare, senderEmail: string) {
+        const { healthCare } = await this.createHealthCare(schoolId, payload)
+        await this.authService.sendEmailRegistration({ schoolId, healthCareId: healthCare.id, email: payload.email, name: payload.leadName, senderEmail, positionId: payload.positionId })
+        return {
+            healthCare
+        }
     }
 
     async createHealthCare(schoolId: number, payload: IHealthCare) {
@@ -226,7 +232,7 @@ export class SchoolService {
         const healthCare = await this.prismaClient.healthCare.findUnique({
             where: {
                 school_id: schoolId
-            }
+            },
         });
 
         return { healthCare };

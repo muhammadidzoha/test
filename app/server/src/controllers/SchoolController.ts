@@ -82,9 +82,10 @@ export class SchoolController {
             if (!schoolId) {
                 throw new InvariantError('School Id is required in Parameter');
             }
+            const user = (req as any).user;
             const payload: IHealthCare = req.body
 
-            const { healthCare } = await this.schoolService.createOrUpdateHealthCare(+schoolId, payload);
+            const { healthCare } = await this.schoolService.createOrUpdateHealthCare(+schoolId, payload, user.email);
             res.status(201).json({
                 status: 'Success',
                 message: `Health Care for School ${schoolId} is Created or Updated`,

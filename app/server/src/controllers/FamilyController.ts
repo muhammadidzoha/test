@@ -34,9 +34,7 @@ export class FamilyController {
                 throw new InvariantError('Family id is required in params to add member');
             }
             const user = (req as any).user
-            console.log({ user });
             const payload: IFamilyMember = req.body;
-            console.log({ payload, createdBy: user.id });
             const { familyMember } = await this.familyService.addFamilyMember(+familyId, { ...payload, birthDate: new Date(payload.birthDate) }, user.id);
 
             res.status(201).json({

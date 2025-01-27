@@ -3,8 +3,15 @@ import { AuthorizationMiddleware } from '../middlewares/AuthorizationMiddleware'
 import { SchoolService } from '../services';
 import { prismaDBClient } from '../../config/prisma';
 import { SchoolController } from '../controllers/SchoolController';
+import { AuthService } from '../services';
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
+import { EmailService } from '../services';
 
-const schoolService = new SchoolService(prismaDBClient);
+const emailService = new EmailService();
+const authService = new AuthService(prismaDBClient, bcrypt, jwt, emailService);
+const schoolService = new SchoolService(prismaDBClient, authService);
+
 
 const schoolController = new SchoolController(schoolService);
 
