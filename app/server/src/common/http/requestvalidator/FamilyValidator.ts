@@ -48,5 +48,17 @@ export const addMemberSchema = joi.object({
         }
         return value;
     }),
-    institutionId: joi.number()
+    institutionId: joi.number(),
+    nutrition: joi.object({
+        height: joi.number().required(),
+        weight: joi.number().required(),
+        bmi: joi.number(),
+        birth_weight: joi.number(),
+    }).required(),
+    behaviour: joi.object({
+        eatFrequency: joi.number().required(),
+        drinkFrequency: joi.number().required(),
+        physicalActivity: joi.number().required(),
+        sleepQuality: joi.number().required()
+    })
 })

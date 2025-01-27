@@ -251,7 +251,7 @@ model Residence {
 }
 
 model Nutrition {
-  id               Int      @id @db.Int
+  id               Int      @id @default(autoincrement()) @db.Int
   height           Float
   weight           Float
   bmi              Float?
@@ -268,26 +268,16 @@ model Nutrition {
 }
 
 model Behaviour {
-  id               Int @id @db.Int
-  eat_frequency    Int @db.Int
-  drink_frequency  Int @db.Int
-  family_member_id Int @unique @db.Int
-  sleep_duration   Int @db.Int
+  id                Int @id @default(autoincrement()) @db.Int
+  eat_frequency     Int @db.Int
+  drink_frequency   Int @db.Int
+  family_member_id  Int @unique @db.Int
+  sleep_quality     Int @db.Int
+  physical_activity Int @db.Int
 
-  family_member     FamilyMember       @relation(fields: [family_member_id], references: [id])
-  physical_activity PhysicalActivity[]
+  family_member FamilyMember @relation(fields: [family_member_id], references: [id])
 
   @@map("behaviours")
-}
-
-model PhysicalActivity {
-  id           Int    @id @db.Int
-  activity     String @db.VarChar(255)
-  behaviour_id Int    @db.Int
-
-  behaviour Behaviour[]
-
-  @@map("physical_activities")
 }
 
 // model HealthCareFacility {

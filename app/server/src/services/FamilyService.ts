@@ -2,6 +2,7 @@ import { PrismaClient } from "@prisma/client";
 import { IFamily, IFamilyMember } from "../types/family";
 import { InvariantError, NotFoundError } from "../common/exception";
 import { FormatDate } from "../common/utils/FormatDate";
+import { calculateBMI } from "../common/utils/CalculateBMI";
 
 export class FamilyService {
     constructor(public prismaClient: PrismaClient) { }
@@ -66,13 +67,11 @@ export class FamilyService {
         }
     }
 
-    async addFamilyMember(familyId: number, familyMember: IFamilyMember) {
-
+    async addFamilyMember(familyId: number, familyMember: IFamilyMember, createdById: number) {
         const residenceLastRow = await this.getResidenceByDesc();
         const jobLastRow = await this.getJobByDesc();
         const knowledgeNutritionLastRow = await this.getKnowledgeNutritionbyDesc();
-
-        console.log({ residenceLastRow, jobLastRow, knowledgeNutritionLastRow })
+        const bmi = calculateBMI(familyMember.nutrition.height, familyMember.nutrition.weight);
 
 
         const newMember = await this.prismaClient.familyMember.create({
@@ -124,14 +123,39 @@ export class FamilyService {
                             id: familyMember.institutionId
                         }
                     }
-                })
+                }),
+                ...(familyMember.nutrition.height && ({
+                    nutrition: {
+                        create: {
+                            height: familyMember.nutrition.height,
+                            weight: familyMember.nutrition.weight,
+                            created_by: createdById,
+                            ...(familyMember.nutrition.birth_weight && {
+                                birth_weight: familyMember.nutrition.birth_weight
+                            }),
+                            bmi: familyMember.nutrition.bmi ?? bmi,
+                        }
+                    }
+                })),
+                ...(familyMember.behaviour?.eatFrequency && {
+                    behaviour: {
+                        create: {
+                            drink_frequency: familyMember.behaviour.drinkFrequency,
+                            eat_frequency: familyMember.behaviour.eatFrequency,
+                            physical_activity: familyMember.behaviour.physicalActivity,
+                            sleep_quality: familyMember.behaviour.sleepQuality
+                        }
+                    }
+                }),
             },
             include: {
                 residence: true,
                 family: true,
                 job: true,
                 knowledge_nutrition: true,
-                institution: true
+                institution: true,
+                behaviour: true,
+                nutrition: true
             }
         })
 
@@ -161,4 +185,6 @@ export class FamilyService {
             }
         });
     }
+
+
 }

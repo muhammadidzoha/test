@@ -23,6 +23,22 @@ export interface IKnowledgeNutritions {
     score: int?
 }
 
+export interface INutrition {
+    height: number;
+    weight: number;
+    bmi: number?;
+    birth_weight: number?;
+    createdBy: number;
+}
+
+
+export interface IBehaviour {
+    eatFrequency: 1 | 2 | 3 | 4;
+    drinkFrequency: 1 | 2 | 3 | 4;
+    sleepQuality: 1 | 2 | 3 | 4;
+    physicalActivity: 1 | 2 | 3 | 4;
+}
+
 export interface IFamilyMember {
     fullName: string;
     birthDate: Date;
@@ -33,4 +49,6 @@ export interface IFamilyMember {
     gender: GENDER;
     relation: RELATION;
     institutionId: number?;
+    nutrition: INutrition;
+    behaviour: IBehaviour?;
 }

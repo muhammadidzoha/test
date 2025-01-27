@@ -1,11 +1,9 @@
 import { Request, Response } from "express";
+import { InvariantError } from "../common/exception";
 import { handleError, validatePayload } from "../common/http";
 import { addMemberSchema, createFamilySchema } from "../common/http/requestvalidator/FamilyValidator";
 import { FamilyService } from "../services/FamilyService";
 import { IFamily, IFamilyMember } from "../types/family";
-import { GENDER } from "@prisma/client";
-import { FormatDate } from "../common/utils/FormatDate";
-import { InvariantError } from "../common/exception";
 
 export class FamilyController {
     constructor(public familyService: FamilyService) {
@@ -35,20 +33,22 @@ export class FamilyController {
             if (!familyId) {
                 throw new InvariantError('Family id is required in params to add member');
             }
+            const user = (req as any).user
+            console.log({ user });
             const payload: IFamilyMember = req.body;
-            console.log({ payload });
-
-            const { familyMember } = await this.familyService.addFamilyMember(+familyId, { ...payload, birthDate: new Date(payload.birthDate) });
-            const returnedData = structuredClone(familyMember);
+            console.log({ payload, createdBy: user.id });
+            const { familyMember } = await this.familyService.addFamilyMember(+familyId, { ...payload, birthDate: new Date(payload.birthDate) }, user.id);
 
             res.status(201).json({
                 status: 'Success',
                 message: 'Family member added successfully',
                 data: {
-                    ...returnedData,
-                    job: {
-                        ...returnedData.job,
-                        income: returnedData.job.income.toString()
+                    familyMember: {
+                        ...familyMember,
+                        job: {
+                            ...familyMember.job,
+                            income: familyMember.job.income.toString()
+                        }
                     }
                 }
             })
