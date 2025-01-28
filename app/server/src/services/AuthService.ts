@@ -140,7 +140,7 @@ export class AuthService {
         return { user }
     }
 
-    async sendEmailRegistration(payload: { schoolId: number, healthCareId: number, email: string, name: string, senderEmail: string }) {
+    async sendEmailRegistration(payload: { schoolId: number, healthCareId: number, email: string, name: string, senderEmail: string, positionId: number }) {
         const { user } = await this.getUserByKey("email", payload.email);
         if (!!user) {
             throw new AuthenticationError('User already exists');
@@ -270,7 +270,6 @@ export class AuthService {
 
     async verifyHealthcareMemberRegistrationEmail(token: string, payload: Omit<RegisterPayloadType, "email">) {
         const decodedToken = this.jwt.verify(token, process.env.SECRET_ACCESS_TOKEN);
-        console.log({ decodedToken, payload, token })
 
         const { newUser } = await this.register({
             username: payload.username,
@@ -294,7 +293,7 @@ export class AuthService {
                 name: decodedToken.name,
                 position: {
                     connect: {
-                        id: 2
+                        id: decodedToken.positionId ?? 2
                     }
                 }
             }

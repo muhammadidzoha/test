@@ -32,6 +32,8 @@ export interface ISchoolEnvironment {
 export interface IHealthCare {
     name: string;
     leadName: string;
+    email: string;
+    positionId: number;
 }
 
 export interface IHealthCareMember {

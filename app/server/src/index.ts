@@ -9,6 +9,9 @@ import { prismaDBClient } from '../config/prisma';
 // route
 import { authRouter } from './routes/AuthRouter';
 import { schoolRouter } from './routes/SchoolRouter';
+import { familyRouter } from './routes/FamilyRouter';
+import { userRouter } from './routes/UserRouter';
+import { memberRouter } from './routes/MemberRouter';
 
 // Middleware
 
@@ -25,6 +28,9 @@ const init = async () => {
 
     app.use('/auth', authRouter);
     app.use('/institutions/schools', schoolRouter)
+    app.use('/families', familyRouter)
+    app.use('/users', userRouter)
+    app.use('/members', memberRouter)
 
     app.get('/', (req: Request, res: Response) => {
         res.send('ok');

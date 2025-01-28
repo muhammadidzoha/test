@@ -40,7 +40,7 @@ model User {
 
   institution        Institution?
   health_care_member HealthCareMember?
-  // parent      Parent?
+  nutrition          Nutrition[]
 
   @@map("users")
 }
@@ -58,6 +58,7 @@ model Institution {
   user             User   @relation(fields: [user_id], references: [id])
   type             Int    @db.Int
 
+  family_member      FamilyMember[]
   institution_type   InstitutionType    @relation(fields: [type], references: [id])
   health_education   HealthEducation?
   health_service     HealthService?
@@ -72,19 +73,6 @@ model InstitutionType {
   name         String        @db.VarChar(255)
   institutions Institution[]
 }
-
-// model SchoolFacility {
-//   id                   Int    @id @default(autoincrement()) @db.Int
-//   school_id            Int    @db.Int
-//   facility_category_id Int    @db.Int
-//   name                 String @db.VarChar(255)
-//   total
-// }
-
-// model FacilityCategory {
-//   id   Int    @id @default(autoincrement())
-//   name String @db.VarChar(255)
-// }
 
 model HealthEducation {
   id                                Int     @id @default(autoincrement()) @db.Int
@@ -169,6 +157,148 @@ model Position {
   @@map("positions")
 }
 
+model Family {
+  id                Int     @id @default(autoincrement()) @db.Int
+  head_family       String  @db.VarChar(255)
+  kk_number         String? @db.VarChar(255)
+  head_phone_number String  @db.VarChar(255)
+  description       String? @db.Text
+
+  family_member FamilyMember[]
+
+  @@map("families")
+}
+
+enum GENDER {
+  L
+  P
+}
+
+enum EDUCATION {
+  SD
+  SMP
+  SMA
+  D3
+  S1
+  S2
+  S3
+}
+
+enum RELATION {
+  AYAH
+  IBU
+  ANAK
+  LAINNYA
+}
+
+model FamilyMember {
+  id                     Int       @id @default(autoincrement()) @db.Int
+  full_name              String    @db.VarChar(255)
+  birth_date             DateTime
+  education              EDUCATION
+  job_id                 Int       @db.Int
+  knowledge_nutrition_id Int?      @unique @db.Int
+  residence_id           Int       @db.Int
+  gender                 GENDER
+  relation               RELATION
+  family_id              Int       @db.Int
+  institution_id         Int?      @db.Int
+
+  institution Institution? @relation(fields: [institution_id], references: [id])
+
+  family              Family              @relation(fields: [family_id], references: [id])
+  job                 Job                 @relation(fields: [job_id], references: [id])
+  residence           Residence           @relation(fields: [residence_id], references: [id])
+  knowledge_nutrition KnowledgeNutrition? @relation(fields: [knowledge_nutrition_id], references: [id])
+  nutrition           Nutrition[]
+  behaviour           Behaviour?
+
+  @@map("family_members")
+}
+
+model Job {
+  id     Int    @id @default(autoincrement()) @db.Int
+  name   String @db.VarChar(255)
+  income BigInt @db.BigInt
+
+  family_members FamilyMember[]
+}
+
+model KnowledgeNutrition {
+  id           Int           @id @default(autoincrement()) @db.Int
+  knowledge    String        @db.Text
+  score        Int?          @db.Int
+  FamilyMember FamilyMember?
+
+  @@map("knowledge_nutritions")
+}
+
+enum RESIDENCESTATUS {
+  OWN
+  RENT
+  OTHER
+}
+
+model Residence {
+  id          Int             @id @default(autoincrement()) @db.Int
+  status      RESIDENCESTATUS
+  description String?         @db.VarChar(255)
+  address     String?         @db.Text
+
+  family_member FamilyMember[]
+
+  @@map("residences")
+}
+
+model Nutrition {
+  id               Int      @id @default(autoincrement()) @db.Int
+  height           Float
+  weight           Float
+  bmi              Float?
+  birth_weight     Float?
+  family_member_id Int      @db.Int
+  created_at       DateTime @default(now()) @db.Timestamp(2)
+  updated_at       DateTime @default(now()) @db.Timestamp(2)
+  created_by       Int      @db.Int
+  updated_by       Int      @default(0) @db.Int
+  status_id        Int      @default(3) @db.Int
+
+  nutrition_status NutritionStatus @relation(fields: [status_id], references: [id])
+  user             User            @relation(fields: [created_by], references: [id])
+  family_member    FamilyMember    @relation(fields: [family_member_id], references: [id])
+
+  @@map("nutritions")
+}
+
+model Behaviour {
+  id                Int @id @default(autoincrement()) @db.Int
+  eat_frequency     Int @db.Int
+  drink_frequency   Int @db.Int
+  family_member_id  Int @unique @db.Int
+  sleep_quality     Int @db.Int
+  physical_activity Int @db.Int
+
+  family_member FamilyMember @relation(fields: [family_member_id], references: [id])
+
+  @@map("behaviours")
+}
+
+enum NUTRITIONSTATUSSES {
+  KURUS
+  NORMAL
+  GEMUK
+}
+
+model NutritionStatus {
+  id          Int                @id @default(autoincrement()) @db.Int
+  status      NUTRITIONSTATUSSES
+  information String             @db.VarChar(255)
+
+  nutrition Nutrition[]
+
+  @@map("nutrition_status")
+}
+
 // model HealthCareFacility {
 //   id        Int    @id @default(autoincrement())
 //   name      String @db.VarChar(255)
@@ -195,4 +325,17 @@ model Position {
 //   user_id      Int     @unique @db.Int
 
 //   @@map("parents")
+// }
+
+// model SchoolFacility {
+//   id                   Int    @id @default(autoincrement()) @db.Int
+//   school_id            Int    @db.Int
+//   facility_category_id Int    @db.Int
+//   name                 String @db.VarChar(255)
+//   total
+// }
+
+// model FacilityCategory {
+//   id   Int    @id @default(autoincrement())
+//   name String @db.VarChar(255)
 // }

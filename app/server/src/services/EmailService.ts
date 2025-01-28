@@ -1,7 +1,7 @@
 import nodemailer from 'nodemailer';
 
 export class EmailService {
-    public transporter: nodemailer.Transporter;
+    public transporter: nodemailer.Transporter | null = null;
     constructor() {
         this.transporter = nodemailer.createTransport({
             service: 'gmail',
@@ -20,6 +20,6 @@ export class EmailService {
     }
 
     async sendEmail(payload: nodemailer.SendMailOptions) {
-        return this.transporter.sendMail(payload);
+        return this.transporter!.sendMail(payload);
     }
 }
