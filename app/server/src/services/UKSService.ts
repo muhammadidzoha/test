@@ -21,4 +21,14 @@ export class UKSService {
 
         return { book };
     }
+
+    async getBooks(healthCareId: number) {
+        const books = await this.prismaClient.uKSBook.findMany({
+            where: {
+                health_care_id: healthCareId
+            }
+        });
+
+        return { books };
+    }
 };

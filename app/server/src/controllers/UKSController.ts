@@ -39,4 +39,22 @@ export class UKSController {
             handleError(err, res);
         }
     }
+
+    async getBooks(req: Request, res: Response) {
+        try {
+            const { healthCareId } = req.params;
+            if (!healthCareId) {
+                throw new InvariantError('Health care id is required in params');
+            }
+            const { books } = await this.UKSService.getBooks(+healthCareId);
+
+            res.status(200).json({
+                status: 'Success',
+                message: 'Books fetched successfully',
+                data: books
+            })
+        } catch (err: any) {
+            handleError(err, res);
+        }
+    }
 }
