@@ -18,4 +18,4 @@ export interface IPayloadToken {
     role: 'admin' | 'school' | 'parent' | 'healthcare'
 }
 
-export type Role = 'admin' | 'school' | 'parent' | 'healthcare'
+export type Role = 'admin' | 'school' | 'parent' | 'healthcare' | 'uks'
