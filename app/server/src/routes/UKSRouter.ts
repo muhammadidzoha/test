@@ -29,3 +29,7 @@ uksRouter.delete('/:healthCareId/books/:bookId', AuthorizationMiddleware(['admin
 uksRouter.get('/:healthCareId/books/:bookId', AuthorizationMiddleware(['admin', 'school', 'uks']), (req: Request, res: Response) => {
     uksController.getBookOwnedByHealthCare(req, res);
 })
+
+uksRouter.put('/:healthCareId/books/:bookId', AuthorizationMiddleware(['admin', 'school', 'uks']), multerMiddleware.fields([{ name: 'thumbnail', maxCount: 1 }, { name: 'file', maxCount: 1 }]), (req: Request, res: Response) => {
+    uksController.updateBookOwnedByHealthCare(req, res);
+})

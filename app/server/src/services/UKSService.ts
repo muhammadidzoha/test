@@ -58,4 +58,26 @@ export class UKSService {
 
         return { book };
     }
+
+    async updateBookOwnedByHealthCare(healthCareId: number, bookId: number, payload: IBookUKS & { updatedBy: number }) {
+        const { book: isBookExists } = await this.getbookOwnedByHealthCare(healthCareId, bookId);
+        if (!isBookExists) {
+            throw new NotFoundError('Book not found');
+        }
+        const book = await this.prismaClient.uKSBook.update({
+            where: {
+                id: bookId,
+                health_care_id: healthCareId
+            },
+            data: {
+                name: payload.name,
+                description: payload.description,
+                file_url: payload.fileUrl,
+                thumbnail_url: payload.thumbnailUrl,
+                updated_by: payload.updatedBy
+            }
+        });
+
+        return { book };
+    }
 };
