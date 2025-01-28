@@ -3,6 +3,7 @@ import { IFamily, IFamilyMember } from "../types/family";
 import { InvariantError, NotFoundError } from "../common/exception";
 import { FormatDate } from "../common/utils/FormatDate";
 import { calculateBMI } from "../common/utils/CalculateBMI";
+import { determineNutritionStatus } from "../common/utils/CalculateZscore";
 
 export class FamilyService {
     constructor(public prismaClient: PrismaClient) { }
@@ -73,6 +74,7 @@ export class FamilyService {
         const knowledgeNutritionLastRow = await this.getKnowledgeNutritionbyDesc();
         const bmi = calculateBMI(familyMember.nutrition.height, familyMember.nutrition.weight);
 
+        const determinedNutritionStatus = determineNutritionStatus(bmi);
 
         const newMember = await this.prismaClient.familyMember.create({
             data: {
@@ -124,19 +126,19 @@ export class FamilyService {
                         }
                     }
                 }),
-                ...(familyMember.nutrition.height && ({
-                    nutrition: {
-                        create: {
-                            height: familyMember.nutrition.height,
-                            weight: familyMember.nutrition.weight,
-                            created_by: createdById,
-                            ...(familyMember.nutrition.birth_weight && {
-                                birth_weight: familyMember.nutrition.birth_weight
-                            }),
-                            bmi: familyMember.nutrition.bmi ?? bmi,
-                        }
+                nutrition: {
+                    create: {
+                        height: familyMember.nutrition.height,
+                        weight: familyMember.nutrition.weight,
+                        created_by: createdById,
+                        updated_by: createdById,
+                        ...(familyMember.nutrition.birth_weight && {
+                            birth_weight: familyMember.nutrition.birth_weight
+                        }),
+                        bmi: familyMember.nutrition.bmi ?? bmi,
+                        status_id: determinedNutritionStatus.statusId
                     }
-                })),
+                },
                 ...(familyMember.behaviour?.eatFrequency && {
                     behaviour: {
                         create: {

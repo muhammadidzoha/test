@@ -18,7 +18,8 @@ export class NutritionService {
                     birth_weight: nutritionPayload.birth_weight
                 }),
                 bmi: nutritionPayload.bmi ?? calculateBMI(nutritionPayload.height, nutritionPayload.weight),
-                created_by: nutritionPayload.createdBy
+                created_by: nutritionPayload.createdBy,
+                updated_by: nutritionPayload.updatedBy
             }
         });
 
@@ -43,7 +44,7 @@ export class NutritionService {
                     birth_weight: nutritionPayload.birth_weight
                 }),
                 bmi: nutritionPayload.bmi ?? calculateBMI(nutritionPayload.height, nutritionPayload.weight),
-                created_by: nutritionPayload.createdBy
+                updated_by: nutritionPayload.updatedBy
             }
         });
 

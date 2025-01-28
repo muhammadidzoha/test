@@ -260,9 +260,12 @@ model Nutrition {
   created_at       DateTime @default(now()) @db.Timestamp(2)
   updated_at       DateTime @default(now()) @db.Timestamp(2)
   created_by       Int      @db.Int
+  updated_by       Int      @default(0) @db.Int
+  status_id        Int      @default(3) @db.Int
 
-  user          User         @relation(fields: [created_by], references: [id])
-  family_member FamilyMember @relation(fields: [family_member_id], references: [id])
+  nutrition_status NutritionStatus @relation(fields: [status_id], references: [id])
+  user             User            @relation(fields: [created_by], references: [id])
+  family_member    FamilyMember    @relation(fields: [family_member_id], references: [id])
 
   @@map("nutritions")
 }
@@ -278,6 +281,22 @@ model Behaviour {
   family_member FamilyMember @relation(fields: [family_member_id], references: [id])
 
   @@map("behaviours")
+}
+
+enum NUTRITIONSTATUSSES {
+  KURUS
+  NORMAL
+  GEMUK
+}
+
+model NutritionStatus {
+  id          Int                @id @default(autoincrement()) @db.Int
+  status      NUTRITIONSTATUSSES
+  information String             @db.VarChar(255)
+
+  nutrition Nutrition[]
+
+  @@map("nutrition_status")
 }
 
 // model HealthCareFacility {

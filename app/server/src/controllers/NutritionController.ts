@@ -23,7 +23,7 @@ export class NutritionController {
 
             const payload: INutrition = req.body
 
-            const { nutrition } = await this.nutritionService.createNutrition(+familyMemberId, { ...payload, createdBy: user.id });
+            const { nutrition } = await this.nutritionService.createNutrition(+familyMemberId, { ...payload, createdBy: user.id, updatedBy: user.id });
 
             res.status(201).json({
                 status: 'Success',
@@ -47,7 +47,7 @@ export class NutritionController {
             const user = (req as any).user;
             const { nutrition } = await this.nutritionService.updateNutrition(+nutritionId, +familyMemberId, {
                 ...payload,
-                createdBy: user.id
+                updatedBy: user.id
             });
 
             res.status(200).json({

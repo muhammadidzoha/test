@@ -29,6 +29,7 @@ export interface INutrition {
     bmi: number?;
     birth_weight: number?;
     createdBy: number;
+    updatedBy: number;
 }
 
 

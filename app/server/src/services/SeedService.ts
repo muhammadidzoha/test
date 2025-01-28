@@ -10,6 +10,7 @@ export class SeedService {
         await this.seedInstitutionType();
         await this.seedPositions();
         await this.seedAdminAccount();
+        await this.seedNutritionStatus();
     }
 
     async seedRole() {
@@ -97,5 +98,41 @@ export class SeedService {
             })
         }
         console.log('Position Seeded');
+    }
+
+    async seedNutritionStatus() {
+        const isNutritionStatusExist = await this.prismaClient.nutritionStatus.findMany();
+        if (!isNutritionStatusExist.length) {
+            await this.prismaClient.nutritionStatus.createMany({
+                data: [
+                    {
+                        id: 1,
+                        status: 'KURUS',
+                        information: 'Kekurangan bb tingkat berat'
+                    },
+                    {
+                        id: 2,
+                        status: 'KURUS',
+                        information: 'Kekurangan bb tingkat ringan'
+                    },
+                    {
+                        id: 3,
+                        status: 'NORMAL',
+                        information: 'Gizi normal'
+                    },
+                    {
+                        id: 4,
+                        status: 'GEMUK',
+                        information: 'Kelebihan bb tingkat ringan'
+                    },
+                    {
+                        id: 5,
+                        status: 'GEMUK',
+                        information: 'Kelebihan bb tingkat berat'
+                    },
+                ]
+            })
+        }
+        console.log('Nutrition Status Seeded');
     }
 }
