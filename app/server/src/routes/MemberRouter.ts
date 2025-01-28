@@ -12,3 +12,7 @@ export const memberRouter = express.Router();
 memberRouter.post('/:familyMemberId/nutrition', AuthorizationMiddleware(['admin', 'school', 'uks', 'parent']), (req, res) => {
     nutritionController.addNutrition(req, res);
 })
+
+memberRouter.put('/:familyMemberId/nutrition/:nutritionId', AuthorizationMiddleware(['admin', 'school', 'uks', 'parent']), (req, res) => {
+    nutritionController.updateNutrition(req, res);
+});

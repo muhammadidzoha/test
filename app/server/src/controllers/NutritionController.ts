@@ -34,4 +34,29 @@ export class NutritionController {
             handleError(err, res);
         }
     }
+
+    async updateNutrition(req: Request, res: Response) {
+        try {
+            validatePayload(addNutritionSchema, req.body);
+            const { familyMemberId, nutritionId } = req.params;
+            if (!familyMemberId || !nutritionId) {
+                throw new InvariantError('Family Member Id and Nutrition Id is required to update nutrition');
+            };
+
+            const payload: INutrition = req.body;
+            const user = (req as any).user;
+            const { nutrition } = await this.nutritionService.updateNutrition(+nutritionId, +familyMemberId, {
+                ...payload,
+                createdBy: user.id
+            });
+
+            res.status(200).json({
+                status: 'Success',
+                message: 'Nutrition updated',
+                data: nutrition
+            })
+        } catch (err: any) {
+            handleError(err, res);
+        }
+    }
 };
