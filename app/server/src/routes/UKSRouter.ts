@@ -25,3 +25,7 @@ uksRouter.get('/:healthCareId/books', AuthorizationMiddleware(['admin', 'school'
 uksRouter.delete('/:healthCareId/books/:bookId', AuthorizationMiddleware(['admin', 'school', 'uks']), (req: Request, res: Response) => {
     uksController.deleteBook(req, res);
 })
+
+uksRouter.get('/:healthCareId/books/:bookId', AuthorizationMiddleware(['admin', 'school', 'uks']), (req: Request, res: Response) => {
+    uksController.getBookOwnedByHealthCare(req, res);
+})

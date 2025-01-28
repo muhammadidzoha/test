@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { UKSService } from "../services/UKSService";
 import { handleError, validatePayload } from "../common/http";
 import { addBookSchema } from "../common/http/requestvalidator/UKSValidator";
-import { InvariantError } from "../common/exception";
+import { InvariantError, NotFoundError } from "../common/exception";
 import { IBookUKS } from "../types/uks";
 
 export class UKSController {
@@ -70,6 +70,30 @@ export class UKSController {
             res.status(200).json({
                 status: 'Success',
                 message: `Book with id ${bookId} deleted successfully`,
+                data: book
+            })
+        } catch (err: any) {
+            handleError(err, res);
+        }
+    }
+
+    async getBookOwnedByHealthCare(req: Request, res: Response) {
+        try {
+            const { healthCareId, bookId } = req.params;
+
+            if (!healthCareId || !bookId) {
+                throw new InvariantError('Health care id and book id is required in params');
+            }
+
+            const { book } = await this.UKSService.getbookOwnedByHealthCare(+healthCareId, +bookId);
+
+            if (!book) {
+                throw new NotFoundError(`Book with id ${bookId} not found`);
+            }
+
+            res.status(200).json({
+                status: 'Success',
+                message: `Book with id ${bookId} fetched successfully`,
                 data: book
             })
         } catch (err: any) {
