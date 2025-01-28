@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { IBookUKS } from "../types/uks";
+import { NotFoundError } from "../common/exception";
 
 export class UKSService {
     constructor(public prismaClient: PrismaClient) {
@@ -30,5 +31,31 @@ export class UKSService {
         });
 
         return { books };
+    }
+
+    async deleteBookOwnedByHealthCare(healthCareId: number, bookId: number) {
+        const { book: isBookExists } = await this.getbookOwnedByHealthCare(healthCareId, bookId);
+        if (!isBookExists) {
+            throw new NotFoundError('Book not found');
+        }
+        const book = await this.prismaClient.uKSBook.delete({
+            where: {
+                id: bookId,
+                health_care_id: healthCareId
+            }
+        });
+
+        return { book };
+    }
+
+    async getbookOwnedByHealthCare(healthCareId: number, bookId: number) {
+        const book = await this.prismaClient.uKSBook.findFirst({
+            where: {
+                id: bookId,
+                health_care_id: healthCareId
+            }
+        });
+
+        return { book };
     }
 };

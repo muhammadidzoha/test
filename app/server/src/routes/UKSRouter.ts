@@ -17,6 +17,11 @@ export const uksRouter = express.Router();
 uksRouter.post('/:healthCareId/books', AuthorizationMiddleware(['admin', 'school', 'uks']), multerMiddleware.fields([{ name: 'thumbnail', maxCount: 1 }, { name: 'file', maxCount: 1 }]), (req: Request, res: Response) => {
     uksController.addBook(req, res);
 })
+
 uksRouter.get('/:healthCareId/books', AuthorizationMiddleware(['admin', 'school', 'uks']), (req: Request, res: Response) => {
     uksController.getBooks(req, res);
+})
+
+uksRouter.delete('/:healthCareId/books/:bookId', AuthorizationMiddleware(['admin', 'school', 'uks']), (req: Request, res: Response) => {
+    uksController.deleteBook(req, res);
 })

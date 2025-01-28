@@ -57,4 +57,23 @@ export class UKSController {
             handleError(err, res);
         }
     }
+
+    async deleteBook(req: Request, res: Response) {
+        try {
+            const { healthCareId, bookId } = req.params;
+            if (!healthCareId || !bookId) {
+                throw new InvariantError('Health care id and book id is required in params');
+            }
+
+            const { book } = await this.UKSService.deleteBookOwnedByHealthCare(+healthCareId, +bookId);
+
+            res.status(200).json({
+                status: 'Success',
+                message: `Book with id ${bookId} deleted successfully`,
+                data: book
+            })
+        } catch (err: any) {
+            handleError(err, res);
+        }
+    }
 }
