@@ -92,4 +92,22 @@ export class KIEController {
             handleError(err, res);
         }
     }
+
+    async getKIEContents(req: Request, res: Response) {
+        try {
+            const { schoolId } = req.params;
+            if (!schoolId) {
+                throw new InvariantError('School id is required in params');
+            }
+            const { kieContents } = await this.kieService.getKieContentsOwnedBySchool(+schoolId);
+            res.status(200).json({
+                status: 'Success',
+                message: 'KIE contents fetched successfully',
+                data: kieContents
+            })
+        } catch (err: any) {
+            handleError(err, res);
+        }
+    }
+
 };

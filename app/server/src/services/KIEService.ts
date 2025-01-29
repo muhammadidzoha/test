@@ -123,4 +123,22 @@ export class KIEService {
 
         return { articles }
     }
+
+    async getKieContentsOwnedBySchool(schoolId: number) {
+        const kieContents = await this.prismaClient.kIEContent.findMany({
+            where: {
+                user: {
+                    health_care_member: {
+                        health_care: {
+                            school_id: schoolId
+                        }
+                    }
+                }
+            }
+        });
+
+        return {
+            kieContents
+        }
+    }
 };
