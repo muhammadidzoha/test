@@ -19,3 +19,5 @@ kieRouter.get('/articles/:articleId', AuthorizationMiddleware(['admin', 'uks', '
 kieRouter.get('/:schoolId/articles', AuthorizationMiddleware(['admin', 'uks', 'school']), (req, res) => { kieController.getArticlesOwnedByInstitution(req, res) });
 
 kieRouter.get('/:schoolId/kie-content', AuthorizationMiddleware(['admin', 'uks', 'school']), (req, res) => { kieController.getKIEContents(req, res) });
+
+kieRouter.put('/articles/:articleId', AuthorizationMiddleware(['admin', 'uks', 'school']), multerMiddleware.fields([{ name: 'banner' }, { name: 'thumbnail' }]), (req, res) => { kieController.updateKIEArticle(req, res) });

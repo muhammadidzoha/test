@@ -141,4 +141,72 @@ export class KIEService {
             kieContents
         }
     }
+
+    async updateArticleById(articleId: number, kiePayload: ICreateKIEArticle & { tag: string[] }) {
+        const { article: isArticleExist } = await this.getArticleById(articleId);
+
+
+        if (!isArticleExist) {
+            throw new NotFoundError('Article not found');
+        }
+
+        const tagToRemove = isArticleExist.kie_tag.filter(tag => !kiePayload.tag.includes(tag.name));
+        const tagToAdd = kiePayload.tag.filter(tag => !isArticleExist.kie_tag.map(tag => tag.name).includes(tag));
+        const tagToAddOnDB = await Promise.all(tagToAdd.map(async tag => {
+            const { tag: isTagExist } = await this.getTagByName(tag);
+            if (isTagExist) {
+                return isTagExist;
+            }
+            return await this.prismaClient.kIETag.create({
+                data: {
+                    name: tag.toLowerCase()
+                }
+            });
+        }))
+
+
+        console.log({ tagToAdd, tagToRemove, currentTag: isArticleExist.kie_tag, newTag: kiePayload.tag });
+
+
+        const article = await this.prismaClient.kIEContent.update({
+            where: {
+                id: articleId
+            },
+            data: {
+                title: kiePayload.title,
+                updated_by: kiePayload.updatedBy,
+                description: kiePayload.description,
+                article: {
+                    update: {
+                        data: {
+                            Content: kiePayload.content,
+                            thumbnail_url: kiePayload.thumbnailUrl,
+                            banner_url: kiePayload.bannerUrl
+                        },
+                        where: {
+                            id: articleId
+                        }
+                    }
+                },
+                kie_tag: {
+                    disconnect: tagToRemove.map(tag => ({
+                        id: tag.id
+                    })),
+                    connect: tagToAddOnDB.map(tag => ({
+                        id: tag.id
+                    }))
+                }
+            },
+            include: {
+                article: true,
+                user: true,
+                kie_tag: true,
+                kie_type: true
+            }
+        });
+
+        return {
+            article
+        }
+    }
 };

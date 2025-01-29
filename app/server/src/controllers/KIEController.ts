@@ -17,7 +17,6 @@ export class KIEController {
             const payload: ICreateKIEArticle & { tags: string[] } = req.body;
             const { banner, thumbnail } = req.files as any;
 
-            console.log({ banner, thumbnail, ...payload })
 
             const { kieArticle } = await this.kieService.createKIEArticle({
                 ...payload,
@@ -110,4 +109,37 @@ export class KIEController {
         }
     }
 
+    async updateKIEArticle(req: Request, res: Response) {
+        try {
+            validatePayload(createKIEArticleSchema, req.body);
+            const { articleId } = req.params;
+            if (!articleId) {
+                throw new InvariantError('Article id is required in params');
+            }
+
+            const user = (req as any).user;
+            const payload: ICreateKIEArticle & { tags: string[] } = req.body;
+            console.log({ files: req.files, articleId, user, payload });
+            const { banner, thumbnail } = req.files ?? { banner: undefined, thumbnail: undefined } as any;
+            console.log({ banner, thumbnail });
+
+            const { article } = await this.kieService.updateArticleById(+articleId, {
+                ...payload,
+                createdBy: user.id,
+                updatedBy: user.id,
+                tag: payload.tags,
+                bannerUrl: !banner ? undefined : banner[0]?.filename,
+                thumbnailUrl: !thumbnail ? undefined : thumbnail[0]?.filename,
+                type: +payload.type,
+            });
+
+            res.status(201).json({
+                status: 'Success',
+                message: `KIE with article id ${articleId} updated successfully`,
+                data: article
+            })
+        } catch (err: any) {
+            handleError(err, res);
+        }
+    }
 };
