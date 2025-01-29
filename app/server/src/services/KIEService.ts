@@ -8,7 +8,6 @@ export class KIEService {
     }
 
     async createKIEContent(kiePayload: IKIE, kieContentPayload: any & { tag: string[] }) {
-        console.log({ kiePayload, kieContentPayload })
         const { tags } = await this.makeSureTagExist(kieContentPayload.tag);
 
         const kieContent = await this.prismaClient.kIEContent.create({
@@ -57,12 +56,18 @@ export class KIEService {
                 }
             },
             include: {
-                article: true,
+                ...(kiePayload.type === 1 && {
+                    article: true
+                }),
+                ...(kiePayload.type === 2 && {
+                    poster: true
+                }),
+                ...(kiePayload.type === 3 && {
+                    video: true
+                }),
                 user: true,
                 kie_tag: true,
                 kie_type: true,
-                poster: true,
-                video: true
             }
         });
 
@@ -141,6 +146,35 @@ export class KIEService {
         return { tag };
     }
 
+    async deleteKIEContentById(kieContentId: number, type: number) {
+        const { content: isContentExist } = await this.getContentById(kieContentId, type);
+        if (!isContentExist) {
+            throw new NotFoundError(`Content not found`)
+        }
+        const deletedContent = await this.prismaClient.kIEContent.delete({
+            where: {
+                id: kieContentId,
+            },
+            include: {
+                ...(type === 1 && {
+                    article: true
+                }),
+                ...(type === 2 && {
+                    poster: true
+                }),
+                ...(type === 3 && {
+                    video: true
+                }),
+                user: true,
+                kie_tag: true,
+                kie_type: true
+            }
+
+        });
+
+        return { content: deletedContent }
+    }
+
     async deleteArticleById(articleId: number) {
         const { article: isArticleExist } = await this.getArticleById(articleId);
         if (!isArticleExist) {
@@ -162,6 +196,29 @@ export class KIEService {
         return { article: deletedArticle }
     }
 
+    async getContentById(contentId: number, type: number) {
+        const content = await this.prismaClient.kIEContent.findFirst({
+            where: {
+                id: contentId
+            },
+            include: {
+                ...(type === 1 && {
+                    article: true
+                }),
+                ...(type === 2 && {
+                    poster: true
+                }),
+                ...(type === 3 && {
+                    video: true
+                }),
+                user: true,
+                kie_tag: true,
+                kie_type: true
+            }
+        });
+
+        return { content };
+    }
     async getArticleById(articleId: number) {
         const article = await this.prismaClient.kIEContent.findFirst({
             where: {

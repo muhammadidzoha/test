@@ -76,22 +76,34 @@ export class KIEController {
         }
     }
 
-    async deleteKIEArticle(req: Request, res: Response) {
+    async deleteKIEContent(req: Request, res: Response) {
         try {
-            const { articleId } = req.params;
-            if (!articleId) {
-                throw new InvariantError('Article id is required in params');
+            const { contentId, type } = req.params;
+            if (!contentId || !type) {
+                throw new InvariantError('Content id and type is required in params');
             }
-            const { article } = await this.kieService.deleteArticleById(+articleId);
+            let typeId = 1;
+            if (type === 'article') {
+                typeId = 1
+            }
+            if (type === 'poster') {
+                typeId = 2
+            }
+            if (type === 'video') {
+                typeId = 3
+            }
+            const { content } = await this.kieService.deleteKIEContentById(+contentId, typeId);
             res.status(200).json({
                 status: 'Success',
-                message: 'Article deleted successfully',
-                data: article
+                message: 'Content deleted successfully',
+                data: content
             })
         } catch (err: any) {
-            handleError(err, res);
+            handleError(err, res)
         }
     }
+
+
 
     async getArticleById(req: Request, res: Response) {
         try {
