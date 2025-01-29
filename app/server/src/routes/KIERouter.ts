@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import { AuthorizationMiddleware } from '../middlewares/AuthorizationMiddleware';
 import { multerMiddleware } from '../middlewares/MulterMiddleware';
 import { KIEService } from '../services/KIEService';
@@ -10,7 +10,9 @@ const kieController = new KIEController(kieService);
 
 export const kieRouter = express.Router();
 
-kieRouter.post('/articles', AuthorizationMiddleware(['admin', 'uks', 'school']), multerMiddleware.fields([{ name: 'banner' }, { name: 'thumbnail' }]), (req, res) => { kieController.createKIEArticle(req, res) })
+kieRouter.post('/contents/:type', AuthorizationMiddleware(['admin', 'uks', 'school']), multerMiddleware.fields([{ name: 'banner' }, { name: 'thumbnail' }, { name: 'imageUrl' }, { name: 'videoUrl' }]), (req: Request, res: Response) => { kieController.createKIEContent(req, res) });
+
+kieRouter.post('/articles', AuthorizationMiddleware(['admin', 'uks', 'school']), multerMiddleware.fields([{ name: 'banner' }, { name: 'thumbnail' }]), (req: Request, res: Response) => { kieController.createKIEContent(req, res) })
 
 kieRouter.delete('/articles/:articleId', AuthorizationMiddleware(['admin', 'uks', 'school']), (req, res) => { kieController.deleteKIEArticle(req, res) })
 

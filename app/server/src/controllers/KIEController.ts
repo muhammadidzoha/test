@@ -10,28 +10,66 @@ export class KIEController {
 
     }
 
-    async createKIEArticle(req: Request, res: Response) {
+    async createKIEContent(req: Request, res: Response) {
         try {
-            validatePayload(createKIEArticleSchema, req.body);
+            const { type } = req.params;
+            let typeId = 1;
+            if (!type) {
+                throw new InvariantError('Type is required in params');
+            }
+            if (type === 'article') {
+                validatePayload(createKIEArticleSchema, req.body);
+                typeId = 1
+            }
+            if (type === 'poster') {
+                validatePayload(createKIEArticleSchema, req.body);
+                typeId = 2
+            }
+            if (type === 'video') {
+                validatePayload(createKIEArticleSchema, req.body);
+                typeId = 3
+            }
             const user = (req as any).user;
-            const payload: ICreateKIEArticle & { tags: string[] } = req.body;
-            const { banner, thumbnail } = req.files as any;
+            const payload: any & { tags: string[] } = req.body;
+            const { banner, thumbnail, imageUrl, videoUrl } = req.files as any;
 
+            let contentPayload = null;
 
-            const { kieArticle } = await this.kieService.createKIEArticle({
-                ...payload,
+            if (typeId === 1) {
+                contentPayload = {
+                    content: payload.content,
+                    bannerUrl: !banner ? undefined : banner[0]?.filename,
+                    thumbnailUrl: !thumbnail ? undefined : thumbnail[0]?.filename
+                }
+            };
+            if (typeId === 2) {
+                contentPayload = {
+                    imageUrl: !imageUrl ? undefined : imageUrl[0]?.filename,
+                    thumbnailUrl: !thumbnail ? undefined : thumbnail[0]?.filename
+                }
+            }
+            if (typeId === 3) {
+                contentPayload = {
+                    videoUrl: !videoUrl ? undefined : videoUrl[0]?.filename,
+                    thumbnailUrl: !thumbnail ? undefined : thumbnail[0]?.filename
+                }
+            }
+
+            const { kieContent } = await this.kieService.createKIEContent({
                 createdBy: user.id,
-                updatedBy: user.id,
-                tag: payload.tags,
-                bannerUrl: !banner ? undefined : banner[0]?.filename,
-                thumbnailUrl: !thumbnail ? undefined : thumbnail[0]?.filename,
-                type: +payload.type
-            });
+                description: payload.description,
+                title: payload.title,
+                type: typeId,
+                updatedBy: user.id
+            }, {
+                ...contentPayload,
+                tag: payload.tags
+            })
 
             res.status(201).json({
                 status: 'Success',
                 message: 'KIE article created successfully',
-                data: kieArticle
+                data: kieContent
             })
         } catch (err: any) {
             handleError(err, res);
