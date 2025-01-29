@@ -3,7 +3,7 @@ import { handleError, validatePayload } from "../common/http";
 import { createKIEArticleSchema } from "../common/http/requestvalidator/UKSValidator";
 import { KIEService } from "../services/KIEService";
 import { ICreateKIEArticle } from "../types/kie";
-import { InvariantError } from "../common/exception";
+import { InvariantError, NotFoundError } from "../common/exception";
 
 export class KIEController {
     constructor(public kieService: KIEService) {
@@ -50,6 +50,43 @@ export class KIEController {
                 status: 'Success',
                 message: 'Article deleted successfully',
                 data: article
+            })
+        } catch (err: any) {
+            handleError(err, res);
+        }
+    }
+
+    async getArticleById(req: Request, res: Response) {
+        try {
+            const { articleId } = req.params;
+            if (!articleId) {
+                throw new InvariantError('Article id is required in params');
+            }
+            const { article } = await this.kieService.getArticleById(+articleId);
+            if (!article) {
+                throw new NotFoundError('Article not found');
+            }
+            res.status(200).json({
+                status: 'Success',
+                message: 'Article fetched successfully',
+                data: article
+            })
+        } catch (err: any) {
+            handleError(err, res);
+        }
+    }
+
+    async getArticlesOwnedByInstitution(req: Request, res: Response) {
+        try {
+            const { schoolId } = req.params;
+            if (!schoolId) {
+                throw new InvariantError('School id is required in params');
+            }
+            const { articles } = await this.kieService.getArticlesOwnedByInstitution(+schoolId);
+            res.status(200).json({
+                status: 'Success',
+                message: 'Articles fetched successfully',
+                data: articles
             })
         } catch (err: any) {
             handleError(err, res);

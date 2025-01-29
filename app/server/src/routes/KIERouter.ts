@@ -13,3 +13,7 @@ export const kieRouter = express.Router();
 kieRouter.post('/articles', AuthorizationMiddleware(['admin', 'uks', 'school']), multerMiddleware.fields([{ name: 'banner' }, { name: 'thumbnail' }]), (req, res) => { kieController.createKIEArticle(req, res) })
 
 kieRouter.delete('/articles/:articleId', AuthorizationMiddleware(['admin', 'uks', 'school']), (req, res) => { kieController.deleteKIEArticle(req, res) })
+
+kieRouter.get('/articles/:articleId', AuthorizationMiddleware(['admin', 'uks', 'school']), (req, res) => { kieController.getArticleById(req, res) });
+
+kieRouter.get('/:schoolId/articles', AuthorizationMiddleware(['admin', 'uks', 'school']), (req, res) => { kieController.getArticlesOwnedByInstitution(req, res) });

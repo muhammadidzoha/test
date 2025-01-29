@@ -93,14 +93,34 @@ export class KIEService {
     }
 
     async getArticleById(articleId: number) {
-        const article = await this.prismaClient.article.findFirst({
+        const article = await this.prismaClient.kIEContent.findFirst({
             where: {
                 id: articleId
             },
+            include: {
+                article: true,
+                user: true,
+                kie_tag: true,
+                kie_type: true
+            }
         });
 
         return { article };
     }
 
+    async getArticlesOwnedByInstitution(schoolId: number) {
+        const articles = await this.prismaClient.kIEContent.findMany({
+            where: {
+                user: {
+                    health_care_member: {
+                        health_care: {
+                            school_id: schoolId
+                        }
+                    }
+                }
+            }
+        });
 
+        return { articles }
+    }
 };
