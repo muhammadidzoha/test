@@ -132,6 +132,7 @@ export class KIEController {
 
     async getKieContentsOwnedByInstitutionByType(req: Request, res: Response) {
         try {
+            console.log({ name: 'getKieContentsOwnedByInstitutionByType' })
             const { schoolId, type } = req.params;
             if (!schoolId || !type) {
                 throw new InvariantError('School id and type is required in params');
@@ -215,6 +216,27 @@ export class KIEController {
                 status: 'Success',
                 message: `KIE with content id ${contentId} updated successfully`,
                 data: content
+            })
+        } catch (err: any) {
+            handleError(err, res);
+        }
+    }
+
+    async getKieContentsOwnedByInstitution(req: Request, res: Response) {
+        try {
+            console.log({ name: 'getKieContentsOwnedByInstitution' })
+
+            const { schoolId } = req.params;
+            console.log({ schoolId });
+            if (!schoolId) {
+                throw new InvariantError('School id is required in params');
+            }
+            const { contents } = await this.kieService.getContentsOwnedByInstitution(+schoolId);
+
+            res.status(200).json({
+                status: 'Success',
+                message: 'KIE contents fetched successfully',
+                data: contents
             })
         } catch (err: any) {
             handleError(err, res);

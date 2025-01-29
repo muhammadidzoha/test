@@ -154,6 +154,7 @@ export class KIEService {
         const deletedContent = await this.prismaClient.kIEContent.delete({
             where: {
                 id: kieContentId,
+                type
             },
             include: {
                 ...(type === 1 && {
@@ -178,7 +179,8 @@ export class KIEService {
     async getContentById(contentId: number, type: number) {
         const content = await this.prismaClient.kIEContent.findFirst({
             where: {
-                id: contentId
+                id: contentId,
+                type
             },
             include: {
                 ...(type === 1 && {
@@ -318,178 +320,28 @@ export class KIEService {
         }
     }
 
-
-    // async updateArticleById(articleId: number, kiePayload: ICreateKIEArticle & { tag: string[] }) {
-    //     const { article: isArticleExist } = await this.getArticleById(articleId);
-
-
-    //     if (!isArticleExist) {
-    //         throw new NotFoundError('Article not found');
-    //     }
-
-    //     const tagToRemove = isArticleExist.kie_tag.filter(tag => !kiePayload.tag.includes(tag.name));
-    //     const tagToAdd = kiePayload.tag.filter(tag => !isArticleExist.kie_tag.map(tag => tag.name).includes(tag));
-    //     const { tags: tagToAddOnDB } = await this.makeSureTagExist(tagToAdd);
-
-
-    //     console.log({ tagToAdd, tagToRemove, currentTag: isArticleExist.kie_tag, newTag: kiePayload.tag });
-
-
-    //     const article = await this.prismaClient.kIEContent.update({
-    //         where: {
-    //             id: articleId
-    //         },
-    //         data: {
-    //             title: kiePayload.title,
-    //             updated_by: kiePayload.updatedBy,
-    //             description: kiePayload.description,
-    //             article: {
-    //                 update: {
-    //                     data: {
-    //                         Content: kiePayload.content,
-    //                         thumbnail_url: kiePayload.thumbnailUrl,
-    //                         banner_url: kiePayload.bannerUrl
-    //                     },
-    //                     where: {
-    //                         id: articleId
-    //                     }
-    //                 }
-    //             },
-    //             kie_tag: {
-    //                 disconnect: tagToRemove.map(tag => ({
-    //                     id: tag.id
-    //                 })),
-    //                 connect: tagToAddOnDB.map(tag => ({
-    //                     id: tag.id
-    //                 }))
-    //             }
-    //         },
-    //         include: {
-    //             article: true,
-    //             user: true,
-    //             kie_tag: true,
-    //             kie_type: true
-    //         }
-    //     });
-
-    //     return {
-    //         article
-    //     }
-    // }
-
-    async createKIEPoster(payload: ICreateKIEPoster & { tag: string[] }) {
-        const { tags } = await this.makeSureTagExist(payload.tag);
-        const kiePoster = await this.prismaClient.kIEContent.create({
-            data: {
-                title: payload.title,
-                updated_by: payload.updatedBy,
-                created_by: payload.createdBy,
-                description: payload.description,
-                type: 2,
-                poster: {
-                    create: {
-                        thumbnail_url: payload.thumbnailUrl,
-                        image_url: payload.imageUrl
-                    }
-                },
-                kie_tag: {
-                    connectOrCreate: tags.map(tag => {
-                        return {
-                            where: {
-                                id: tag.id
-                            },
-                            create: {
-                                name: tag.name
-                            }
-                        }
-                    })
-                }
-            }
-        });
-
-        return { poster: kiePoster }
-    }
-
-    async getKiePosterById(posterId: number) {
-        const poster = await this.prismaClient.kIEContent.findFirst({
+    async getContentsOwnedByInstitution(schoolId: number) {
+        const contents = await this.prismaClient.kIEContent.findMany({
             where: {
-                id: posterId
-            },
-            include: {
-                poster: true,
-                user: true,
-                kie_type: true,
-                kie_tag: true
-            }
-        });
-        return { poster };
-    }
-
-    async deleteKiePosterById(posterId: number) {
-        const { poster: isPosterExist } = await this.getKiePosterById(posterId);
-        if (!isPosterExist) {
-            throw new NotFoundError('Poster not found');
-        }
-        const deletedPoster = await this.prismaClient.kIEContent.delete({
-            where: {
-                id: posterId
-            },
-            include: {
-                poster: true,
-                user: true,
-                kie_type: true
-            }
-        });
-
-        return { poster: deletedPoster }
-    }
-
-    async updateKiePosterById(posterId: number, payload: ICreateKIEPoster & { tag: string[] }) {
-        const { poster: isPosterExist } = await this.getKiePosterById(posterId);
-        if (!isPosterExist) {
-            throw new NotFoundError('Poster not found');
-        }
-
-        const tagToRemove = isPosterExist.kie_tag.filter(tag => !payload.tag.includes(tag.name));
-        const tagToAdd = payload.tag.filter(tag => !isPosterExist.kie_tag.map(tag => tag.name).includes(tag));
-        const { tags: tagToAddOnDB } = await this.makeSureTagExist(tagToAdd);
-
-        const poster = await this.prismaClient.kIEContent.update({
-            where: {
-                id: posterId
-            },
-            data: {
-                title: payload.title,
-                updated_by: payload.updatedBy,
-                description: payload.description,
-                poster: {
-                    update: {
-                        data: {
-                            thumbnail_url: payload.thumbnailUrl,
-                            image_url: payload.imageUrl
-                        },
-                        where: {
-                            id: posterId
+                user: {
+                    health_care_member: {
+                        health_care: {
+                            school_id: schoolId
                         }
                     }
-                },
-                kie_tag: {
-                    disconnect: tagToRemove.map(tag => ({
-                        id: tag.id
-                    })),
-                    connect: tagToAddOnDB.map(tag => ({
-                        id: tag.id
-                    }))
                 }
             },
             include: {
+                article: true,
                 poster: true,
+                video: true,
                 user: true,
                 kie_tag: true,
                 kie_type: true
             }
         });
 
-        return { poster }
+        return { contents }
     }
+
 };
