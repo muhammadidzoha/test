@@ -175,27 +175,6 @@ export class KIEService {
         return { content: deletedContent }
     }
 
-    async deleteArticleById(articleId: number) {
-        const { article: isArticleExist } = await this.getArticleById(articleId);
-        if (!isArticleExist) {
-            throw new NotFoundError('Article not found');
-        }
-        const deletedArticle = await this.prismaClient.kIEContent.delete({
-            where: {
-                id: articleId,
-            },
-            include: {
-                article: true,
-                user: true,
-                kie_tag: true,
-                kie_type: true
-            }
-
-        });
-
-        return { article: deletedArticle }
-    }
-
     async getContentById(contentId: number, type: number) {
         const content = await this.prismaClient.kIEContent.findFirst({
             where: {
@@ -219,24 +198,9 @@ export class KIEService {
 
         return { content };
     }
-    async getArticleById(articleId: number) {
-        const article = await this.prismaClient.kIEContent.findFirst({
-            where: {
-                id: articleId
-            },
-            include: {
-                article: true,
-                user: true,
-                kie_tag: true,
-                kie_type: true
-            }
-        });
 
-        return { article };
-    }
-
-    async getArticlesOwnedByInstitution(schoolId: number) {
-        const articles = await this.prismaClient.kIEContent.findMany({
+    async getContentsOwnedByInstitutionByType(schoolId: number, type: number) {
+        const contents = await this.prismaClient.kIEContent.findMany({
             where: {
                 user: {
                     health_care_member: {
@@ -244,11 +208,28 @@ export class KIEService {
                             school_id: schoolId
                         }
                     }
-                }
+                },
+                type
+            },
+            include: {
+                ...(type === 1 && {
+                    article: true
+                }),
+                ...(type === 2 && {
+                    poster: true
+                }),
+                ...(type === 3 && {
+                    video: true
+                }),
+                user: true,
+                kie_tag: true,
+                kie_type: true
             }
         });
 
-        return { articles }
+        return {
+            contents
+        }
     }
 
     async getKieContentsOwnedBySchool(schoolId: number) {
@@ -269,63 +250,63 @@ export class KIEService {
         }
     }
 
-    async updateArticleById(articleId: number, kiePayload: ICreateKIEArticle & { tag: string[] }) {
-        const { article: isArticleExist } = await this.getArticleById(articleId);
+    // async updateArticleById(articleId: number, kiePayload: ICreateKIEArticle & { tag: string[] }) {
+    //     const { article: isArticleExist } = await this.getArticleById(articleId);
 
 
-        if (!isArticleExist) {
-            throw new NotFoundError('Article not found');
-        }
+    //     if (!isArticleExist) {
+    //         throw new NotFoundError('Article not found');
+    //     }
 
-        const tagToRemove = isArticleExist.kie_tag.filter(tag => !kiePayload.tag.includes(tag.name));
-        const tagToAdd = kiePayload.tag.filter(tag => !isArticleExist.kie_tag.map(tag => tag.name).includes(tag));
-        const { tags: tagToAddOnDB } = await this.makeSureTagExist(tagToAdd);
-
-
-        console.log({ tagToAdd, tagToRemove, currentTag: isArticleExist.kie_tag, newTag: kiePayload.tag });
+    //     const tagToRemove = isArticleExist.kie_tag.filter(tag => !kiePayload.tag.includes(tag.name));
+    //     const tagToAdd = kiePayload.tag.filter(tag => !isArticleExist.kie_tag.map(tag => tag.name).includes(tag));
+    //     const { tags: tagToAddOnDB } = await this.makeSureTagExist(tagToAdd);
 
 
-        const article = await this.prismaClient.kIEContent.update({
-            where: {
-                id: articleId
-            },
-            data: {
-                title: kiePayload.title,
-                updated_by: kiePayload.updatedBy,
-                description: kiePayload.description,
-                article: {
-                    update: {
-                        data: {
-                            Content: kiePayload.content,
-                            thumbnail_url: kiePayload.thumbnailUrl,
-                            banner_url: kiePayload.bannerUrl
-                        },
-                        where: {
-                            id: articleId
-                        }
-                    }
-                },
-                kie_tag: {
-                    disconnect: tagToRemove.map(tag => ({
-                        id: tag.id
-                    })),
-                    connect: tagToAddOnDB.map(tag => ({
-                        id: tag.id
-                    }))
-                }
-            },
-            include: {
-                article: true,
-                user: true,
-                kie_tag: true,
-                kie_type: true
-            }
-        });
+    //     console.log({ tagToAdd, tagToRemove, currentTag: isArticleExist.kie_tag, newTag: kiePayload.tag });
 
-        return {
-            article
-        }
-    }
+
+    //     const article = await this.prismaClient.kIEContent.update({
+    //         where: {
+    //             id: articleId
+    //         },
+    //         data: {
+    //             title: kiePayload.title,
+    //             updated_by: kiePayload.updatedBy,
+    //             description: kiePayload.description,
+    //             article: {
+    //                 update: {
+    //                     data: {
+    //                         Content: kiePayload.content,
+    //                         thumbnail_url: kiePayload.thumbnailUrl,
+    //                         banner_url: kiePayload.bannerUrl
+    //                     },
+    //                     where: {
+    //                         id: articleId
+    //                     }
+    //                 }
+    //             },
+    //             kie_tag: {
+    //                 disconnect: tagToRemove.map(tag => ({
+    //                     id: tag.id
+    //                 })),
+    //                 connect: tagToAddOnDB.map(tag => ({
+    //                     id: tag.id
+    //                 }))
+    //             }
+    //         },
+    //         include: {
+    //             article: true,
+    //             user: true,
+    //             kie_tag: true,
+    //             kie_type: true
+    //         }
+    //     });
+
+    //     return {
+    //         article
+    //     }
+    // }
 
     async createKIEPoster(payload: ICreateKIEPoster & { tag: string[] }) {
         const { tags } = await this.makeSureTagExist(payload.tag);
