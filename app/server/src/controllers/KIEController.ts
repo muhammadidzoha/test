@@ -130,26 +130,6 @@ export class KIEController {
         }
     }
 
-
-
-
-    async getKIEContents(req: Request, res: Response) {
-        try {
-            const { schoolId } = req.params;
-            if (!schoolId) {
-                throw new InvariantError('School id is required in params');
-            }
-            const { kieContents } = await this.kieService.getKieContentsOwnedBySchool(+schoolId);
-            res.status(200).json({
-                status: 'Success',
-                message: 'KIE contents fetched successfully',
-                data: kieContents
-            })
-        } catch (err: any) {
-            handleError(err, res);
-        }
-    }
-
     async getKieContentsOwnedByInstitutionByType(req: Request, res: Response) {
         try {
             const { schoolId, type } = req.params;
@@ -171,6 +151,70 @@ export class KIEController {
                 status: 'Success',
                 message: 'KIE contents fetched successfully',
                 data: contents
+            })
+        } catch (err: any) {
+            handleError(err, res);
+        }
+    }
+
+    async updateKIEContent(req: Request, res: Response) {
+        try {
+            const { contentId, type } = req.params;
+            if (!contentId || !type) {
+                throw new InvariantError('Content id and type is required in params');
+            }
+            let typeId = 1;
+            if (type === 'article') {
+                validatePayload(createKIEArticleSchema, req.body);
+                typeId = 1
+            }
+            if (type === 'poster') {
+                validatePayload(createKIEArticleSchema, req.body);
+                typeId = 2
+            }
+            if (type === 'video') {
+                validatePayload(createKIEArticleSchema, req.body);
+                typeId = 3
+            }
+            const user = (req as any).user;
+            const payload: any & { tags: string[] } = req.body;
+            const { banner, thumbnail, imageUrl, videoUrl } = req.files as any;
+            let contentPayload = {};
+            if (typeId === 1) {
+                contentPayload = {
+                    content: payload.content,
+                    bannerUrl: !banner ? undefined : banner[0]?.filename,
+                    thumbnailUrl: !thumbnail ? undefined : thumbnail[0]?.filename
+                }
+            };
+            if (typeId === 2) {
+                contentPayload = {
+                    imageUrl: !imageUrl ? undefined : imageUrl[0]?.filename,
+                    thumbnailUrl: !thumbnail ? undefined : thumbnail[0]?.filename
+                }
+            }
+            if (typeId === 3) {
+                contentPayload = {
+                    videoUrl: !videoUrl ? undefined : videoUrl[0]?.filename,
+                    thumbnailUrl: !thumbnail ? undefined : thumbnail[0]?.filename
+                }
+            }
+
+            const { content } = await this.kieService.updateKIEContentById(+contentId, {
+                createdBy: user.id,
+                description: payload.description,
+                title: payload.title,
+                type: typeId,
+                updatedBy: user.id
+            }, {
+                ...contentPayload,
+                tag: payload.tags
+            });
+
+            res.status(200).json({
+                status: 'Success',
+                message: `KIE with content id ${contentId} updated successfully`,
+                data: content
             })
         } catch (err: any) {
             handleError(err, res);

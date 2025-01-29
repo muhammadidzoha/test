@@ -232,23 +232,92 @@ export class KIEService {
         }
     }
 
-    async getKieContentsOwnedBySchool(schoolId: number) {
-        const kieContents = await this.prismaClient.kIEContent.findMany({
+    async updateKIEContentById(contentId: number, kiePayload: IKIE, kieContentPayload: any & { tag: string[] }) {
+        const { content: isContentexist } = await this.getContentById(contentId, kiePayload.type);
+        if (!isContentexist) {
+            throw new NotFoundError('Content not found');
+        }
+
+        const tagToRemove = isContentexist.kie_tag.filter(tag => !kieContentPayload.tag.includes(tag.name))
+        const tagToAdd = kieContentPayload.tag.filter((tag: string) => isContentexist.kie_tag.map(tag => tag.name).includes(tag));
+
+        const { tags: tagToAddOnDb } = await this.makeSureTagExist(tagToAdd);
+
+        const updatedContent = await this.prismaClient.kIEContent.update({
             where: {
-                user: {
-                    health_care_member: {
-                        health_care: {
-                            school_id: schoolId
+                id: contentId
+            },
+            data: {
+                title: kiePayload.title,
+                description: kiePayload.description,
+                created_by: kiePayload.createdBy,
+                updated_by: kiePayload.updatedBy,
+                kie_tag: {
+                    disconnect: tagToRemove.map(tag => ({ id: tag.id })),
+                    connect: tagToAddOnDb.map(tag => ({ id: tag.id }))
+                },
+                ...(kiePayload.type === 1 && {
+                    article: {
+                        update: {
+                            data: {
+                                Content: kieContentPayload.content,
+                                banner_url: kieContentPayload.bannerUrl,
+                                thumbnail_url: kieContentPayload.thumbnailUrl
+                            },
+                            where: {
+                                id: contentId
+                            }
                         }
                     }
-                }
+                }),
+                ...(kiePayload.type === 2 && {
+                    poster: {
+                        update: {
+                            data: {
+                                image_url: kieContentPayload.imageUrl,
+                                thumbnail_url: kieContentPayload.thumbnailUrl
+                            },
+                            where: {
+                                id: contentId
+                            }
+                        }
+                    }
+                }),
+                ...(kiePayload.type === 3 && {
+                    video: {
+                        update: {
+                            data: {
+                                video_url: kieContentPayload.videoUrl,
+                                thumbnail_url: kieContentPayload.thumbnailUrl
+                            },
+                            where: {
+                                id: contentId
+                            }
+                        }
+                    }
+                })
+            },
+            include: {
+                ...(kiePayload.type === 1 && {
+                    article: true
+                }),
+                ...(kiePayload.type === 2 && {
+                    poster: true
+                }),
+                ...(kiePayload.type === 3 && {
+                    video: true
+                }),
+                user: true,
+                kie_tag: true,
+                kie_type: true
             }
         });
 
         return {
-            kieContents
+            content: updatedContent
         }
     }
+
 
     // async updateArticleById(articleId: number, kiePayload: ICreateKIEArticle & { tag: string[] }) {
     //     const { article: isArticleExist } = await this.getArticleById(articleId);
