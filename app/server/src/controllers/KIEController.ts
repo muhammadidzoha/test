@@ -14,6 +14,7 @@ export class KIEController {
         try {
             const { type } = req.params;
             let typeId = 1;
+            const { banner, thumbnail, image, video } = req.files as any;
             if (!type) {
                 throw new InvariantError('Type is required in params');
             }
@@ -23,15 +24,20 @@ export class KIEController {
             }
             if (type === 'poster') {
                 validatePayload(createKIEArticleSchema, req.body);
+                if (!image) {
+                    throw new InvariantError('Image is required for poster');
+                }
                 typeId = 2
             }
             if (type === 'video') {
                 validatePayload(createKIEArticleSchema, req.body);
+                if (!video) {
+                    throw new InvariantError('Video is required for video');
+                }
                 typeId = 3
             }
             const user = (req as any).user;
             const payload: any & { tags: string[] } = req.body;
-            const { banner, thumbnail, imageUrl, videoUrl } = req.files as any;
 
             let contentPayload = null;
 
@@ -44,13 +50,13 @@ export class KIEController {
             };
             if (typeId === 2) {
                 contentPayload = {
-                    imageUrl: !imageUrl ? undefined : imageUrl[0]?.filename,
+                    imageUrl: !image ? undefined : image[0]?.filename,
                     thumbnailUrl: !thumbnail ? undefined : thumbnail[0]?.filename
                 }
             }
             if (typeId === 3) {
                 contentPayload = {
-                    videoUrl: !videoUrl ? undefined : videoUrl[0]?.filename,
+                    videoUrl: !video ? undefined : video[0]?.filename,
                     thumbnailUrl: !thumbnail ? undefined : thumbnail[0]?.filename
                 }
             }
@@ -68,7 +74,7 @@ export class KIEController {
 
             res.status(201).json({
                 status: 'Success',
-                message: 'KIE article created successfully',
+                message: `KIE ${type} created successfully`,
                 data: kieContent
             })
         } catch (err: any) {
@@ -164,6 +170,8 @@ export class KIEController {
             if (!contentId || !type) {
                 throw new InvariantError('Content id and type is required in params');
             }
+            const { banner, thumbnail, image, video } = req.files as any;
+
             let typeId = 1;
             if (type === 'article') {
                 validatePayload(createKIEArticleSchema, req.body);
@@ -171,15 +179,20 @@ export class KIEController {
             }
             if (type === 'poster') {
                 validatePayload(createKIEArticleSchema, req.body);
+                if (!image) {
+                    throw new InvariantError('Image is required for video');
+                }
                 typeId = 2
             }
             if (type === 'video') {
                 validatePayload(createKIEArticleSchema, req.body);
+                if (!video) {
+                    throw new InvariantError('Video is required for video');
+                }
                 typeId = 3
             }
             const user = (req as any).user;
             const payload: any & { tags: string[] } = req.body;
-            const { banner, thumbnail, imageUrl, videoUrl } = req.files as any;
             let contentPayload = {};
             if (typeId === 1) {
                 contentPayload = {
@@ -190,13 +203,13 @@ export class KIEController {
             };
             if (typeId === 2) {
                 contentPayload = {
-                    imageUrl: !imageUrl ? undefined : imageUrl[0]?.filename,
+                    imageUrl: !image ? undefined : image[0]?.filename,
                     thumbnailUrl: !thumbnail ? undefined : thumbnail[0]?.filename
                 }
             }
             if (typeId === 3) {
                 contentPayload = {
-                    videoUrl: !videoUrl ? undefined : videoUrl[0]?.filename,
+                    videoUrl: !video ? undefined : video[0]?.filename,
                     thumbnailUrl: !thumbnail ? undefined : thumbnail[0]?.filename
                 }
             }
@@ -242,38 +255,4 @@ export class KIEController {
             handleError(err, res);
         }
     }
-
-    // async updateKIEArticle(req: Request, res: Response) {
-    //     try {
-    //         validatePayload(createKIEArticleSchema, req.body);
-    //         const { articleId } = req.params;
-    //         if (!articleId) {
-    //             throw new InvariantError('Article id is required in params');
-    //         }
-
-    //         const user = (req as any).user;
-    //         const payload: ICreateKIEArticle & { tags: string[] } = req.body;
-    //         console.log({ files: req.files, articleId, user, payload });
-    //         const { banner, thumbnail } = req.files ?? { banner: undefined, thumbnail: undefined } as any;
-    //         console.log({ banner, thumbnail });
-
-    //         const { article } = await this.kieService.updateArticleById(+articleId, {
-    //             ...payload,
-    //             createdBy: user.id,
-    //             updatedBy: user.id,
-    //             tag: payload.tags,
-    //             bannerUrl: !banner ? undefined : banner[0]?.filename,
-    //             thumbnailUrl: !thumbnail ? undefined : thumbnail[0]?.filename,
-    //             type: +payload.type,
-    //         });
-
-    //         res.status(201).json({
-    //             status: 'Success',
-    //             message: `KIE with article id ${articleId} updated successfully`,
-    //             data: article
-    //         })
-    //     } catch (err: any) {
-    //         handleError(err, res);
-    //     }
-    // }
 };

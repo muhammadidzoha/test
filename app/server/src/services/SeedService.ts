@@ -148,11 +148,11 @@ export class SeedService {
                     },
                     {
                         id: 2,
-                        name: 'Video'
+                        name: 'Poster'
                     },
                     {
                         id: 3,
-                        name: 'Poster'
+                        name: 'Video'
                     }
                 ]
             })

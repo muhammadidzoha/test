@@ -17,7 +17,7 @@ kieRouter.get('/contents/institutions/:schoolId', AuthorizationMiddleware(['admi
 
 kieRouter.get('/contents/institutions/:schoolId/type/:type', AuthorizationMiddleware(['admin', 'uks', 'school']), (req, res) => { kieController.getKieContentsOwnedByInstitutionByType(req, res) });
 
-kieRouter.post('/contents/:type', AuthorizationMiddleware(['admin', 'uks', 'school']), multerMiddleware.fields([{ name: 'banner' }, { name: 'thumbnail' }, { name: 'imageUrl' }, { name: 'videoUrl' }]), (req: Request, res: Response) => { kieController.createKIEContent(req, res) });
+kieRouter.post('/contents/:type', AuthorizationMiddleware(['admin', 'uks', 'school']), multerMiddleware.fields([{ name: 'banner' }, { name: 'thumbnail' }, { name: 'image' }, { name: 'video' }]), (req: Request, res: Response) => { kieController.createKIEContent(req, res) });
 
 kieRouter.delete('/contents/:type/:contentId', AuthorizationMiddleware(['admin', 'uks', 'school']), (req, res) => { kieController.deleteKIEContent(req, res) });
 
