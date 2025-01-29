@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { UKSService } from "../services/UKSService";
 import { handleError, validatePayload } from "../common/http";
-import { addBookSchema } from "../common/http/requestvalidator/UKSValidator";
+import { addBookSchema, createKIEArticleSchema } from "../common/http/requestvalidator/UKSValidator";
 import { InvariantError, NotFoundError } from "../common/exception";
 import { IBookUKS } from "../types/uks";
 import fs from 'fs';

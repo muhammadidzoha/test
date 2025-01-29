@@ -340,7 +340,7 @@ model KIEContent {
 
 model KIETag {
   id   Int    @id @default(autoincrement()) @db.Int
-  name String @db.VarChar(255)
+  name String @unique @db.VarChar(255)
 
   kie_content KIEContent[]
 }
@@ -360,7 +360,7 @@ model Article {
   Content       String  @db.LongText
   thumbnail_url String? @db.VarChar(255)
 
-  kie_content KIEContent @relation(fields: [id], references: [id])
+  kie_content KIEContent @relation(fields: [id], references: [id], onDelete: Cascade)
 
   @@map("articles")
 }

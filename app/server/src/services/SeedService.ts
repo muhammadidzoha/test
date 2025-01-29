@@ -11,6 +11,7 @@ export class SeedService {
         await this.seedPositions();
         await this.seedAdminAccount();
         await this.seedNutritionStatus();
+        await this.seedKIEtype();
     }
 
     async seedRole() {
@@ -134,5 +135,28 @@ export class SeedService {
             })
         }
         console.log('Nutrition Status Seeded');
+    }
+
+    async seedKIEtype() {
+        const isKIETypeExist = await this.prismaClient.kIEType.findMany();
+        if (!isKIETypeExist.length) {
+            await this.prismaClient.kIEType.createMany({
+                data: [
+                    {
+                        id: 1,
+                        name: 'Article'
+                    },
+                    {
+                        id: 2,
+                        name: 'Video'
+                    },
+                    {
+                        id: 3,
+                        name: 'Poster'
+                    }
+                ]
+            })
+        }
+        console.log('KIE Type Seeded');
     }
 }

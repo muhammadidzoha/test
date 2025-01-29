@@ -33,3 +33,4 @@ uksRouter.get('/:healthCareId/books/:bookId', AuthorizationMiddleware(['admin', 
 uksRouter.put('/:healthCareId/books/:bookId', AuthorizationMiddleware(['admin', 'school', 'uks']), multerMiddleware.fields([{ name: 'thumbnail', maxCount: 1 }, { name: 'file', maxCount: 1 }]), (req: Request, res: Response) => {
     uksController.updateBookOwnedByHealthCare(req, res);
 })
+
