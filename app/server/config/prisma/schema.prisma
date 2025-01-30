@@ -65,6 +65,7 @@ model Institution {
   health_service     HealthService?
   school_environment SchoolEnvironment?
   health_care        HealthCare?
+  facility           SchoolFacility[]
 
   @@map("institutions")
 }
@@ -379,6 +380,29 @@ model Video {
   thumbnail_url String? @db.VarChar(255)
 
   kie_content KIEContent @relation(fields: [id], references: [id])
+}
+
+model SchoolFacility {
+  id          Int     @id @default(autoincrement()) @db.Int
+  name        String  @db.VarChar(255)
+  school_id   Int     @db.Int
+  description String? @db.Text
+
+  facility_type_id Int @db.Int
+
+  facility_type FacilityType @relation(fields: [facility_type_id], references: [id])
+  school        Institution  @relation(fields: [school_id], references: [id])
+
+  @@map("school_facilities")
+}
+
+model FacilityType {
+  id   Int    @id @default(autoincrement()) @db.Int
+  name String @unique @db.VarChar(255)
+
+  school_facility SchoolFacility[]
+
+  @@map("facility_types")
 }
 
 // model HealthCareFacility {
