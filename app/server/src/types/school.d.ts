@@ -42,3 +42,8 @@ export interface IHealthCareMember {
     positionId: number
     userId?: number
 }
+
+export interface IFacility {
+    name: string;
+    description: string?;
+}
