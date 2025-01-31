@@ -272,4 +272,23 @@ export class UKSController {
             handleError(err, res);
         }
     }
+
+    async getActivityPlanAssignee(req: Request, res: Response) {
+        try {
+            const { healthCareId, activityPlanId } = req.params;
+            if (!healthCareId || !activityPlanId) {
+                throw new InvariantError('Health care id and activity plan id is required in params');
+            }
+
+            const { assignees } = await this.UKSService.getActivityPlanAssignee(+activityPlanId, +healthCareId);
+
+            res.status(200).json({
+                status: 'Success',
+                message: 'Assignees fetched successfully',
+                data: assignees
+            })
+        } catch (err: any) {
+            handleError(err, res);
+        }
+    }
 }

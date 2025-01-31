@@ -59,3 +59,7 @@ uksRouter.put('/:healthCareId/activity-plans/:activityPlanId/approve', Authoriza
 uksRouter.post('/:healthCareId/activity-plans/:activityPlanId/assignee/:memberId', AuthorizationMiddleware(['admin', 'school', 'uks']), (req: Request, res: Response) => {
     uksController.assignActivityPlan(req, res);
 })
+
+uksRouter.get('/:healthCareId/activity-plans/:activityPlanId/assignee', AuthorizationMiddleware(['admin', 'school', 'uks']), (req: Request, res: Response) => {
+    uksController.getActivityPlanAssignee(req, res);
+})

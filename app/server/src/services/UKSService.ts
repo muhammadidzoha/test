@@ -221,4 +221,24 @@ export class UKSService {
 
         return { assignee };
     }
+
+    async getActivityPlanAssignee(uksActivityId: number, healthCareId: number) {
+        const { activity: isActivityExist } = await this.getUKSActivityById(uksActivityId, healthCareId);
+
+        if (!isActivityExist) {
+            throw new NotFoundError('Activity not found');
+        }
+
+        const assignees = await this.prismaClient.uKSActivityAssigned.findMany({
+            where: {
+                activity_plan_id: uksActivityId
+            },
+            include: {
+                activity_plan: true,
+                health_care_member: true
+            }
+        });
+
+        return { assignees };
+    }
 };
