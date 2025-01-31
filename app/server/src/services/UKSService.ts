@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { ACTIVITYSTATUS, APPROVALSTATUS, PrismaClient } from "@prisma/client";
 import { IBookUKS, ICreatePlan } from "../types/uks";
 import { NotFoundError } from "../common/exception";
 import { FormatDate } from "../common/utils/FormatDate";
@@ -156,5 +156,44 @@ export class UKSService {
         });
 
         return { activities };
+    }
+
+    async updateActivityPlanApproval(uksActivityId: number, healthCareId: number, approvalPayload: { status: APPROVALSTATUS, comment?: string }, approvedBy: number) {
+        const { activity: isActivityExist } = await this.getUKSActivityById(uksActivityId, healthCareId);
+
+        if (!isActivityExist) {
+            throw new NotFoundError('Activity not found');
+        }
+        console.log({ approveStatus: approvalPayload.status, approvalPayload: approvalPayload.status === "APPROVED" ? "APPROVED" as ACTIVITYSTATUS : approvalPayload.status === "REJECTED" ? "REJECTED" as ACTIVITYSTATUS : "DRAFT" as ACTIVITYSTATUS })
+
+        const updatedApprovalStatus = await this.prismaClient.uKSActivityPlan.update({
+            where: {
+                id: uksActivityId
+            },
+            data: {
+                status: approvalPayload.status === "APPROVED" ? "APPROVED" as ACTIVITYSTATUS : approvalPayload.status === "REJECTED" ? "REJECTED" as ACTIVITYSTATUS : "DRAFT" as ACTIVITYSTATUS,
+                uks_approval: {
+                    update: {
+                        status: approvalPayload.status,
+                        comment: approvalPayload.comment,
+                        approved_by: approvedBy
+                    }
+                },
+            },
+            include: {
+                uks_approval: {
+                    select: {
+                        status: true,
+                        comment: true,
+                        user: true
+                    },
+                },
+
+            }
+        });
+
+        return {
+            activityPlan: updatedApprovalStatus
+        }
     }
 };

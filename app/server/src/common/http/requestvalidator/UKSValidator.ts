@@ -26,3 +26,13 @@ export const createActivityPlanSchema = joi.object({
         return value;
     }),
 })
+
+export const updateApprovalSchema = joi.object({
+    status: joi.string().required().custom((value, helpers) => {
+        if (!['APPROVED', 'REJECTED'].includes(value)) {
+            return helpers.error('only allowed values are APPROVED, REJECTED');
+        }
+        return value;
+    }),
+    comment: joi.string()
+})

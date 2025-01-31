@@ -43,6 +43,7 @@ model User {
   institution        Institution?
   health_care_member HealthCareMember?
   nutrition          Nutrition[]
+  approval           UKSActivityApproval[]
 
   @@map("users")
 }
@@ -452,8 +453,11 @@ model UKSActivityApproval {
   activity_plan_id Int            @unique @db.Int
   status           APPROVALSTATUS @default(PENDING)
   comment          String?        @db.Text
+  approved_by      Int?           @db.Int
 
   activity_plan UKSActivityPlan @relation(fields: [activity_plan_id], references: [id], onDelete: Cascade)
+
+  user User? @relation(fields: [approved_by], references: [id])
 
   @@map("activity_approvals")
 }

@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { UKSService } from "../services/UKSService";
 import { handleError, validatePayload } from "../common/http";
-import { addBookSchema, createActivityPlanSchema, createKIEArticleSchema } from "../common/http/requestvalidator/UKSValidator";
+import { addBookSchema, createActivityPlanSchema, createKIEArticleSchema, updateApprovalSchema } from "../common/http/requestvalidator/UKSValidator";
 import { InvariantError, NotFoundError } from "../common/exception";
 import { IBookUKS, ICreatePlan } from "../types/uks";
 import fs from 'fs';
@@ -226,6 +226,23 @@ export class UKSController {
                 status: 'Success',
                 message: 'Activities fetched successfully',
                 data: activities
+            })
+        } catch (err: any) {
+            handleError(err, res);
+        }
+    }
+
+    async updateActivityPlanApproval(req: Request, res: Response) {
+        try {
+            validatePayload(updateApprovalSchema, req.body);
+            const { healthCareId, activityPlanId } = req.params;
+            const { status, comment } = req.body;
+            const user = (req as any).user;
+            const { activityPlan } = await this.UKSService.updateActivityPlanApproval(+activityPlanId, +healthCareId, { status, comment }, user.id)
+            res.status(200).json({
+                status: 'Success',
+                message: `Activity plan with id ${activityPlanId} updated successfully`,
+                data: activityPlan
             })
         } catch (err: any) {
             handleError(err, res);
