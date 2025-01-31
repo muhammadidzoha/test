@@ -1,4 +1,4 @@
-import { ACTIVITYSTATUS, APPROVALSTATUS, PrismaClient } from "@prisma/client";
+import { ACTIVITYPROGRESS, ACTIVITYSTATUS, APPROVALSTATUS, PrismaClient } from "@prisma/client";
 import { IBookUKS, ICreatePlan } from "../types/uks";
 import { NotFoundError } from "../common/exception";
 import { FormatDate } from "../common/utils/FormatDate";
@@ -151,7 +151,8 @@ export class UKSService {
                 health_care_id: healthCareId
             },
             include: {
-                uks_approval: true
+                uks_approval: true,
+                uks_assigned: true
             }
         });
 
@@ -195,5 +196,29 @@ export class UKSService {
         return {
             activityPlan: updatedApprovalStatus
         }
+    }
+
+    async addActivityPlanAssignee(uksActivityId: number, healthCareId: number, assigneeId: number, payload: { title: string, description: string, progress: ACTIVITYPROGRESS }) {
+        const { activity: isActivityExist } = await this.getUKSActivityById(uksActivityId, healthCareId);
+
+        if (!isActivityExist) {
+            throw new NotFoundError('Activity not found');
+        }
+
+        const assignee = await this.prismaClient.uKSActivityAssigned.create({
+            data: {
+                activity_plan_id: uksActivityId,
+                assigned_to: assigneeId,
+                title: payload.title,
+                job_description: payload.description,
+                progress: payload.progress ?? 'NOT_STARTED'
+            },
+            include: {
+                activity_plan: true,
+                health_care_member: true
+            }
+        });
+
+        return { assignee };
     }
 };

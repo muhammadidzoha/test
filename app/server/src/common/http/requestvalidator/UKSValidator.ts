@@ -36,3 +36,14 @@ export const updateApprovalSchema = joi.object({
     }),
     comment: joi.string()
 })
+
+export const addAssigneeSchema = joi.object({
+    title: joi.string().required(),
+    description: joi.string(),
+    progress: joi.string().custom((value, helpers) => {
+        if (!['NOT_STARTED', 'IN_PROGRESS', 'COMPLETED'].includes(value)) {
+            return helpers.error('only allowed values are NOT_STARTED, IN_PROGRESS, COMPLETED');
+        }
+        return value;
+    })
+})

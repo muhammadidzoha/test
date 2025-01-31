@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { UKSService } from "../services/UKSService";
 import { handleError, validatePayload } from "../common/http";
-import { addBookSchema, createActivityPlanSchema, createKIEArticleSchema, updateApprovalSchema } from "../common/http/requestvalidator/UKSValidator";
+import { addAssigneeSchema, addBookSchema, createActivityPlanSchema, createKIEArticleSchema, updateApprovalSchema } from "../common/http/requestvalidator/UKSValidator";
 import { InvariantError, NotFoundError } from "../common/exception";
 import { IBookUKS, ICreatePlan } from "../types/uks";
 import fs from 'fs';
@@ -243,6 +243,30 @@ export class UKSController {
                 status: 'Success',
                 message: `Activity plan with id ${activityPlanId} updated successfully`,
                 data: activityPlan
+            })
+        } catch (err: any) {
+            handleError(err, res);
+        }
+    }
+
+    async assignActivityPlan(req: Request, res: Response) {
+        try {
+            validatePayload(addAssigneeSchema, req.body);
+            const { healthCareId, activityPlanId, memberId } = req.params;
+            if (!healthCareId || !activityPlanId || !memberId) {
+                throw new InvariantError('Health care id, Member Id and activity plan id is required in params');
+            }
+            const { title, description, progress } = req.body;
+            const { assignee } = await this.UKSService.addActivityPlanAssignee(+activityPlanId, +healthCareId, +memberId, {
+                title,
+                description,
+                progress
+            });
+
+            res.status(201).json({
+                status: 'Success',
+                message: `User with id ${memberId} assigned to activity plan with id ${activityPlanId}`,
+                data: assignee
             })
         } catch (err: any) {
             handleError(err, res);

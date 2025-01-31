@@ -55,3 +55,7 @@ uksRouter.get('/:healthCareId/activity-plans', AuthorizationMiddleware(['admin',
 uksRouter.put('/:healthCareId/activity-plans/:activityPlanId/approve', AuthorizationMiddleware(['admin', 'school', 'uks']), (req: Request, res: Response) => {
     uksController.updateActivityPlanApproval(req, res);
 })
+
+uksRouter.post('/:healthCareId/activity-plans/:activityPlanId/assignee/:memberId', AuthorizationMiddleware(['admin', 'school', 'uks']), (req: Request, res: Response) => {
+    uksController.assignActivityPlan(req, res);
+})

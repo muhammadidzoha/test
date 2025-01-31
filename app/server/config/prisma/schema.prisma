@@ -475,6 +475,8 @@ model UKSActivityAssigned {
   activity_plan_id Int              @db.Int
   assigned_to      Int              @db.Int
   progress         ACTIVITYPROGRESS @default(NOT_STARTED)
+  title            String           @db.VarChar(255)
+  job_description  String?          @db.Text
 
   activity_plan UKSActivityPlan @relation(fields: [activity_plan_id], references: [id])
 
