@@ -42,18 +42,18 @@ schoolRouter.post('/:schoolId/facilities', AuthorizationMiddleware(['school', 'a
     schoolController.createFacility(req, res);
 });
 
-schoolRouter.get('/:schoolId/facilities', AuthorizationMiddleware(['school', 'admin']), (req, res) => {
+schoolRouter.get('/:schoolId/facilities', AuthorizationMiddleware(['school', 'admin', 'uks', 'healthcare']), (req, res) => {
     schoolController.getFacilityOwnedBySchool(req, res);
 })
 
-schoolRouter.get('/:schoolId/facilities/:facilityId', AuthorizationMiddleware(['school', 'admin']), (req, res) => {
+schoolRouter.get('/:schoolId/facilities/:facilityId', AuthorizationMiddleware(['school', 'admin', 'uks', 'healthcare']), (req, res) => {
     schoolController.getFacilityById(req, res);
 });
 
-schoolRouter.delete('/:schoolId/facilities/:facilityId', AuthorizationMiddleware(['school', 'admin']), (req, res) => {
+schoolRouter.delete('/:schoolId/facilities/:facilityId', AuthorizationMiddleware(['school', 'admin', 'uks', 'healthcare']), (req, res) => {
     schoolController.deleteFacility(req, res);
 })
 
-schoolRouter.put('/:schoolId/facilities/:facilityId', AuthorizationMiddleware(['school', 'admin']), (req, res) => {
+schoolRouter.put('/:schoolId/facilities/:facilityId', AuthorizationMiddleware(['school', 'admin', 'uks', 'healthcare']), (req, res) => {
     schoolController.updateFacility(req, res);
 })
