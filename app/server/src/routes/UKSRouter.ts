@@ -34,3 +34,20 @@ uksRouter.put('/:healthCareId/books/:bookId', AuthorizationMiddleware(['admin', 
     uksController.updateBookOwnedByHealthCare(req, res);
 })
 
+
+// Activity 
+uksRouter.post('/:healthCareId/activity-plans', AuthorizationMiddleware(['admin', 'school', 'uks']), multerMiddleware.single('document'), (req: Request, res: Response) => {
+    uksController.createActivityPlan(req, res);
+});
+
+uksRouter.delete('/:healthCareId/activity-plans/:activityPlanId', AuthorizationMiddleware(['admin', 'school', 'uks']), (req: Request, res: Response) => {
+    uksController.deleteActivityPlanById(req, res);
+});
+
+uksRouter.get('/:healthCareId/activity-plans/:activityPlanId', AuthorizationMiddleware(['admin', 'school', 'uks']), (req: Request, res: Response) => {
+    uksController.getActivityPlanById(req, res);
+})
+
+uksRouter.get('/:healthCareId/activity-plans', AuthorizationMiddleware(['admin', 'school', 'uks']), (req: Request, res: Response) => {
+    uksController.getActivityPlans(req, res);
+})

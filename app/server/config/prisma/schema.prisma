@@ -422,7 +422,7 @@ model UKSActivityPlan {
   id               Int            @id @default(autoincrement())
   title            String         @db.VarChar(255)
   description      String?        @db.Text
-  schedule         DateTime
+  schedule         DateTime       @db.Timestamp(2)
   budget           Float?
   status           ACTIVITYSTATUS @default(DRAFT)
   health_care_id   Int            @db.Int
@@ -453,7 +453,7 @@ model UKSActivityApproval {
   status           APPROVALSTATUS @default(PENDING)
   comment          String?        @db.Text
 
-  activity_plan UKSActivityPlan @relation(fields: [activity_plan_id], references: [id])
+  activity_plan UKSActivityPlan @relation(fields: [activity_plan_id], references: [id], onDelete: Cascade)
 
   @@map("activity_approvals")
 }
