@@ -38,6 +38,7 @@ model User {
   updated_at  DateTime @default(now()) @db.Timestamp(2)
   is_verified Boolean  @default(false)
 
+  intervention       Intervention[]
   uks_activity       UKSActivityPlan[]
   kie_content        KIEContent[]
   institution        Institution?
@@ -61,6 +62,7 @@ model Institution {
   user             User   @relation(fields: [user_id], references: [id])
   type             Int    @db.Int
 
+  intervention       Intervention[]
   family_member      FamilyMember[]
   institution_type   InstitutionType    @relation(fields: [type], references: [id])
   health_education   HealthEducation?
@@ -213,7 +215,8 @@ model FamilyMember {
   family_id              Int       @db.Int
   institution_id         Int?      @db.Int
 
-  institution Institution? @relation(fields: [institution_id], references: [id])
+  institution  Institution?   @relation(fields: [institution_id], references: [id])
+  intervention Intervention[]
 
   family              Family              @relation(fields: [family_id], references: [id])
   job                 Job                 @relation(fields: [job_id], references: [id])
@@ -483,6 +486,41 @@ model UKSActivityAssigned {
   health_care_member HealthCareMember @relation(fields: [assigned_to], references: [id])
 
   @@map("activity_assigneds")
+}
+
+model Intervention {
+  id                     Int      @id @default(autoincrement()) @db.Int
+  recommendation         String   @db.Text
+  institution_id         Int      @db.Int
+  family_member_id       Int      @db.Int
+  created_at             DateTime @default(now()) @db.Timestamp(2)
+  updated_at             DateTime @default(now()) @db.Timestamp(2)
+  program_recommendation Int?     @db.Int
+  created_by             Int      @db.Int
+
+  user          User         @relation(fields: [created_by], references: [id])
+  institution   Institution  @relation(fields: [institution_id], references: [id])
+  family_member FamilyMember @relation(fields: [family_member_id], references: [id])
+  program       Program?     @relation(fields: [program_recommendation], references: [id])
+
+  @@map("intervention")
+}
+
+model Program {
+  id   Int    @id @default(autoincrement()) @db.Int
+  name String @db.VarChar(255)
+
+  program_activity ProgramActivity[]
+  intervention     Intervention[]
+}
+
+model ProgramActivity {
+  id   Int    @id @default(autoincrement()) @db.Int
+  name String @db.VarChar(255)
+
+  program Program[]
+
+  @@map("program_activities")
 }
 
 // model HealthCareFacility {
