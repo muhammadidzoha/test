@@ -2,11 +2,12 @@ import { Request, Response } from "express";
 import { SchoolService } from "../services/SchoolService";
 import { handleError, validatePayload } from "../common/http";
 import { HealthEducationSchema } from "../common/http/requestvalidator/HealthEducationValidator";
-import { IHealthCare, IHealthEducation, IHealthServicePayload } from "../types/school";
+import { IFacility, IHealthCare, IHealthEducation, IHealthServicePayload } from "../types/school";
 import { InvariantError } from "../common/exception";
 import { HealthServiceSchema } from "../common/http/requestvalidator/HealthServiceValidator";
 import { schoolEnvironmentSchema } from "../common/http/requestvalidator/SchoolEnvironmentValidator";
 import { addHealthCareMemberSchema, CreateHealthCareSchema } from "../common/http/requestvalidator/HealhCareValidator";
+import { createFacilitySchema } from "../common/http/requestvalidator/SchoolValidator";
 
 export class SchoolController {
     constructor(public schoolService: SchoolService) { }
@@ -111,6 +112,97 @@ export class SchoolController {
                 status: 'Success',
                 message: 'Health Care Member is added',
                 data: healthCareMember
+            })
+        } catch (err: any) {
+            handleError(err, res);
+        }
+    }
+
+    async createFacility(req: Request, res: Response) {
+        try {
+            validatePayload(createFacilitySchema, req.body);
+            const { schoolId } = req.params;
+            const payload: IFacility & { facilityTypeId: number } = req.body;
+
+            const { facility } = await this.schoolService.createFacility(+schoolId, payload, +payload.facilityTypeId);
+
+            res.status(201).json({
+                status: 'Success',
+                message: 'Facility is created',
+                data: facility
+            })
+        } catch (err: any) {
+            handleError(err, res);
+        }
+    }
+
+    async getFacilityOwnedBySchool(req: Request, res: Response) {
+        try {
+            const { schoolId } = req.params;
+            if (!schoolId) {
+                throw new InvariantError('School Id is required in Parameter');
+            };
+
+            const { facilities } = await this.schoolService.getFacilityBySchoolId(+schoolId);
+
+            res.status(200).json({
+                status: 'Success',
+                message: 'Facilities owned by School',
+                data: facilities
+            })
+        } catch (err: any) {
+            handleError(err, res);
+        }
+    }
+
+    async getFacilityById(req: Request, res: Response) {
+        try {
+            const { facilityId, schoolId } = req.params;
+            if (!facilityId || !schoolId) {
+                throw new InvariantError('Facility Id is required in Parameter');
+            }
+            const { facility } = await this.schoolService.getFacilityById(+facilityId, +schoolId);
+            res.status(200).json({
+                status: 'Success',
+                message: 'Facility Data',
+                data: facility
+            });
+
+        } catch (err: any) {
+            handleError(err, res);
+        }
+    }
+
+    async deleteFacility(req: Request, res: Response) {
+        try {
+            const { facilityId, schoolId } = req.params;
+            if (!facilityId) {
+                throw new InvariantError('Facility Id is required in Parameter');
+            }
+            const { facility } = await this.schoolService.deleteFacility(+facilityId, +schoolId);
+            res.status(200).json({
+                status: 'Success',
+                message: 'Facility is deleted',
+                data: facility
+            })
+        } catch (err: any) {
+            handleError(err, res);
+        }
+    }
+
+    async updateFacility(req: Request, res: Response) {
+        try {
+            validatePayload(createFacilitySchema, req.body)
+            const { schoolId, facilityId } = req.params;
+            if (!schoolId || !facilityId) {
+                throw new InvariantError('School Id and Facility Id is required in Parameter');
+            }
+            const payload: IFacility & { facilityTypeId: number } = req.body;
+            const { facility } = await this.schoolService.updateFacility(+facilityId, payload, +schoolId);
+            res.status(200).json({
+                status: 'Success',
+                message: 'Facility is updated',
+                data: facility
             })
         } catch (err: any) {
             handleError(err, res);

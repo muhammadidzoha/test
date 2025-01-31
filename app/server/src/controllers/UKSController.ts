@@ -1,9 +1,9 @@
 import { Request, Response } from "express";
 import { UKSService } from "../services/UKSService";
 import { handleError, validatePayload } from "../common/http";
-import { addBookSchema, createKIEArticleSchema } from "../common/http/requestvalidator/UKSValidator";
+import { addAssigneeSchema, addBookSchema, createActivityPlanSchema, createKIEArticleSchema, updateApprovalSchema } from "../common/http/requestvalidator/UKSValidator";
 import { InvariantError, NotFoundError } from "../common/exception";
-import { IBookUKS } from "../types/uks";
+import { IBookUKS, ICreatePlan } from "../types/uks";
 import fs from 'fs';
 
 export class UKSController {
@@ -135,6 +135,158 @@ export class UKSController {
                 data: book
             })
 
+        } catch (err: any) {
+            handleError(err, res);
+        }
+    }
+
+    async createActivityPlan(req: Request, res: Response) {
+        try {
+            validatePayload(createActivityPlanSchema, req.body);
+            const { healthCareId } = req.params;
+            if (!healthCareId) {
+                throw new InvariantError('Health care id is required in params');
+            };
+
+            const user = (req as any).user;
+            const file = req.file;
+            const payload: ICreatePlan = req.body;
+            console.log({ date: payload.schedule, dateObject: new Date(payload.schedule) });
+
+            const { activityPlan, activityApproval } = await this.UKSService.createActivityPlan({
+                title: payload.title,
+                budget: payload.budget,
+                description: payload.description,
+                atachedDocument: file?.filename ?? null,
+                healthCareId: +healthCareId,
+                status: payload.status,
+                schedule: new Date(payload.schedule),
+                createdBy: user.id,
+            })
+            res.status(201).json({
+                status: 'Success',
+                message: 'Activity plan created successfully',
+                data: {
+                    activityPlan,
+                    activityApproval
+                }
+            })
+        } catch (err: any) {
+            handleError(err, res);
+        }
+    }
+
+    async deleteActivityPlanById(req: Request, res: Response) {
+        try {
+            const { healthCareId, activityPlanId } = req.params;
+            if (!healthCareId || !activityPlanId) {
+                throw new InvariantError('Health care id and activity plan id is required in params');
+            }
+            const { deletedActivity } = await this.UKSService.deleteUKSActivityById(+activityPlanId, +healthCareId);
+
+            res.status(200).json({
+                status: 'Success',
+                message: `Activity plan with id ${activityPlanId} deleted successfully`,
+                data: deletedActivity
+            })
+        } catch (err: any) {
+            handleError(err, res);
+        }
+    }
+
+    async getActivityPlanById(req: Request, res: Response) {
+        try {
+            const { healthCareId, activityPlanId } = req.params;
+            if (!healthCareId || !activityPlanId) {
+                throw new InvariantError('Health care id is required in params');
+            }
+
+            const { activity } = await this.UKSService.getUKSActivityById(+activityPlanId, +healthCareId);
+
+            res.status(200).json({
+                status: 'Success',
+                message: 'Activities fetched successfully',
+                data: activity
+            })
+        } catch (err: any) {
+            handleError(err, res);
+        }
+    }
+
+    async getActivityPlans(req: Request, res: Response) {
+        try {
+            const { healthCareId } = req.params;
+            if (!healthCareId) {
+                throw new InvariantError('Health care id is required in params');
+            }
+
+            const { activities } = await this.UKSService.getUKSActivities(+healthCareId);
+
+            res.status(200).json({
+                status: 'Success',
+                message: 'Activities fetched successfully',
+                data: activities
+            })
+        } catch (err: any) {
+            handleError(err, res);
+        }
+    }
+
+    async updateActivityPlanApproval(req: Request, res: Response) {
+        try {
+            validatePayload(updateApprovalSchema, req.body);
+            const { healthCareId, activityPlanId } = req.params;
+            const { status, comment } = req.body;
+            const user = (req as any).user;
+            const { activityPlan } = await this.UKSService.updateActivityPlanApproval(+activityPlanId, +healthCareId, { status, comment }, user.id)
+            res.status(200).json({
+                status: 'Success',
+                message: `Activity plan with id ${activityPlanId} updated successfully`,
+                data: activityPlan
+            })
+        } catch (err: any) {
+            handleError(err, res);
+        }
+    }
+
+    async assignActivityPlan(req: Request, res: Response) {
+        try {
+            validatePayload(addAssigneeSchema, req.body);
+            const { healthCareId, activityPlanId, memberId } = req.params;
+            if (!healthCareId || !activityPlanId || !memberId) {
+                throw new InvariantError('Health care id, Member Id and activity plan id is required in params');
+            }
+            const { title, description, progress } = req.body;
+            const { assignee } = await this.UKSService.addActivityPlanAssignee(+activityPlanId, +healthCareId, +memberId, {
+                title,
+                description,
+                progress
+            });
+
+            res.status(201).json({
+                status: 'Success',
+                message: `User with id ${memberId} assigned to activity plan with id ${activityPlanId}`,
+                data: assignee
+            })
+        } catch (err: any) {
+            handleError(err, res);
+        }
+    }
+
+    async getActivityPlanAssignee(req: Request, res: Response) {
+        try {
+            const { healthCareId, activityPlanId } = req.params;
+            if (!healthCareId || !activityPlanId) {
+                throw new InvariantError('Health care id and activity plan id is required in params');
+            }
+
+            const { assignees } = await this.UKSService.getActivityPlanAssignee(+activityPlanId, +healthCareId);
+
+            res.status(200).json({
+                status: 'Success',
+                message: 'Assignees fetched successfully',
+                data: assignees
+            })
         } catch (err: any) {
             handleError(err, res);
         }

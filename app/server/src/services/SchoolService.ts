@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { IHealthCare, IHealthCareMember, IHealthEducation, IHealthServicePayload, ISchoolEnvironment } from "../types/school";
+import { IFacility, IHealthCare, IHealthCareMember, IHealthEducation, IHealthServicePayload, ISchoolEnvironment } from "../types/school";
 import { InvariantError, NotFoundError } from "../common/exception";
 import { AuthService } from "./AuthService";
 
@@ -309,6 +309,102 @@ export class SchoolService {
 
         return {
             position
+        }
+    }
+
+
+    async createFacility(schoolId: number, payload: IFacility, facilityType: number) {
+        const facility = await this.prismaClient.schoolFacility.create({
+            data: {
+                name: payload.name,
+                description: payload.description,
+                school_id: schoolId,
+                facility_type_id: facilityType
+            },
+            include: {
+                facility_type: true
+            }
+        });
+
+        return {
+            facility
+        }
+    }
+
+    async getFacilityBySchoolId(schoolId: number) {
+        const facilities = await this.prismaClient.schoolFacility.findMany({
+            where: {
+                school_id: schoolId
+            },
+            include: {
+                school: true,
+                facility_type: true
+            }
+        });
+
+        return {
+            facilities
+        }
+    }
+
+    async getFacilityById(facilityId: number, schoolId: number) {
+        const facility = await this.prismaClient.schoolFacility.findUnique({
+            where: {
+                id: facilityId,
+                school_id: schoolId
+            },
+            include: {
+                facility_type: true,
+                school: true
+            }
+        });
+
+        return {
+            facility
+        }
+    };
+
+    async deleteFacility(facilityId: number, schoolId: number) {
+        const deletedFacility = await this.prismaClient.schoolFacility.delete({
+            where: {
+                id: facilityId,
+                school_id: schoolId
+            },
+            include: {
+                facility_type: true,
+                school: true
+            }
+        });
+
+        return {
+            facility: deletedFacility
+        }
+    }
+
+    async updateFacility(facilityId: number, payload: IFacility & { facilityTypeId: number }, schoolId: number) {
+        const { facility } = await this.getFacilityById(facilityId, schoolId);
+        if (!facility) {
+            throw new NotFoundError('Facility not found');
+        };
+
+        const updatedFacility = await this.prismaClient.schoolFacility.update({
+            where: {
+                id: facilityId,
+                school_id: schoolId
+            },
+            data: {
+                name: payload.name,
+                description: payload.description,
+                facility_type_id: payload.facilityTypeId
+            },
+            include: {
+                facility_type: true,
+                school: true
+            }
+        });
+
+        return {
+            facility: updatedFacility
         }
     }
 }

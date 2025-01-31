@@ -38,10 +38,12 @@ model User {
   updated_at  DateTime @default(now()) @db.Timestamp(2)
   is_verified Boolean  @default(false)
 
+  uks_activity       UKSActivityPlan[]
   kie_content        KIEContent[]
   institution        Institution?
   health_care_member HealthCareMember?
   nutrition          Nutrition[]
+  approval           UKSActivityApproval[]
 
   @@map("users")
 }
@@ -65,6 +67,7 @@ model Institution {
   health_service     HealthService?
   school_environment SchoolEnvironment?
   health_care        HealthCare?
+  facility           SchoolFacility[]
 
   @@map("institutions")
 }
@@ -132,6 +135,8 @@ model HealthCare {
   health_care_members HealthCareMember[]
   uks_books           UKSBook[]
 
+  activity UKSActivityPlan[]
+
   @@map("health_cares")
 }
 
@@ -145,6 +150,8 @@ model HealthCareMember {
   user        User?      @relation(fields: [user_id], references: [id])
   position    Position   @relation(fields: [position_id], references: [id])
   health_care HealthCare @relation(fields: [health_care_id], references: [id])
+
+  uks_activity_assigned UKSActivityAssigned[]
 
   @@map("health_care_members")
 }
@@ -379,6 +386,103 @@ model Video {
   thumbnail_url String? @db.VarChar(255)
 
   kie_content KIEContent @relation(fields: [id], references: [id])
+}
+
+model SchoolFacility {
+  id          Int     @id @default(autoincrement()) @db.Int
+  name        String  @db.VarChar(255)
+  school_id   Int     @db.Int
+  description String? @db.Text
+
+  facility_type_id Int @db.Int
+
+  facility_type FacilityType @relation(fields: [facility_type_id], references: [id])
+  school        Institution  @relation(fields: [school_id], references: [id])
+
+  @@map("school_facilities")
+}
+
+model FacilityType {
+  id   Int    @id @default(autoincrement()) @db.Int
+  name String @unique @db.VarChar(255)
+
+  school_facility SchoolFacility[]
+
+  @@map("facility_types")
+}
+
+enum ACTIVITYSTATUS {
+  DRAFT
+  SCHEDULED
+  APPROVED
+  ONGOING
+  COMPLETED
+}
+
+model UKSActivityPlan {
+  id               Int            @id @default(autoincrement())
+  title            String         @db.VarChar(255)
+  description      String?        @db.Text
+  schedule         DateTime       @db.Timestamp(2)
+  budget           Float?
+  status           ACTIVITYSTATUS @default(DRAFT)
+  health_care_id   Int            @db.Int
+  created_by       Int            @db.Int
+  updated_by       Int            @db.Int
+  atached_document String?        @db.VarChar(255)
+
+  user User @relation(fields: [created_by], references: [id])
+
+  uks_assigned UKSActivityAssigned[]
+
+  uks_approval UKSActivityApproval?
+
+  health_care HealthCare @relation(fields: [health_care_id], references: [id])
+
+  @@map("uks_activity_plans")
+}
+
+enum APPROVALSTATUS {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model UKSActivityApproval {
+  id               Int            @id @default(autoincrement()) @db.Int
+  activity_plan_id Int            @unique @db.Int
+  status           APPROVALSTATUS @default(PENDING)
+  comment          String?        @db.Text
+  approved_by      Int?           @db.Int
+
+  activity_plan UKSActivityPlan @relation(fields: [activity_plan_id], references: [id], onDelete: Cascade)
+
+  user User? @relation(fields: [approved_by], references: [id])
+
+  @@map("activity_approvals")
+}
+
+enum ACTIVITYPROGRESS {
+  NOT_STARTED
+  PREPARATION
+  EXECUTION
+  FINALIZING
+  COMPLETED
+}
+
+model UKSActivityAssigned {
+  id               Int              @id @default(autoincrement()) @db.Int
+  activity_plan_id Int              @db.Int
+  assigned_to      Int              @db.Int
+  progress         ACTIVITYPROGRESS @default(NOT_STARTED)
+  title            String           @db.VarChar(255)
+  job_description  String?          @db.Text
+
+  activity_plan UKSActivityPlan @relation(fields: [activity_plan_id], references: [id])
+
+  health_care_member HealthCareMember @relation(fields: [assigned_to], references: [id])
+
+  @@map("activity_assigneds")
 }
 
 // model HealthCareFacility {

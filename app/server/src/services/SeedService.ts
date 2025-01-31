@@ -6,12 +6,14 @@ export class SeedService {
     }
 
     async seed() {
-        await this.seedRole();
-        await this.seedInstitutionType();
-        await this.seedPositions();
-        await this.seedAdminAccount();
-        await this.seedNutritionStatus();
-        await this.seedKIEtype();
+        await Promise.all([await this.seedRole(),
+        await this.seedInstitutionType(),
+        await this.seedPositions(),
+        await this.seedAdminAccount(),
+        await this.seedNutritionStatus(),
+        await this.seedKIEtype(),
+        await this.seedFacilityType()
+        ])
     }
 
     async seedRole() {
@@ -158,5 +160,37 @@ export class SeedService {
             })
         }
         console.log('KIE Type Seeded');
+    }
+
+    async seedFacilityType() {
+        const facilities = await this.prismaClient.facilityType.findMany();
+        if (!facilities.length) {
+            await this.prismaClient.facilityType.createMany({
+                data: [
+                    {
+                        id: 1,
+                        name: 'Kesehatan'
+                    },
+                    {
+                        id: 2,
+                        name: 'Pendidikan'
+                    },
+                    {
+                        id: 3,
+                        name: 'Lingkungan'
+                    },
+                    {
+                        id: 4,
+                        name: 'Pelayanan'
+                    },
+                    {
+                        id: 5,
+                        name: 'Olahraga'
+                    }
+
+                ]
+            })
+
+        }
     }
 }
