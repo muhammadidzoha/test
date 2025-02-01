@@ -7,7 +7,7 @@ import { InvariantError } from "../common/exception";
 import { HealthServiceSchema } from "../common/http/requestvalidator/HealthServiceValidator";
 import { schoolEnvironmentSchema } from "../common/http/requestvalidator/SchoolEnvironmentValidator";
 import { addHealthCareMemberSchema, CreateHealthCareSchema } from "../common/http/requestvalidator/HealhCareValidator";
-import { createFacilitySchema } from "../common/http/requestvalidator/SchoolValidator";
+import { createFacilitySchema, createUKSQuisionerSchema } from "../common/http/requestvalidator/SchoolValidator";
 
 export class SchoolController {
     constructor(public schoolService: SchoolService) { }
@@ -256,6 +256,24 @@ export class SchoolController {
                 status: 'Success',
                 message: 'School Environment Data',
                 data: schoolEnvironment
+            })
+        } catch (err: any) {
+            handleError(err, res);
+        }
+    }
+
+    async createOrUpdateUKSManagementQuisioner(req: Request, res: Response) {
+        try {
+            validatePayload(createUKSQuisionerSchema, req.body);
+            const { schoolId } = req.params;
+            if (!schoolId) {
+                throw new InvariantError('School Id is required in Parameter');
+            }
+            const { uksQuisioner } = await this.schoolService.createOrUpdateUKSQuisioner(+schoolId, req.body);
+            res.status(201).json({
+                status: 'Success',
+                message: 'UKS Management Data is Created or Updated',
+                data: uksQuisioner
             })
         } catch (err: any) {
             handleError(err, res);

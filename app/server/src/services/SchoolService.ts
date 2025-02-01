@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { IFacility, IHealthCare, IHealthCareMember, IHealthEducation, IHealthServicePayload, ISchoolEnvironment } from "../types/school";
+import { IFacility, IHealthCare, IHealthCareMember, IHealthEducation, IHealthServicePayload, ISchoolEnvironment, IUKSQuisioner } from "../types/school";
 import { InvariantError, NotFoundError } from "../common/exception";
 import { AuthService } from "./AuthService";
 import { calculateServiceScore, categorizeServiceScore } from "../common/utils/CalculateServiceScore";
@@ -458,6 +458,75 @@ export class SchoolService {
 
         return {
             facility: updatedFacility
+        }
+    }
+
+    async createOrUpdateUKSQuisioner(schoolId: number, payload: IUKSQuisioner) {
+        const { uksQuisioner } = await this.getUKSQuisioner(schoolId);
+        if (!uksQuisioner) {
+            return await this.createUKSQuisioner(schoolId, payload);
+        }
+
+        return await this.updateUKSQuisioner(schoolId, payload);
+    }
+
+    async createUKSQuisioner(schoolId: number, payload: IUKSQuisioner) {
+        const serviceScore = calculateServiceScore(Object.values(payload));
+        const categorize_id = categorizeServiceScore(serviceScore);
+
+        const uksQuisioner = await this.prismaClient.uKSManagementQuisioner.create({
+            data: {
+                activity_plan: payload.activityPlan,
+                budget: payload.budget,
+                health_care_partnership: payload.healthCarePartnership,
+                health_hand_book: payload.healthHandBook,
+                health_kie: payload.healthKie,
+                person_in_charge: payload.personInCharge,
+                score: serviceScore,
+                school_id: schoolId,
+                sport_infrastructure: payload.sportInfrastructure,
+                category_id: categorize_id
+            },
+            include: {
+                service_category: true
+            }
+        });
+
+        return {
+            uksQuisioner
+        }
+    }
+
+    async updateUKSQuisioner(schoolId: number, payload: IUKSQuisioner) {
+        const serviceScore = calculateServiceScore(Object.values(payload));
+        const categorize_id = categorizeServiceScore(serviceScore);
+        const { uksQuisioner } = await this.getUKSQuisioner(schoolId);
+        if (!uksQuisioner) {
+            throw new NotFoundError('UKS Quisioner not found');
+        }
+
+        const updatedUKSQuisioner = await this.prismaClient.uKSManagementQuisioner.update({
+            where: {
+                school_id: schoolId
+            },
+            data: {
+                activity_plan: payload.activityPlan,
+                budget: payload.budget,
+                health_care_partnership: payload.healthCarePartnership,
+                health_hand_book: payload.healthHandBook,
+                health_kie: payload.healthKie,
+                person_in_charge: payload.personInCharge,
+                score: serviceScore,
+                sport_infrastructure: payload.sportInfrastructure,
+                category_id: categorize_id
+            },
+            include: {
+                service_category: true
+            }
+        });
+
+        return {
+            uksQuisioner: updatedUKSQuisioner
         }
     }
 

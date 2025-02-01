@@ -35,6 +35,10 @@ schoolRouter.put('/:schoolId/school-environment', AuthorizationMiddleware(['scho
     schoolController.createOrUpdateSchoolEnvironment(req, res);
 })
 
+// UKS MANAGEMENT QUISIONER
+schoolRouter.put('/:schoolId/uks-quisioner', AuthorizationMiddleware(['school', 'admin']), (req, res) => {
+    schoolController.createOrUpdateUKSManagementQuisioner(req, res);
+})
 
 // Health Care (UKS)
 schoolRouter.put('/:schoolId/health-care', AuthorizationMiddleware(['school', 'admin']), (req, res) => {
