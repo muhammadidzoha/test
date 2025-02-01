@@ -172,4 +172,20 @@ export class AuthController {
             handleError(err, res);
         }
     }
+
+    // decodeJWT(req: Request, res: Response) {
+    //     try {
+    //         const { accessToken } = req.body;
+    //         const decodedToken = this.jwt.verify(accessToken, process.env.SECRET_ACCESS_TOKEN);
+    //         res.status(200).json({
+    //             status: 'Success',
+    //             message: 'Token Decoded Successfully',
+    //             data: decodedToken
+    //         })
+
+    //     } catch (err: any) {
+    //         handleError(err, res);
+    //     }
+
+    // }
 }

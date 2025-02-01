@@ -84,14 +84,9 @@ export class FamilyService {
                 gender: familyMember.gender,
                 relation: familyMember.relation,
                 job: {
-                    connectOrCreate: {
-                        where: {
-                            id: familyMember.job.id ?? jobLastRow?.id ?? 1
-                        },
-                        create: {
-                            name: familyMember.job.name,
-                            income: familyMember.job.income
-                        }
+                    create: {
+                        income: familyMember.job.income,
+                        job_type_id: familyMember.job.jobTypeId
                     }
                 },
                 residence: {

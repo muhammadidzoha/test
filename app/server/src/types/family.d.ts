@@ -8,8 +8,8 @@ export interface IFamily {
 }
 
 export interface IJob {
-    name: string;
     income: number;
+    jobTypeId: number;
 }
 
 export interface IResidence {

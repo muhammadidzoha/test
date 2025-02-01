@@ -13,7 +13,8 @@ export class SeedService {
         await this.seedNutritionStatus(),
         await this.seedKIEtype(),
         await this.seedFacilityType(),
-        await this.seedCategoryStratification()
+        await this.seedCategoryStratification(),
+        await this.seedJobType()
         ])
     }
 
@@ -221,5 +222,33 @@ export class SeedService {
             })
         }
         console.log('Category Stratification Seeded');
+    }
+
+    async seedJobType() {
+        const jobTypes = await this.prismaClient.jobType.findMany();
+        if (!jobTypes.length) {
+            await this.prismaClient.jobType.createMany({
+                data: [
+                    {
+                        id: 1,
+                        type: 'TIDAK_BEKERJA_BURUH_SEJENISNYA',
+                        name: 'Tidak bekerja/buruh dan sejenisnya'
+                    },
+                    {
+                        id: 2,
+                        type: 'PEKERJA_HONORER_KONTRAK',
+                        name: 'Pekerja honorer/kontrak'
+                    },
+                    {
+                        id: 3,
+                        type: 'PEGAWAI_NEGERI_KARYAWAN_SWASTA',
+                        name: 'Pegawai negeri/karyawan swasta'
+                    },
+                ]
+            });
+
+        }
+
+        console.log('Job Type Seeded');
     }
 }

@@ -38,13 +38,14 @@ model User {
   updated_at  DateTime @default(now()) @db.Timestamp(2)
   is_verified Boolean  @default(false)
 
-  intervention       Intervention[]
-  uks_activity       UKSActivityPlan[]
-  kie_content        KIEContent[]
-  institution        Institution?
-  health_care_member HealthCareMember?
-  nutrition          Nutrition[]
-  approval           UKSActivityApproval[]
+  intervention         Intervention[]
+  uks_activity         UKSActivityPlan[]
+  kie_content          KIEContent[]
+  institution          Institution?
+  health_care_member   HealthCareMember?
+  nutrition            Nutrition[]
+  approval             UKSActivityApproval[]
+  request_intervention RequestIntervention[]
 
   @@map("users")
 }
@@ -62,7 +63,6 @@ model Institution {
   user             User   @relation(fields: [user_id], references: [id])
   type             Int    @db.Int
 
-  intervention             Intervention[]
   family_member            FamilyMember[]
   institution_type         InstitutionType         @relation(fields: [type], references: [id])
   health_education         HealthEducation?
@@ -71,6 +71,8 @@ model Institution {
   uks_management_quisioner UKSManagementQuisioner?
   health_care              HealthCare?
   facility                 SchoolFacility[]
+  request_intervention     RequestIntervention[]
+  intervention             Intervention[]
 
   @@map("institutions")
 }
@@ -256,23 +258,41 @@ model FamilyMember {
   family_id              Int       @db.Int
   institution_id         Int?      @db.Int
 
-  institution  Institution?   @relation(fields: [institution_id], references: [id])
-  intervention Intervention[]
+  institution Institution? @relation(fields: [institution_id], references: [id])
 
-  family              Family              @relation(fields: [family_id], references: [id])
-  job                 Job                 @relation(fields: [job_id], references: [id])
-  residence           Residence           @relation(fields: [residence_id], references: [id])
-  knowledge_nutrition KnowledgeNutrition? @relation(fields: [knowledge_nutrition_id], references: [id])
-  nutrition           Nutrition[]
-  behaviour           Behaviour?
+  family               Family                @relation(fields: [family_id], references: [id])
+  job                  Job                   @relation(fields: [job_id], references: [id])
+  residence            Residence             @relation(fields: [residence_id], references: [id])
+  knowledge_nutrition  KnowledgeNutrition?   @relation(fields: [knowledge_nutrition_id], references: [id])
+  nutrition            Nutrition[]
+  behaviour            Behaviour?
+  request_intervention RequestIntervention[]
 
   @@map("family_members")
 }
 
+enum JOBTYPE {
+  TIDAK_BEKERJA_BURUH_SEJENISNYA
+  PEKERJA_HONORER_KONTRAK
+  PEGAWAI_NEGERI_KARYAWAN_SWASTA
+}
+
+model JobType {
+  id   Int     @id @default(autoincrement()) @db.Int
+  name String? @db.VarChar(255)
+  type JOBTYPE
+
+  job Job[]
+
+  @@map("job_types")
+}
+
 model Job {
-  id     Int    @id @default(autoincrement()) @db.Int
-  name   String @db.VarChar(255)
-  income BigInt @db.BigInt
+  id          Int    @id @default(autoincrement()) @db.Int
+  income      BigInt @db.BigInt
+  job_type_id Int    @db.Int
+
+  job_type JobType @relation(fields: [job_type_id], references: [id])
 
   family_members FamilyMember[]
 }
@@ -529,39 +549,45 @@ model UKSActivityAssigned {
   @@map("activity_assigneds")
 }
 
-model Intervention {
-  id                     Int      @id @default(autoincrement()) @db.Int
-  recommendation         String   @db.Text
-  institution_id         Int      @db.Int
-  family_member_id       Int      @db.Int
-  created_at             DateTime @default(now()) @db.Timestamp(2)
-  updated_at             DateTime @default(now()) @db.Timestamp(2)
-  program_recommendation Int?     @db.Int
-  created_by             Int      @db.Int
+model RequestIntervention {
+  id               Int      @id @default(autoincrement()) @db.Int
+  puskesmas_id     Int      @db.Int
+  created_at       DateTime @default(now()) @db.Timestamp(2)
+  updated_at       DateTime @default(now()) @db.Timestamp(2)
+  created_by       Int      @db.Int
+  family_member_id Int      @db.Int
 
-  user          User         @relation(fields: [created_by], references: [id])
-  institution   Institution  @relation(fields: [institution_id], references: [id])
-  family_member FamilyMember @relation(fields: [family_member_id], references: [id])
-  program       Program?     @relation(fields: [program_recommendation], references: [id])
+  family_member FamilyMember  @relation(fields: [family_member_id], references: [id])
+  institution   Institution   @relation(fields: [puskesmas_id], references: [id])
+  user          User          @relation(fields: [created_by], references: [id])
+  intervention  Intervention?
+
+  @@map("request_interventions")
+}
+
+model Intervention {
+  id                      Int      @id @default(autoincrement()) @db.Int
+  recommendation          String   @db.Text
+  request_intervention_id Int      @unique @db.Int
+  created_by              Int      @db.Int
+  created_at              DateTime @default(now()) @db.Timestamp(2)
+  updated_at              DateTime @default(now()) @db.Timestamp(2)
+  puskesmas_id            Int      @db.Int
+
+  user                 User                @relation(fields: [created_by], references: [id])
+  institution          Institution         @relation(fields: [puskesmas_id], references: [id])
+  program              Program[]
+  request_intervention RequestIntervention @relation(fields: [request_intervention_id], references: [id])
 
   @@map("intervention")
 }
 
 model Program {
-  id   Int    @id @default(autoincrement()) @db.Int
-  name String @db.VarChar(255)
+  id          Int     @id @default(autoincrement()) @db.Int
+  name        String  @db.VarChar(255)
+  description String? @db.Text
 
-  program_activity ProgramActivity[]
-  intervention     Intervention[]
-}
-
-model ProgramActivity {
-  id   Int    @id @default(autoincrement()) @db.Int
-  name String @db.VarChar(255)
-
-  program Program[]
-
-  @@map("program_activities")
+  intervention Intervention[]
 }
 
 // model HealthCareFacility {
