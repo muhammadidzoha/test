@@ -95,6 +95,10 @@ model HealthEducation {
   nutrition_education               Boolean @default(false)
   healthy_living_implementation     Boolean @default(false)
   parent_involvement                Boolean @default(false)
+  score                             Int     @default(0) @db.Int
+  category_id                       Int     @db.Int
+
+  service_category ServiceCategory @relation(fields: [category_id], references: [id])
 
   school Institution @relation(fields: [school_id], references: [id])
 
@@ -108,8 +112,11 @@ model HealthService {
   referral_handling             Boolean @default(false)
   consuling_facility            Boolean @default(false)
   periodic_screening_inspection Boolean @default(false)
+  score                         Int     @default(0) @db.Int
+  category_id                   Int     @db.Int
 
-  school Institution @relation(fields: [school_id], references: [id])
+  school           Institution     @relation(fields: [school_id], references: [id])
+  service_category ServiceCategory @relation(fields: [category_id], references: [id])
 
   @@map("health_services")
 }
@@ -121,10 +128,41 @@ model SchoolEnvironment {
   green_space             Boolean @default(false)
   trash_can               Boolean @default(false)
   unprotected_area_policy Boolean @default(false)
+  score                   Int     @default(0) @db.Int
+  category_id             Int     @db.Int
 
-  school Institution @relation(fields: [school_id], references: [id])
+  school           Institution     @relation(fields: [school_id], references: [id])
+  service_category ServiceCategory @relation(fields: [category_id], references: [id])
 
   @@map("school_environments")
+}
+
+model UKSManagementQuisioner {
+  id                      Int     @id @default(autoincrement()) @db.Int
+  health_hand_book        Boolean @default(false)
+  person_in_charge        Boolean @default(false)
+  health_kie              Boolean @default(false)
+  sport_infrastructure    Boolean @default(false)
+  budget                  Boolean @default(false)
+  health_care_partnership Boolean @default(false)
+  activity_plan           Boolean @default(false)
+  score                   Int     @default(0) @db.Int
+  category_id             Int     @db.Int
+
+  service_category ServiceCategory @relation(fields: [category_id], references: [id])
+
+  @@map("uks_managements")
+}
+
+model ServiceCategory {
+  id          Int     @id @default(autoincrement()) @db.Int
+  name        String  @db.VarChar(255)
+  description String? @db.Text
+
+  health_education         HealthEducation[]
+  health_service           HealthService[]
+  school_environment       SchoolEnvironment[]
+  uks_management_quisioner UKSManagementQuisioner[]
 }
 
 model HealthCare {

@@ -72,9 +72,10 @@ export class SeedService {
             await this.prismaClient.user.create({
                 data: {
                     id: 1,
-                    username: process.env.ADMIN_USERNAME ?? 'admin',
-                    password: bcrypt.hashSync(process.env.ADMIN_PASSWORD ?? 'admin', 10),
-                    email: process.env.SMTP_EMAIL ?? 'admin@gmail.com',
+                    // username: process.env.ADMIN_USERNAME ?? 'admin',
+                    username: 'admin',
+                    password: bcrypt.hashSync('admin', 10),
+                    email: 'admin@gmail.com',
                     is_verified: true,
                     role_id: 1,
                 }
