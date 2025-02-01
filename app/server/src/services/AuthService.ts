@@ -87,6 +87,7 @@ export class AuthService {
             include: {
                 institution: {
                     select: {
+                        id: true,
                         name: true,
                         address: true,
                         phone_number: true,
@@ -96,7 +97,8 @@ export class AuthService {
                         license_document: true,
                         institution_type: {
                             select: {
-                                name: true
+                                name: true,
+                                id: true
                             }
                         }
                     }
