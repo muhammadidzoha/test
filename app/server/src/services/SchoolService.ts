@@ -2,6 +2,7 @@ import { PrismaClient } from "@prisma/client";
 import { IFacility, IHealthCare, IHealthCareMember, IHealthEducation, IHealthServicePayload, ISchoolEnvironment } from "../types/school";
 import { InvariantError, NotFoundError } from "../common/exception";
 import { AuthService } from "./AuthService";
+import { calculateServiceScore, categorizeServiceScore } from "../common/utils/CalculateServiceScore";
 
 export class SchoolService {
     constructor(public prismaClient: PrismaClient, public authService: AuthService) { }
@@ -16,6 +17,10 @@ export class SchoolService {
     }
 
     async createHealthEducation(schoolId: number, payload: IHealthEducation) {
+        const serviceScore = calculateServiceScore(Object.values(payload));
+        const categorize_id = categorizeServiceScore(serviceScore);
+
+        console.log({ serviceScore, categorize_id });
         const healthEducation = await this.prismaClient.healthEducation.create({
             data: {
                 health_education_plan: payload.healthEducationPlan,
@@ -30,7 +35,12 @@ export class SchoolService {
                 nutrition_education: payload.nutritionEducation,
                 parent_involvement: payload.parentInvolvement,
                 physical_class_activities: payload.physicalClassActivities,
-                school_id: schoolId
+                school_id: schoolId,
+                category_id: categorize_id,
+                score: serviceScore,
+            },
+            include: {
+                service_category: true
             }
 
         })
@@ -41,6 +51,8 @@ export class SchoolService {
     }
 
     async updateHealthEducation(schoolId: number, payload: IHealthEducation) {
+        const serviceScore = calculateServiceScore(Object.values(payload));
+        const categorize_id = categorizeServiceScore(serviceScore);
         const { healthEducation } = await this.getHealthEducation(schoolId);
         if (!healthEducation) {
             throw new NotFoundError('Health Education not found');
@@ -63,6 +75,11 @@ export class SchoolService {
                 parent_involvement: payload.parentInvolvement,
                 physical_class_activities: payload.physicalClassActivities,
                 physical_education: payload.physicalEducation,
+                score: serviceScore,
+                category_id: categorize_id
+            },
+            include: {
+                service_category: true
             }
         })
 
@@ -73,6 +90,9 @@ export class SchoolService {
         const healthEducation = await this.prismaClient.healthEducation.findUnique({
             where: {
                 school_id: schoolId
+            },
+            include: {
+                service_category: true
             }
         });
 
@@ -103,13 +123,21 @@ export class SchoolService {
     }
 
     async createHealthService(schoolId: number, payload: IHealthServicePayload) {
+        const serviceScore = calculateServiceScore(Object.values(payload));
+        const categorize_id = categorizeServiceScore(serviceScore);
+
         const healthService = await this.prismaClient.healthService.create({
             data: {
                 health_check_routine: payload.healthCheckRoutine,
                 referral_handling: payload.referralHandling,
                 consuling_facility: payload.consulingFacility,
                 periodic_screening_inspection: payload.periodicScreeningInspection,
-                school_id: schoolId
+                school_id: schoolId,
+                category_id: categorize_id,
+                score: serviceScore,
+            },
+            include: {
+                service_category: true
             }
         });
 
@@ -117,6 +145,8 @@ export class SchoolService {
     }
 
     async updateHealthService(schoolId: number, payload: IHealthServicePayload) {
+        const serviceScore = calculateServiceScore(Object.values(payload));
+        const categorize_id = categorizeServiceScore(serviceScore);
         const healthService = await this.prismaClient.healthService.update({
             where: {
                 school_id: schoolId
@@ -125,7 +155,12 @@ export class SchoolService {
                 referral_handling: payload.referralHandling,
                 consuling_facility: payload.consulingFacility,
                 periodic_screening_inspection: payload.periodicScreeningInspection,
-                health_check_routine: payload.healthCheckRoutine
+                health_check_routine: payload.healthCheckRoutine,
+                score: serviceScore,
+                category_id: categorize_id
+            },
+            include: {
+                service_category: true
             }
         })
 
@@ -146,6 +181,9 @@ export class SchoolService {
         const schoolEnvironment = await this.prismaClient.schoolEnvironment.findUnique({
             where: {
                 school_id: schoolId
+            },
+            include: {
+                service_category: true
             }
         });
 
@@ -153,13 +191,21 @@ export class SchoolService {
     }
 
     async createSchoolEnvironment(schoolId: number, payload: ISchoolEnvironment) {
+        const serviceScore = calculateServiceScore(Object.values(payload));
+        const categorize_id = categorizeServiceScore(serviceScore);
+
         const schoolEnvironment = await this.prismaClient.schoolEnvironment.create({
             data: {
                 canteen: payload.canteen,
                 green_space: payload.greenSpace,
                 trash_can: payload.trashCan,
                 unprotected_area_policy: payload.unprotectedAreaPolicy,
-                school_id: schoolId
+                school_id: schoolId,
+                category_id: categorize_id,
+                score: serviceScore,
+            },
+            include: {
+                service_category: true
             }
         });
 
@@ -167,6 +213,8 @@ export class SchoolService {
     }
 
     async updateSchoolEnvironment(schoolId: number, payload: ISchoolEnvironment) {
+        const serviceScore = calculateServiceScore(Object.values(payload));
+        const categorize_id = categorizeServiceScore(serviceScore);
         const schoolEnvironment = await this.prismaClient.schoolEnvironment.update({
             where: {
                 school_id: schoolId
@@ -176,6 +224,11 @@ export class SchoolService {
                 green_space: payload.greenSpace,
                 trash_can: payload.trashCan,
                 unprotected_area_policy: payload.unprotectedAreaPolicy,
+                score: serviceScore,
+                category_id: categorize_id
+            },
+            include: {
+                service_category: true
             }
         });
 
@@ -405,6 +458,55 @@ export class SchoolService {
 
         return {
             facility: updatedFacility
+        }
+    }
+
+    async getUKSQuisioner(schoolId: number) {
+        const uksQuisioner = await this.prismaClient.uKSManagementQuisioner.findUnique({
+            where: {
+                school_id: schoolId
+            },
+            include: {
+                service_category: true
+            }
+        });
+
+        return {
+            uksQuisioner
+        }
+    }
+
+    async getSchoolStratifications(schoolId: number) {
+        const schoolStratification = await this.prismaClient.institution.findUnique({
+            where: {
+                id: schoolId
+            },
+            include: {
+                health_education: {
+                    include: {
+                        service_category: true
+                    }
+                },
+                health_service: {
+                    include: {
+                        service_category: true
+                    }
+                },
+                school_environment: {
+                    include: {
+                        service_category: true
+                    }
+                },
+                uks_management_quisioner: {
+                    include: {
+                        service_category: true
+                    }
+                }
+            }
+        });
+
+        return {
+            schoolStratification
         }
     }
 }

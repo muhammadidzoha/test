@@ -12,7 +12,8 @@ export class SeedService {
         await this.seedAdminAccount(),
         await this.seedNutritionStatus(),
         await this.seedKIEtype(),
-        await this.seedFacilityType()
+        await this.seedFacilityType(),
+        await this.seedCategoryStratification()
         ])
     }
 
@@ -193,5 +194,32 @@ export class SeedService {
             })
 
         }
+    }
+
+    async seedCategoryStratification() {
+        const categories = await this.prismaClient.serviceCategory.findMany();
+        if (!categories.length) {
+            await this.prismaClient.serviceCategory.createMany({
+                data: [
+                    {
+                        id: 1,
+                        name: 'Minimal'
+                    },
+                    {
+                        id: 2,
+                        name: 'Standar'
+                    },
+                    {
+                        id: 3,
+                        name: 'Optimal'
+                    },
+                    {
+                        id: 4,
+                        name: 'Paripurna'
+                    }
+                ]
+            })
+        }
+        console.log('Category Stratification Seeded');
     }
 }

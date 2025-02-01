@@ -62,14 +62,15 @@ model Institution {
   user             User   @relation(fields: [user_id], references: [id])
   type             Int    @db.Int
 
-  intervention       Intervention[]
-  family_member      FamilyMember[]
-  institution_type   InstitutionType    @relation(fields: [type], references: [id])
-  health_education   HealthEducation?
-  health_service     HealthService?
-  school_environment SchoolEnvironment?
-  health_care        HealthCare?
-  facility           SchoolFacility[]
+  intervention             Intervention[]
+  family_member            FamilyMember[]
+  institution_type         InstitutionType         @relation(fields: [type], references: [id])
+  health_education         HealthEducation?
+  health_service           HealthService?
+  school_environment       SchoolEnvironment?
+  uks_management_quisioner UKSManagementQuisioner?
+  health_care              HealthCare?
+  facility                 SchoolFacility[]
 
   @@map("institutions")
 }
@@ -148,8 +149,10 @@ model UKSManagementQuisioner {
   activity_plan           Boolean @default(false)
   score                   Int     @default(0) @db.Int
   category_id             Int     @db.Int
+  school_id               Int     @unique @default(0)
 
   service_category ServiceCategory @relation(fields: [category_id], references: [id])
+  school           Institution     @relation(fields: [school_id], references: [id])
 
   @@map("uks_managements")
 }

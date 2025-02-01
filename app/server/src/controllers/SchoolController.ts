@@ -20,6 +20,8 @@ export class SchoolController {
                 throw new InvariantError('School Id is required in Parameter');
             }
 
+            console.log({ schoolId });
+
             const reqPayload: IHealthEducation = req.body;
 
 
@@ -203,6 +205,92 @@ export class SchoolController {
                 status: 'Success',
                 message: 'Facility is updated',
                 data: facility
+            })
+        } catch (err: any) {
+            handleError(err, res);
+        }
+    }
+
+    async getHealthCareBySchoolId(req: Request, res: Response) {
+        try {
+            const { schoolId } = req.params;
+            if (!schoolId) {
+                throw new InvariantError('School Id is required in Parameter');
+            }
+            const { healthCare } = await this.schoolService.getHealthCareBySchoolId(+schoolId);
+            res.status(200).json({
+                status: 'Success',
+                message: 'Health Care Data',
+                data: healthCare
+            })
+        } catch (err: any) {
+            handleError(err, res);
+        }
+    }
+
+    async getHealthServiceBySchoolId(req: Request, res: Response) {
+        try {
+            const { schoolId } = req.params;
+            if (!schoolId) {
+                throw new InvariantError('School Id is required in Parameter');
+            }
+            const { healthService } = await this.schoolService.getHealthService(+schoolId);
+            res.status(200).json({
+                status: 'Success',
+                message: 'Health Service Data',
+                data: healthService
+            })
+        } catch (err: any) {
+            handleError(err, res);
+        }
+    }
+
+    async schoolEnvironment(req: Request, res: Response) {
+        try {
+            const { schoolId } = req.params;
+            if (!schoolId) {
+                throw new InvariantError('School Id is required in Parameter');
+            }
+            const { schoolEnvironment } = await this.schoolService.getSchoolEnvironment(+schoolId);
+            res.status(200).json({
+                status: 'Success',
+                message: 'School Environment Data',
+                data: schoolEnvironment
+            })
+        } catch (err: any) {
+            handleError(err, res);
+        }
+    }
+
+    async getUKSManagementQuisioner(req: Request, res: Response) {
+        try {
+            const { schoolId } = req.params;
+            if (!schoolId) {
+                throw new InvariantError('School Id is required in Parameter');
+            }
+            const { uksQuisioner } = await this.schoolService.getUKSQuisioner(+schoolId);
+            res.status(200).json({
+                status: 'Success',
+                message: 'UKS Management Data',
+                data: uksQuisioner
+            })
+        } catch (err: any) {
+            handleError(err, res);
+        }
+    }
+
+    async getAllSchoolStratification(req: Request, res: Response) {
+        try {
+            const { schoolId } = req.params;
+            if (!schoolId) {
+                throw new InvariantError('School Id is required in Parameter');
+            }
+            const { schoolStratification } = await this.schoolService.getSchoolStratifications(+schoolId);
+
+            res.status(200).json({
+                status: 'Success',
+                message: 'School Stratification Data',
+                data: schoolStratification
             })
         } catch (err: any) {
             handleError(err, res);
