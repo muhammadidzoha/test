@@ -76,6 +76,27 @@ export class InterventionController {
         }
     }
 
+    async getInterventionsBelongToSchool(req: Request, res: Response) {
+        try {
+            const { schoolId } = req.params;
+            if (!schoolId) {
+                throw new InvariantError("Institution ID must be provided");
+            }
+
+            const { interventions } = await this.interventionService.getInterventionBelongsToSchool(+schoolId);
+
+            res.status(200).json({
+                status: 'Success',
+                message: 'Interventions fetched successfully',
+                data: interventions
+            })
+        } catch (err: any) {
+            handleError(err, res);
+        }
+    }
+
+
+
     async getInterventionById(req: Request, res: Response) {
         try {
             const { interventionId } = req.params;

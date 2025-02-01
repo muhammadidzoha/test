@@ -17,6 +17,10 @@ interventionRouter.get('/:institutionId/families/:familyId', AuthorizationMiddle
     interventionController.getInterventionsBelongToFamily(req, res);
 })
 
-interventionRouter.get('/:institutionId', AuthorizationMiddleware([]), async (req: Request, res: Response) => {
+interventionRouter.get('/schools/:schoolId', AuthorizationMiddleware([]), async (req: Request, res: Response) => {
+    interventionController.getInterventionsBelongToSchool(req, res);
+})
+
+interventionRouter.get('/puskesmas/:institutionId', AuthorizationMiddleware(['admin', 'healthcare']), async (req: Request, res: Response) => {
     interventionController.getInterventionsBelongToInstitution(req, res);
 })

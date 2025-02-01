@@ -22,3 +22,10 @@ kieRouter.post('/contents/:type', AuthorizationMiddleware(['admin', 'uks', 'scho
 kieRouter.delete('/contents/:type/:contentId', AuthorizationMiddleware(['admin', 'uks', 'school']), (req, res) => { kieController.deleteKIEContent(req, res) });
 
 kieRouter.put('/contents/:type/:contentId', AuthorizationMiddleware(['admin', 'uks', 'school']), multerMiddleware.fields([{ name: 'banner' }, { name: 'thumbnail' }, { name: 'imageUrl' }, { name: 'videoUrl' }]), (req, res) => { kieController.updateKIEContent(req, res) });
+
+
+//  Tags
+kieRouter.get('/tags', AuthorizationMiddleware([]), (req, res) => { kieController.getTags(req, res) });
+
+// Type
+kieRouter.get('/types', AuthorizationMiddleware([]), (req, res) => { kieController.getTypes(req, res) });

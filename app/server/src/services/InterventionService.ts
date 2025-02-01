@@ -36,7 +36,11 @@ export class InterventionService {
             },
             include: {
                 institution: true,
-                family_member: true,
+                family_member: {
+                    select: {
+                        institution: true
+                    }
+                },
                 program: true,
                 user: true
             }
@@ -55,6 +59,18 @@ export class InterventionService {
                 family_member: true,
                 program: true,
                 user: true
+            }
+        });
+
+        return { interventions }
+    }
+
+    async getInterventionBelongsToSchool(schoolId: number) {
+        const interventions = await this.prismaClient.intervention.findMany({
+            where: {
+                family_member: {
+                    institution_id: schoolId
+                }
             }
         });
 
