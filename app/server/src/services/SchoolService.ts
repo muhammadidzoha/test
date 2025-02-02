@@ -578,4 +578,26 @@ export class SchoolService {
             schoolStratification
         }
     }
+
+    async getStudentLatestNutrition(schoolId: number) {
+        const studentNutritions = await this.prismaClient.familyMember.findMany({
+            where: {
+                institution_id: schoolId,
+                relation: 'ANAK',
+            },
+            include: {
+                nutrition: {
+                    take: 1,
+                    orderBy: {
+                        created_at: 'desc'
+                    },
+                    include: {
+                        nutrition_status: true
+                    }
+                }
+            }
+        });
+
+        return { studentNutritions }
+    }
 }

@@ -73,3 +73,8 @@ schoolRouter.delete('/:schoolId/facilities/:facilityId', AuthorizationMiddleware
 schoolRouter.put('/:schoolId/facilities/:facilityId', AuthorizationMiddleware(['school', 'admin', 'uks']), (req, res) => {
     schoolController.updateFacility(req, res);
 })
+
+// Nutrition
+schoolRouter.get('/:schoolId/nutritions', AuthorizationMiddleware([]), (req, res) => {
+    schoolController.getStudentLatestNutrition(req, res);
+})

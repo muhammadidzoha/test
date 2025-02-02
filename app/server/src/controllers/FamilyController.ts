@@ -33,6 +33,7 @@ export class FamilyController {
             if (!familyId) {
                 throw new InvariantError('Family id is required in params to add member');
             }
+
             const user = (req as any).user
             const payload: IFamilyMember = req.body;
             const { familyMember } = await this.familyService.addFamilyMember(+familyId, { ...payload, birthDate: new Date(payload.birthDate) }, user.id);
@@ -53,5 +54,31 @@ export class FamilyController {
         } catch (err: any) {
             handleError(err, res);
         }
+    }
+
+    async getTotalGaji(req: Request, res: Response) {
+        try {
+            const { familyId } = req.params;
+            if (!familyId) {
+                throw new InvariantError('Family id is required in params to get total gaji');
+            }
+            const { umr } = req.query;
+            if (!umr) {
+                throw new InvariantError('UMR is required in query params to get total gaji');
+            }
+            const { categoryScore, totalFamily, totalGaji } = await this.familyService.getTotalGajiWithCategory(+familyId, +umr);
+            res.status(200).json({
+                status: 'Success',
+                message: 'Total gaji fetched successfully',
+                data: {
+                    totalGaji,
+                    totalFamily,
+                    score: categoryScore
+                }
+            })
+        } catch (err: any) {
+            handleError(err, res);
+        }
+
     }
 }

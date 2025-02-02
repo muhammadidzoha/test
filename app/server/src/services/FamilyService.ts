@@ -4,6 +4,7 @@ import { InvariantError, NotFoundError } from "../common/exception";
 import { FormatDate } from "../common/utils/FormatDate";
 import { calculateBMI } from "../common/utils/CalculateBMI";
 import { determineNutritionStatus } from "../common/utils/CalculateZscore";
+import { calculateGajiScore } from "../common/utils/Family";
 
 export class FamilyService {
     constructor(public prismaClient: PrismaClient) { }
@@ -183,5 +184,36 @@ export class FamilyService {
         });
     }
 
+    async getTotalGajiWithCategory(familyId: number, umr: number) {
+        const familyMembers = await this.prismaClient.familyMember.findMany({
+            where: {
+                family_id: familyId
+            }
+        })
+        const totalFamily = familyMembers.length;
 
+        const totalGaji = await this.prismaClient.job.aggregate({
+            where: {
+                family_members: {
+                    every: {
+                        family_id: familyId
+                    }
+                }
+            },
+            _sum: {
+                income: true
+            }
+        });
+
+        const totalWages = totalGaji._sum.income?.toString() ?? 0;
+        const categoryScore = calculateGajiScore(+totalWages, totalFamily, umr);
+
+        return {
+            totalGaji: totalWages,
+            totalFamily,
+            categoryScore
+        }
+
+
+    }
 }
