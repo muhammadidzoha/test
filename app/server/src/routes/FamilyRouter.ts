@@ -20,3 +20,7 @@ familyRouter.post('/:familyId/members', AuthorizationMiddleware(['admin', 'paren
 familyRouter.get('/:familyId/wages', AuthorizationMiddleware(['admin', 'parent']), (req: Request, res: Response) => {
     familyController.getTotalGaji(req, res);
 })
+
+familyRouter.get('/:familyId/members/:familyMemberId/wages', AuthorizationMiddleware(['admin', 'parent']), (req: Request, res: Response) => {
+    familyController.getWageScoreOfFamilyMember(req, res);
+})

@@ -81,4 +81,29 @@ export class FamilyController {
         }
 
     }
+
+    async getWageScoreOfFamilyMember(req: Request, res: Response) {
+        try {
+            const { familyId, familyMemberId } = req.params;
+            if (!familyId || !familyMemberId) {
+                throw new InvariantError('Family id and family member id is required in params to get wage score');
+            }
+            const { umr } = req.query;
+            if (!umr) {
+                throw new InvariantError('UMR is required in query params to get wage score');
+            }
+            const { wage, wageScore, familyMember } = await this.familyService.getWageScoreOfFamilyMember(+familyId, +familyMemberId, +umr);
+            res.status(200).json({
+                status: 'Success',
+                message: 'Wage score fetched successfully',
+                data: {
+                    familyMember,
+                    wage,
+                    wageScore
+                }
+            })
+        } catch (err: any) {
+            handleError(err, res);
+        }
+    }
 }

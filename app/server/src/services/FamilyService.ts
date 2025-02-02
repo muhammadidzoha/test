@@ -213,7 +213,44 @@ export class FamilyService {
             totalFamily,
             categoryScore
         }
+    }
 
+    async getWageScoreOfFamilyMember(familyId: number, familyMemberId: number, umr: number) {
+        const familyMember = await this.prismaClient.familyMember.findUnique({
+            where: {
+                id: familyMemberId
+            },
+            include: {
+                job: {
+                    include: {
+                        job_type: true
+                    }
+                }
+            }
+        });
+        const familyMembers = await this.prismaClient.familyMember.findMany({
+            where: {
+                family_id: familyId
+            }
+        });
+
+        if (!familyMember) {
+            throw new NotFoundError('Family member not found');
+        }
+
+        const wage = +familyMember.job.income?.toString();
+        const wageScore = calculateGajiScore(wage, familyMembers.length ?? 0, umr);
+        return {
+            wage: +familyMember.job.income?.toString(),
+            wageScore,
+            familyMember: {
+                ...familyMember,
+                job: {
+                    ...familyMember.job,
+                    income: wage
+                }
+            }
+        }
 
     }
 }
