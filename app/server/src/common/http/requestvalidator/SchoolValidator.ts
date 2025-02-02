@@ -15,3 +15,13 @@ export const createUKSQuisionerSchema = joi.object({
     healthCarePartnership: joi.boolean().required(),
     activityPlan: joi.boolean().required()
 })
+
+export const createSchoolSchema = joi.object({
+    name: joi.string(),
+    address: joi.string(),
+    phone: joi.string(),
+    email: joi.string().email(),
+    headName: joi.string(),
+    headNIP: joi.string(),
+    licenseDocument: joi.string()
+})

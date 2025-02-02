@@ -3,6 +3,7 @@ import { IFacility, IHealthCare, IHealthCareMember, IHealthEducation, IHealthSer
 import { InvariantError, NotFoundError } from "../common/exception";
 import { AuthService } from "./AuthService";
 import { calculateServiceScore, categorizeServiceScore } from "../common/utils/CalculateServiceScore";
+import { IInstitution } from "../types/auth";
 
 export class SchoolService {
     constructor(public prismaClient: PrismaClient, public authService: AuthService) { }
@@ -628,5 +629,51 @@ export class SchoolService {
         });
 
         return { students }
+    }
+
+
+    async getAllSchools() {
+        const schools = await this.prismaClient.institution.findMany({
+            where: {
+                type: 1
+            }
+        });
+
+        return { schools }
+    }
+
+    async getSchoolById(schoolId: number) {
+        const school = await this.prismaClient.institution.findUnique({
+            where: {
+                id: schoolId,
+                type: 1
+            }
+        });
+
+        return { school }
+    }
+
+    async updateSchool(schoolId: number, payload: IInstitution) {
+        const { school } = await this.getSchoolById(schoolId);
+        if (!school) {
+            throw new NotFoundError('School not found');
+        }
+        const updatedSchool = await this.prismaClient.institution.update({
+            where: {
+                id: schoolId,
+                type: 1
+            },
+            data: {
+                ...school,
+                name: payload.name,
+                address: payload.address,
+                phone_number: payload.phoneNumber,
+                email: payload.email,
+                head_name: payload.headName,
+                head_nip: payload.headNIP
+            }
+        });
+
+        return { school: updatedSchool }
     }
 }

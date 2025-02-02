@@ -17,6 +17,18 @@ const schoolController = new SchoolController(schoolService);
 
 export const schoolRouter = express.Router();
 
+// School
+schoolRouter.get('/', AuthorizationMiddleware([]), (req, res) => {
+    schoolController.getAllSchools(req, res);
+});
+
+schoolRouter.get('/:schoolId', AuthorizationMiddleware([]), (req, res) => {
+    schoolController.getSchoolById(req, res);
+})
+
+schoolRouter.put('/:schoolId', AuthorizationMiddleware([]), (req, res) => {
+    schoolController.updateSchool(req, res);
+})
 
 // Health Education
 
