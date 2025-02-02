@@ -37,18 +37,23 @@ interventionRouter.put('/requests/:requestId/puskesmas/:puskesmasId/members/:mem
     interventionController.updateRequestInterventionById(req, res);
 })
 
-// interventionRouter.post('/:institutionId/members/:memberId', AuthorizationMiddleware(['admin', 'healthcare']), async (req: Request, res: Response) => {
-//     interventionController.createIntervention(req, res);
-// })
+// Intervention
+interventionRouter.post('/puskesmas/:puskesmasId/requests/:requestInterventionId', AuthorizationMiddleware([]), async (req: Request, res: Response) => {
+    interventionController.createIntervention(req, res);
+})
 
-// interventionRouter.get('/:institutionId/families/:familyId', AuthorizationMiddleware([]), async (req: Request, res: Response) => {
-//     interventionController.getInterventionsBelongToFamily(req, res);
-// })
+interventionRouter.get('/:interventionId', AuthorizationMiddleware([]), async (req: Request, res: Response) => {
+    interventionController.getInterventionById(req, res);
+})
 
-// interventionRouter.get('/schools/:schoolId', AuthorizationMiddleware([]), async (req: Request, res: Response) => {
-//     interventionController.getInterventionsBelongToSchool(req, res);
-// })
+interventionRouter.get('/families/:familyId', AuthorizationMiddleware([]), async (req: Request, res: Response) => {
+    interventionController.getInterventionBelongsToFamily(req, res);
+})
 
-// interventionRouter.get('/puskesmas/:institutionId', AuthorizationMiddleware(['admin', 'healthcare']), async (req: Request, res: Response) => {
-//     interventionController.getInterventionsBelongToInstitution(req, res);
-// })
+interventionRouter.get('/schools/:schoolId', AuthorizationMiddleware([]), async (req: Request, res: Response) => {
+    interventionController.getInterventionsBelongToSchool(req, res);
+})
+
+interventionRouter.get('/puskesmas/:puskesmasId', AuthorizationMiddleware([]), async (req: Request, res: Response) => {
+    interventionController.getInterventionsBelongToPuskesmas(req, res);
+})

@@ -42,12 +42,16 @@ export class InterventionService {
                 recommendation: payload.recommendation,
                 request_intervention_id: payload.requestInterventionId,
                 puskesmas_id: payload.puskesmasId,
-                created_by: payload.createdBy
+                created_by: payload.createdBy,
             },
             include: {
                 institution: true,
                 program: true,
-                user: true,
+                user: {
+                    include: {
+                        institution: true
+                    }
+                },
                 request_intervention: true,
             }
         });
@@ -147,8 +151,13 @@ export class InterventionService {
                 id: interventionId
             },
             include: {
-                user: true,
-                family_member: true
+                user: {
+                    include: {
+                        institution: true
+                    }
+                },
+                family_member: true,
+                intervention: true
             }
         });
 
@@ -183,73 +192,94 @@ export class InterventionService {
         return { intervention }
     }
 
+    async getInterventionById(interventionId: number) {
+        const intervention = await this.prismaClient.intervention.findUnique({
+            where: {
+                id: interventionId
+            },
+            include: {
+                institution: true,
+                program: true,
+                user: true,
+                request_intervention: true
+            }
+        });
 
-    // async getInterventionsBelongToFamily(institutionId: number, familyId: number) {
-    //     const interventions = await this.prismaClient.intervention.findMany({
-    //         where: {
-    //             institution_id: institutionId,
-    //             family_member: {
-    //                 family: {
-    //                     id: familyId
-    //                 }
-    //             }
-    //         },
-    //         include: {
-    //             institution: true,
-    //             family_member: {
-    //                 select: {
-    //                     institution: true
-    //                 }
-    //             },
-    //             program: true,
-    //             user: true
-    //         }
-    //     });
+        return { intervention }
+    }
 
-    //     return { interventions };
-    // }
 
-    // async getInterventionsBelongToInstitution(institutionId: number) {
-    //     const interventions = await this.prismaClient.intervention.findMany({
-    //         where: {
-    //             institution_id: institutionId
-    //         },
-    //         include: {
-    //             institution: true,
-    //             family_member: true,
-    //             program: true,
-    //             user: true
-    //         }
-    //     });
 
-    //     return { interventions }
-    // }
 
-    // async getInterventionBelongsToSchool(schoolId: number) {
-    //     const interventions = await this.prismaClient.intervention.findMany({
-    //         where: {
-    //             family_member: {
-    //                 institution_id: schoolId
-    //             }
-    //         }
-    //     });
+    async getInterventionsBelongToFamily(familyId: number) {
+        const interventions = await this.prismaClient.intervention.findMany({
+            where: {
+                request_intervention: {
+                    family_member: {
+                        family: {
+                            id: familyId
+                        }
+                    }
+                }
+            },
+            include: {
+                request_intervention: true,
+                user: {
+                    include: {
+                        institution: true
+                    }
+                }
+            }
+        })
+        return { interventions };
+    }
 
-    //     return { interventions }
-    // }
+    async getInterventionsBelongToPuskesmas(puskesmasId: number) {
+        const interventions = await this.prismaClient.intervention.findMany({
+            where: {
+                institution: {
+                    id: puskesmasId
+                },
+            },
+            include: {
+                institution: true,
+                program: true,
+                user: true,
+                request_intervention: {
+                    include: {
+                        family_member: true,
+                        user: true
+                    }
+                }
+            }
+        });
 
-    // async getInterventionById(interventionId: number) {
-    //     const intervention = await this.prismaClient.intervention.findUnique({
-    //         where: {
-    //             id: interventionId
-    //         },
-    //         include: {
-    //             institution: true,
-    //             family_member: true,
-    //             program: true,
-    //             user: true
-    //         }
-    //     });
+        return { interventions }
+    }
 
-    //     return { intervention };
-    // }
+    async getInterventionBelongsToSchool(schoolId: number) {
+        const interventions = await this.prismaClient.intervention.findMany({
+            where: {
+                request_intervention: {
+                    user: {
+                        institution: {
+                            id: schoolId
+                        }
+                    }
+                }
+            },
+            include: {
+                request_intervention: true,
+                user: {
+                    include: {
+                        institution: true
+                    }
+                },
+                institution: true
+            }
+        });
+
+        return { interventions }
+    }
+
 };

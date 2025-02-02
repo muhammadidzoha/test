@@ -146,110 +146,102 @@ export class InterventionController {
         }
     }
 
-    // async createIntervention(req: Request, res: Response) {
-    //     try {
-    //         validatePayload(createInterventionSchema, req.body);
-    //         const { memberId, institutionId } = req.params;
-    //         if (!memberId || !institutionId) {
-    //             throw new InvariantError("Member ID and Institution ID must be provided");
-    //         }
-    //         const payload = req.body;
-    //         const user = (req as any).user
-    //         console.log({ payload, memberId, institutionId })
+    async createIntervention(req: Request, res: Response) {
+        try {
+            validatePayload(createInterventionSchema, req.body);
+            const { requestInterventionId, puskesmasId } = req.params;
+            if (!requestInterventionId || !puskesmasId) {
+                throw new InvariantError('Request Intervention ID and Puskesmas ID must be provided in params');
+            }
+            const { recommendation } = req.body;
+            const user = (req as any).user
 
-    //         const { intervention } = await this.interventionService.createIntervention({
-    //             createdBy: user.id,
-    //             familyMemberId: +memberId,
-    //             instituonId: +institutionId,
-    //             recommendation: payload.recommendation,
-    //             programRecommendation: payload.programRecommendation
-    //         })
+            const { intervention } = await this.interventionService.createIntervention({
+                createdBy: user.id,
+                requestInterventionId: +requestInterventionId,
+                puskesmasId: +puskesmasId,
+                recommendation
+            })
 
-    //         res.status(201).json({
-    //             status: 'Success',
-    //             message: 'Intervention created successfully',
-    //             data: intervention
-    //         })
-    //     } catch (err: any) {
-    //         handleError(err, res);
-    //     }
-    // }
+            res.status(201).json({
+                status: 'Success',
+                message: 'Intervention created successfully',
+                data: intervention
+            })
+        } catch (err: any) {
+            handleError(err, res);
+        }
+    }
 
-    // async getInterventionsBelongToFamily(req: Request, res: Response) {
-    //     try {
-    //         const { institutionId, familyId } = req.params;
-    //         if (!institutionId || !familyId) {
-    //             throw new InvariantError("Institution ID and Family ID must be provided");
-    //         }
+    async getInterventionById(req: Request, res: Response) {
+        try {
+            const { interventionId } = req.params;
+            if (!interventionId) {
+                throw new InvariantError('Intervention ID must be provided in params');
+            }
+            const { intervention } = await this.interventionService.getInterventionById(+interventionId);
+            res.status(200).json({
+                status: 'Success',
+                message: 'Intervention fetched successfully',
+                data: intervention
+            })
+        } catch (err: any) {
+            handleError(err, res);
+        }
+    }
 
-    //         const { interventions } = await this.interventionService.getInterventionsBelongToFamily(+institutionId, +familyId);
+    async getInterventionBelongsToFamily(req: Request, res: Response) {
+        try {
+            const { familyId } = req.params;
+            if (!familyId) {
+                throw new InvariantError('Family ID must be provided in params');
+            }
+            const { interventions } = await this.interventionService.getInterventionsBelongToFamily(+familyId);
+            res.status(200).json({
+                status: 'Success',
+                message: 'Interventions fetched successfully',
+                data: interventions
+            })
+        } catch (err: any) {
+            handleError(err, res);
+        }
+    }
 
-    //         res.status(200).json({
-    //             status: 'Success',
-    //             message: 'Interventions fetched successfully',
-    //             data: interventions
-    //         })
-    //     } catch (err: any) {
-    //         handleError(err, res);
-    //     }
-    // }
+    async getInterventionsBelongToPuskesmas(req: Request, res: Response) {
+        try {
+            const { puskesmasId } = req.params;
+            if (!puskesmasId) {
+                throw new InvariantError("Institution ID must be provided");
+            }
 
-    // async getInterventionsBelongToInstitution(req: Request, res: Response) {
-    //     try {
-    //         const { institutionId } = req.params;
-    //         if (!institutionId) {
-    //             throw new InvariantError("Institution ID must be provided");
-    //         }
+            const { interventions } = await this.interventionService.getInterventionsBelongToPuskesmas(+puskesmasId);
 
-    //         const { interventions } = await this.interventionService.getInterventionsBelongToInstitution(+institutionId);
+            res.status(200).json({
+                status: 'Success',
+                message: 'Interventions fetched successfully',
+                data: interventions
+            })
+        } catch (err: any) {
+            handleError(err, res);
+        }
+    }
 
-    //         res.status(200).json({
-    //             status: 'Success',
-    //             message: 'Interventions fetched successfully',
-    //             data: interventions
-    //         })
-    //     } catch (err: any) {
-    //         handleError(err, res);
-    //     }
-    // }
+    async getInterventionsBelongToSchool(req: Request, res: Response) {
+        try {
+            const { schoolId } = req.params;
+            if (!schoolId) {
+                throw new InvariantError("Institution ID must be provided");
+            }
 
-    // async getInterventionsBelongToSchool(req: Request, res: Response) {
-    //     try {
-    //         const { schoolId } = req.params;
-    //         if (!schoolId) {
-    //             throw new InvariantError("Institution ID must be provided");
-    //         }
+            const { interventions } = await this.interventionService.getInterventionBelongsToSchool(+schoolId);
 
-    //         const { interventions } = await this.interventionService.getInterventionBelongsToSchool(+schoolId);
-
-    //         res.status(200).json({
-    //             status: 'Success',
-    //             message: 'Interventions fetched successfully',
-    //             data: interventions
-    //         })
-    //     } catch (err: any) {
-    //         handleError(err, res);
-    //     }
-    // }
-
-
-
-    // async getInterventionById(req: Request, res: Response) {
-    //     try {
-    //         const { interventionId } = req.params;
-    //         if (!interventionId) {
-    //             throw new InvariantError("Intervention ID must be provided");
-    //         }
-
-    //         const { intervention } = await this.interventionService.getInterventionById(+interventionId);
-
-    //         res.status(200).json({
-    //             status: 'Success',
-    //             message: 'Intervention fetched successfully',
-    //             data: intervention
-    //         })
-    //     } catch (err: any) {
-    //         handleError(err, res);
-    //     }
-    // }
+            res.status(200).json({
+                status: 'Success',
+                message: 'Interventions fetched successfully',
+                data: interventions
+            })
+        } catch (err: any) {
+            handleError(err, res);
+        }
+    }
 };
