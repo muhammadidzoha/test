@@ -6,3 +6,17 @@ export const calculateGajiScore = (totalGaji: number, totalFamily: number, umr: 
     }
     return 3;
 }
+
+export const calculateBirthWeightScore = (birthWeight: number) => {
+    if (birthWeight > 4) {
+        return 1;
+    }
+    return 2;
+}
+
+export const calculateBehaviourScore = (behaviourScore: number) => {
+    if (behaviourScore >= 1 && behaviourScore <= 30) {
+        return 1;
+    }
+    return 2;
+}

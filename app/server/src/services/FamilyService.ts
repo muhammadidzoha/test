@@ -4,7 +4,7 @@ import { InvariantError, NotFoundError } from "../common/exception";
 import { FormatDate } from "../common/utils/FormatDate";
 import { calculateBMI } from "../common/utils/CalculateBMI";
 import { determineNutritionStatus } from "../common/utils/CalculateZscore";
-import { calculateGajiScore } from "../common/utils/Family";
+import { calculateBehaviourScore, calculateGajiScore } from "../common/utils/Family";
 
 export class FamilyService {
     constructor(public prismaClient: PrismaClient) { }
@@ -141,7 +141,8 @@ export class FamilyService {
                             drink_frequency: familyMember.behaviour.drinkFrequency,
                             eat_frequency: familyMember.behaviour.eatFrequency,
                             physical_activity: familyMember.behaviour.physicalActivity,
-                            sleep_quality: familyMember.behaviour.sleepQuality
+                            sleep_quality: familyMember.behaviour.sleepQuality,
+                            phbs: familyMember.behaviour.phbs
                         }
                     }
                 }),
@@ -255,25 +256,45 @@ export class FamilyService {
         }
     }
 
-    // async getFamilyMemberJobWithScore(familyMemberId: number) {
-    //     const familyMember = await this.prismaClient.familyMember.findUnique({
-    //         where: {
-    //             id: familyMemberId
-    //         },
-    //         include: {
-    //             job: {
-    //                 include: {
-    //                     job_type: true
-    //                 }
-    //             }
-    //         }
-    //     });
-    //     if(!familyMember){
-    //         throw new NotFoundError('Family member not found');
-    //     }
-    //     const wage = +familyMember.job.income?.toString();
-    //     const jobScore = familyMember.job.job_type.id ?? 0;
+    async getChildrenScore(childrenId: number) {
+        const children = await this.prismaClient.familyMember.findUnique({
+            where: {
+                id: childrenId
+            },
+            include: {
+                nutrition: {
+                    take: 1,
+                    orderBy: {
+                        created_at: 'desc'
+                    }
+                },
+                behaviour: true,
+            }
+        });
 
-    //     return {jobScore, wage}
-    // }
+        if (!children) {
+            throw new NotFoundError('Children not found');
+        }
+        if (!children.nutrition.length) {
+            throw new NotFoundError('Children nutrition not found');
+        }
+        const birthWeight = children.nutrition[0]?.birth_weight;
+        let score = 0;
+        if (birthWeight! > 4) {
+            score = 1;
+        }
+        if (birthWeight! > 0 && birthWeight! <= 4) {
+            score = 2;
+        }
+        const eatDrink = (children.behaviour?.eat_frequency ?? 0) + (children.behaviour?.drink_frequency ?? 0);
+        const eatDrinkScore = calculateBehaviourScore(eatDrink);
+        const physicalActivityScore = calculateBehaviourScore(children.behaviour?.physical_activity ?? 0);
+        const sleepQualityScore = calculateBehaviourScore(children.behaviour?.sleep_quality ?? 0);
+        const phbsScore = calculateBehaviourScore(children.behaviour?.phbs ?? 0);
+
+        return {
+            birthWeight,
+            score
+        }
+    }
 }

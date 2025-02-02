@@ -350,6 +350,7 @@ model Behaviour {
   family_member_id  Int @unique @db.Int
   sleep_quality     Int @db.Int
   physical_activity Int @db.Int
+  phbs              Int @default(0) @db.Int
 
   family_member FamilyMember @relation(fields: [family_member_id], references: [id])
 

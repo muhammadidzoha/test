@@ -59,6 +59,7 @@ export const addMemberSchema = joi.object({
         eatFrequency: joi.number().required(),
         drinkFrequency: joi.number().required(),
         physicalActivity: joi.number().required(),
-        sleepQuality: joi.number().required()
+        sleepQuality: joi.number().required(),
+        phbs: joi.number().required()
     })
 })

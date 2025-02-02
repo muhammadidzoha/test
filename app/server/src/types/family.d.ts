@@ -34,10 +34,11 @@ export interface INutrition {
 
 
 export interface IBehaviour {
-    eatFrequency: 1 | 2 | 3 | 4;
-    drinkFrequency: 1 | 2 | 3 | 4;
-    sleepQuality: 1 | 2 | 3 | 4;
-    physicalActivity: 1 | 2 | 3 | 4;
+    eatFrequency: number;
+    drinkFrequency: number;
+    sleepQuality: number;
+    physicalActivity: number;
+    phbs: number;
 }
 
 export interface IFamilyMember {
