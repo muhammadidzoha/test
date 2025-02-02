@@ -109,5 +109,20 @@ export class FamilyController {
         }
     }
 
-
+    async getChildrenScore(req: Request, res: Response) {
+        try {
+            const { familyMemberId } = req.params;
+            if (!familyMemberId) {
+                throw new InvariantError('Family member id is required in params to get children score');
+            }
+            const childrenScore = await this.familyService.getChildrenScore(+familyMemberId);
+            res.status(200).json({
+                status: 'Success',
+                message: 'Children score fetched successfully',
+                data: childrenScore
+            })
+        } catch (err: any) {
+            handleError(err, res);
+        }
+    }
 }

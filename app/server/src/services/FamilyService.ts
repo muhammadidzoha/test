@@ -4,7 +4,7 @@ import { InvariantError, NotFoundError } from "../common/exception";
 import { FormatDate } from "../common/utils/FormatDate";
 import { calculateBMI } from "../common/utils/CalculateBMI";
 import { determineNutritionStatus } from "../common/utils/CalculateZscore";
-import { calculateBehaviourScore, calculateGajiScore } from "../common/utils/Family";
+import { calculateBehaviourScore, calculateGajiScore, calculateNutritionScore } from "../common/utils/Family";
 
 export class FamilyService {
     constructor(public prismaClient: PrismaClient) { }
@@ -259,13 +259,17 @@ export class FamilyService {
     async getChildrenScore(childrenId: number) {
         const children = await this.prismaClient.familyMember.findUnique({
             where: {
-                id: childrenId
+                id: childrenId,
+                relation: 'ANAK'
             },
             include: {
                 nutrition: {
                     take: 1,
                     orderBy: {
                         created_at: 'desc'
+                    },
+                    include: {
+                        nutrition_status: true
                     }
                 },
                 behaviour: true,
@@ -291,10 +295,24 @@ export class FamilyService {
         const physicalActivityScore = calculateBehaviourScore(children.behaviour?.physical_activity ?? 0);
         const sleepQualityScore = calculateBehaviourScore(children.behaviour?.sleep_quality ?? 0);
         const phbsScore = calculateBehaviourScore(children.behaviour?.phbs ?? 0);
+        const nutritionStatusScore = calculateNutritionScore(children.nutrition[0].nutrition_status.id);
+        let risk = 0;
+        if (!nutritionStatusScore || nutritionStatusScore < 3) {
+            risk = 0;
+        } else if (nutritionStatusScore >= 3) {
+            risk = 1;
+        }
 
         return {
             birthWeight,
-            score
+            birthWeightScore: score,
+            eatDrinkScore,
+            physicalActivityScore,
+            sleepQualityScore,
+            phbsScore,
+            nutrition: children.nutrition[0],
+            nutritionScore: nutritionStatusScore,
+            risk
         }
     }
 }
