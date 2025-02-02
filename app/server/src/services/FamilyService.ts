@@ -243,14 +243,37 @@ export class FamilyService {
         return {
             wage: +familyMember.job.income?.toString(),
             wageScore,
+            job: familyMember.job.job_type.name,
+            jobScore: familyMember.job.job_type.id,
             familyMember: {
                 ...familyMember,
                 job: {
                     ...familyMember.job,
                     income: wage
                 }
-            }
+            },
         }
-
     }
+
+    // async getFamilyMemberJobWithScore(familyMemberId: number) {
+    //     const familyMember = await this.prismaClient.familyMember.findUnique({
+    //         where: {
+    //             id: familyMemberId
+    //         },
+    //         include: {
+    //             job: {
+    //                 include: {
+    //                     job_type: true
+    //                 }
+    //             }
+    //         }
+    //     });
+    //     if(!familyMember){
+    //         throw new NotFoundError('Family member not found');
+    //     }
+    //     const wage = +familyMember.job.income?.toString();
+    //     const jobScore = familyMember.job.job_type.id ?? 0;
+
+    //     return {jobScore, wage}
+    // }
 }

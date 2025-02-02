@@ -92,14 +92,16 @@ export class FamilyController {
             if (!umr) {
                 throw new InvariantError('UMR is required in query params to get wage score');
             }
-            const { wage, wageScore, familyMember } = await this.familyService.getWageScoreOfFamilyMember(+familyId, +familyMemberId, +umr);
+            const { job, jobScore, wage, wageScore, familyMember } = await this.familyService.getWageScoreOfFamilyMember(+familyId, +familyMemberId, +umr);
             res.status(200).json({
                 status: 'Success',
                 message: 'Wage score fetched successfully',
                 data: {
                     familyMember,
                     wage,
-                    wageScore
+                    wageScore,
+                    job,
+                    jobScore
                 }
             })
         } catch (err: any) {
