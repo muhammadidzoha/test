@@ -331,4 +331,21 @@ export class SchoolController {
             handleError(err, res);
         }
     }
+
+    async getSickStudents(req: Request, res: Response) {
+        try {
+            const { schoolId, nutritionStatusId } = req.params;
+            if (!schoolId || !nutritionStatusId) {
+                throw new InvariantError('School Id is required in Parameter');
+            }
+            const { students } = await this.schoolService.getStudentWithNutritionStatus(+schoolId, +nutritionStatusId);
+            res.status(200).json({
+                status: 'Success',
+                message: 'Sick Student Data',
+                data: students
+            })
+        } catch (err: any) {
+            handleError(err, res);
+        }
+    }
 };

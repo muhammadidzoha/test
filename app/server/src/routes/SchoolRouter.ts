@@ -78,3 +78,7 @@ schoolRouter.put('/:schoolId/facilities/:facilityId', AuthorizationMiddleware(['
 schoolRouter.get('/:schoolId/nutritions', AuthorizationMiddleware([]), (req, res) => {
     schoolController.getStudentLatestNutrition(req, res);
 })
+
+schoolRouter.get('/:schoolId/students/sicks/:nutritionStatusId', AuthorizationMiddleware([]), (req, res) => {
+    schoolController.getSickStudents(req, res);
+})
