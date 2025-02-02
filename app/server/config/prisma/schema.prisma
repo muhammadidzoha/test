@@ -556,6 +556,7 @@ model RequestIntervention {
   updated_at       DateTime @default(now()) @db.Timestamp(2)
   created_by       Int      @db.Int
   family_member_id Int      @db.Int
+  information      String?  @db.Text
 
   family_member FamilyMember  @relation(fields: [family_member_id], references: [id])
   institution   Institution   @relation(fields: [puskesmas_id], references: [id])

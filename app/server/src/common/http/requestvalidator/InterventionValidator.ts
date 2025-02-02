@@ -6,6 +6,5 @@ export const createInterventionSchema = joi.object({
 })
 
 export const requestInterventionSchema = joi.object({
-    institutionId: joi.number().required(),
-    familyId: joi.number().required(),
+    information: joi.string().required()
 })

@@ -17,12 +17,24 @@ interventionRouter.get('/requests/:puskesmasId/schools/:schoolId', Authorization
     interventionController.getRequestInterventionBelongToSchool(req, res);
 })
 
-interventionRouter.get('/requests/:puskesmasId/families/:familyId', AuthorizationMiddleware([]), async (req: Request, res: Response) => {
+interventionRouter.get('/requests/puskesmas/:puskesmasId/families/:familyId', AuthorizationMiddleware([]), async (req: Request, res: Response) => {
     interventionController.getRequestInterventionBelongToFamily(req, res);
 })
 
-interventionRouter.get('/requests/:puskesmasId', AuthorizationMiddleware(['admin', 'healthcare']), async (req: Request, res: Response) => {
+interventionRouter.get('/requests/puskesmas/:puskesmasId', AuthorizationMiddleware([]), async (req: Request, res: Response) => {
     interventionController.getAllRequestIntervention(req, res);
+})
+
+interventionRouter.get('/requests/:requestId', AuthorizationMiddleware([]), async (req: Request, res: Response) => {
+    interventionController.getRequestedInterventionById(req, res);
+})
+
+interventionRouter.delete('/requests/:requestId', AuthorizationMiddleware([]), async (req: Request, res: Response) => {
+    interventionController.deleteRequestInterventionById(req, res);
+})
+
+interventionRouter.put('/requests/:requestId/puskesmas/:puskesmasId/members/:memberId', AuthorizationMiddleware([]), async (req: Request, res: Response) => {
+    interventionController.updateRequestInterventionById(req, res);
 })
 
 // interventionRouter.post('/:institutionId/members/:memberId', AuthorizationMiddleware(['admin', 'healthcare']), async (req: Request, res: Response) => {

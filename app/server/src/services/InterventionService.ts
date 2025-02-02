@@ -1,15 +1,26 @@
 import { PrismaClient } from "@prisma/client";
 import { IIntervention, IRequestIntervention } from "../types/puskesmas";
+import { NotFoundError } from "../common/exception";
 
 export class InterventionService {
     constructor(public prismaClient: PrismaClient) { }
 
     async requestIntervention(payload: IRequestIntervention) {
+        const puskesmas = await this.prismaClient.institution.findUnique({
+            where: {
+                id: payload.institutionId,
+                type: 2
+            }
+        })
+        if (!puskesmas) {
+            throw new NotFoundError('Puskesmas not found');
+        }
         const intervention = await this.prismaClient.requestIntervention.create({
             data: {
                 puskesmas_id: payload.institutionId,
                 created_by: payload.createdBy,
                 family_member_id: payload.familyId,
+                information: payload.information
             },
             include: {
                 institution: true,
@@ -37,22 +48,30 @@ export class InterventionService {
                 institution: true,
                 program: true,
                 user: true,
-                request_intervention: true
+                request_intervention: true,
             }
         });
 
         return { intervention };
     }
 
+
     async getRequestedInterventionBelongToSchool(puskesmasId: number, schoolId: number) {
         const requestInterventions = await this.prismaClient.requestIntervention.findMany({
             where: {
-                puskesmas_id: puskesmasId,
-                user: {
-                    institution: {
-                        id: schoolId
+                AND: [
+                    {
+                        puskesmas_id: puskesmasId
+                    },
+                    {
+                        user: {
+                            institution: {
+                                id: schoolId
+                            }
+                        }
                     }
-                }
+
+                ]
             },
             include: {
                 family_member: true,
@@ -121,6 +140,49 @@ export class InterventionService {
 
         return { requestInterventions }
     }
+
+    async getRequestInterventionById(interventionId: number) {
+        const intervention = await this.prismaClient.requestIntervention.findUnique({
+            where: {
+                id: interventionId
+            },
+            include: {
+                user: true,
+                family_member: true
+            }
+        });
+
+        return { intervention };
+    }
+
+    async deleteRequestInterventionById(interventionId: number) {
+        const intervention = await this.prismaClient.requestIntervention.delete({
+            where: {
+                id: interventionId
+            }
+        });
+        return { intervention }
+    }
+
+    async updateRequestInterventionById(interventionId: number, payload: IRequestIntervention) {
+        const { intervention: isInterventionExist } = await this.getRequestInterventionById(interventionId);
+        if (!isInterventionExist) {
+            throw new NotFoundError('Intervention not found')
+        }
+        const intervention = await this.prismaClient.requestIntervention.update({
+            where: {
+                id: interventionId
+            },
+            data: {
+                puskesmas_id: payload.institutionId,
+                family_member_id: payload.familyId,
+                created_by: payload.createdBy,
+                information: payload.information
+            }
+        });
+        return { intervention }
+    }
+
 
     // async getInterventionsBelongToFamily(institutionId: number, familyId: number) {
     //     const interventions = await this.prismaClient.intervention.findMany({

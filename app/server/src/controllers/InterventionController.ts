@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { InterventionService } from "../services/InterventionService";
 import { handleError, validatePayload } from "../common/http";
 import { InvariantError } from "../common/exception";
-import { createInterventionSchema } from "../common/http/requestvalidator/InterventionValidator";
+import { createInterventionSchema, requestInterventionSchema } from "../common/http/requestvalidator/InterventionValidator";
 
 export class InterventionController {
     constructor(public interventionService: InterventionService) {
@@ -11,15 +11,18 @@ export class InterventionController {
 
     async requestIntervention(req: Request, res: Response) {
         try {
+            validatePayload(requestInterventionSchema, req.body);
             const { puskesmasId, memberId } = req.params;
             if (!puskesmasId || !memberId) {
                 throw new InvariantError("Puskesmas ID and  Member ID must be provided");
             }
+            const { information } = req.body;
             const user = (req as any).user
             const { intervention } = await this.interventionService.requestIntervention({
                 createdBy: user.id,
                 familyId: +memberId,
-                institutionId: +puskesmasId
+                institutionId: +puskesmasId,
+                information
             })
             res.status(201).json({
                 status: 'Success',
@@ -76,6 +79,67 @@ export class InterventionController {
                 status: 'Success',
                 message: `Request Intervention fetched successfully`,
                 data: requestInterventions
+            })
+        } catch (err: any) {
+            handleError(err, res);
+        }
+    }
+
+    async getRequestedInterventionById(req: Request, res: Response) {
+        try {
+            const { requestId } = req.params;
+            if (!requestId) {
+                throw new InvariantError('Intervention ID must be provided in params');
+            };
+            const { intervention } = await this.interventionService.getRequestInterventionById(+requestId);
+
+            res.status(200).json({
+                status: 'Success',
+                message: 'Intervention fetched successfully',
+                data: intervention
+            })
+        } catch (err: any) {
+            handleError(err, res);
+        }
+    }
+
+
+    async deleteRequestInterventionById(req: Request, res: Response) {
+        try {
+            const { requestId } = req.params;
+            if (!requestId) {
+                throw new InvariantError('Intervention ID must be provided in params');
+            }
+            const { intervention } = await this.interventionService.deleteRequestInterventionById(+requestId);
+            res.status(200).json({
+                status: 'Success',
+                message: 'Intervention deleted successfully',
+                data: intervention
+            })
+        } catch (err: any) {
+            handleError(err, res);
+        }
+    }
+
+    async updateRequestInterventionById(req: Request, res: Response) {
+        try {
+            validatePayload(requestInterventionSchema, req.body);
+            const { requestId, puskesmasId, memberId } = req.params;
+            if (!requestId) {
+                throw new InvariantError('Intervention ID must be provided in params');
+            }
+            const user = (req as any).user
+            const { information } = req.body;
+            const { intervention } = await this.interventionService.updateRequestInterventionById(+requestId, {
+                institutionId: +puskesmasId,
+                familyId: +memberId,
+                createdBy: user.id,
+                information
+            });
+            res.status(200).json({
+                status: 'Success',
+                message: 'Intervention updated successfully',
+                data: intervention
             })
         } catch (err: any) {
             handleError(err, res);

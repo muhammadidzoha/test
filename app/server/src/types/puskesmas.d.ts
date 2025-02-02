@@ -9,4 +9,5 @@ export interface IRequestIntervention {
     institutionId: number;
     familyId: number;
     createdBy: number;
+    information: string;
 }
