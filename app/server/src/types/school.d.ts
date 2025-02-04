@@ -47,3 +47,13 @@ export interface IFacility {
     name: string;
     description: string?;
 }
+
+export interface IUKSQuisioner {
+    healthHandBook: boolean;
+    personInCharge: boolean;
+    healthKie: boolean;
+    sportInfrastructure: boolean;
+    budget: boolean;
+    healthCarePartnership: boolean;
+    activityPlan: boolean;
+}

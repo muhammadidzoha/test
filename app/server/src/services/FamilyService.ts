@@ -1,9 +1,9 @@
 import { PrismaClient } from "@prisma/client";
-import { IFamily, IFamilyMember } from "../types/family";
 import { InvariantError, NotFoundError } from "../common/exception";
-import { FormatDate } from "../common/utils/FormatDate";
 import { calculateBMI } from "../common/utils/CalculateBMI";
 import { determineNutritionStatus } from "../common/utils/CalculateZscore";
+import { calculateBehaviourScore, calculateGajiScore, calculateNutritionScore } from "../common/utils/Family";
+import { IFamily, IFamilyMember } from "../types/family";
 
 export class FamilyService {
     constructor(public prismaClient: PrismaClient) { }
@@ -84,14 +84,9 @@ export class FamilyService {
                 gender: familyMember.gender,
                 relation: familyMember.relation,
                 job: {
-                    connectOrCreate: {
-                        where: {
-                            id: familyMember.job.id ?? jobLastRow?.id ?? 1
-                        },
-                        create: {
-                            name: familyMember.job.name,
-                            income: familyMember.job.income
-                        }
+                    create: {
+                        income: familyMember.job.income,
+                        job_type_id: familyMember.job.jobTypeId
                     }
                 },
                 residence: {
@@ -145,7 +140,8 @@ export class FamilyService {
                             drink_frequency: familyMember.behaviour.drinkFrequency,
                             eat_frequency: familyMember.behaviour.eatFrequency,
                             physical_activity: familyMember.behaviour.physicalActivity,
-                            sleep_quality: familyMember.behaviour.sleepQuality
+                            sleep_quality: familyMember.behaviour.sleepQuality,
+                            phbs: familyMember.behaviour.phbs
                         }
                     }
                 }),
@@ -188,5 +184,190 @@ export class FamilyService {
         });
     }
 
+    async getTotalGajiWithCategory(familyId: number, umr: number) {
+        const familyMembers = await this.prismaClient.familyMember.findMany({
+            where: {
+                family_id: familyId
+            }
+        })
+        const totalFamily = familyMembers.length;
+
+        const totalGaji = await this.prismaClient.job.aggregate({
+            where: {
+                family_members: {
+                    every: {
+                        family_id: familyId
+                    }
+                }
+            },
+            _sum: {
+                income: true
+            }
+        });
+
+        const totalWages = totalGaji._sum.income?.toString() ?? 0;
+        const categoryScore = calculateGajiScore(+totalWages, totalFamily, umr);
+
+        return {
+            totalGaji: totalWages,
+            totalFamily,
+            categoryScore
+        }
+    }
+
+    async getWageScoreOfFamilyMember(familyId: number, familyMemberId: number, umr: number) {
+        const familyMember = await this.prismaClient.familyMember.findUnique({
+            where: {
+                id: familyMemberId
+            },
+            include: {
+                job: {
+                    include: {
+                        job_type: true
+                    }
+                }
+            }
+        });
+        const familyMembers = await this.prismaClient.familyMember.findMany({
+            where: {
+                family_id: familyId
+            }
+        });
+
+        if (!familyMember) {
+            throw new NotFoundError('Family member not found');
+        }
+
+        const wage = +familyMember.job.income?.toString();
+        const wageScore = calculateGajiScore(wage, familyMembers.length ?? 0, umr);
+        return {
+            wage: +familyMember.job.income?.toString(),
+            wageScore,
+            job: familyMember.job.job_type.name,
+            jobScore: familyMember.job.job_type.id,
+            familyMember: {
+                ...familyMember,
+                job: {
+                    ...familyMember.job,
+                    income: wage
+                }
+            },
+        }
+    }
+
+    async getChildrenScore(childrenId: number) {
+        const children = await this.prismaClient.familyMember.findUnique({
+            where: {
+                id: childrenId,
+                relation: 'ANAK'
+            },
+            include: {
+                nutrition: {
+                    take: 1,
+                    orderBy: {
+                        created_at: 'desc'
+                    },
+                    include: {
+                        nutrition_status: true
+                    }
+                },
+                behaviour: true,
+            }
+        });
+
+        if (!children) {
+            throw new NotFoundError('Children not found');
+        }
+        if (!children.nutrition.length) {
+            throw new NotFoundError('Children nutrition not found');
+        }
+        const birthWeight = children.nutrition[0]?.birth_weight;
+        let score = 0;
+        if (birthWeight! > 4) {
+            score = 1;
+        }
+        if (birthWeight! > 0 && birthWeight! <= 4) {
+            score = 2;
+        }
+        const eatDrink = (children.behaviour?.eat_frequency ?? 0) + (children.behaviour?.drink_frequency ?? 0);
+        const eatDrinkScore = calculateBehaviourScore(eatDrink);
+        const physicalActivityScore = calculateBehaviourScore(children.behaviour?.physical_activity ?? 0);
+        const sleepQualityScore = calculateBehaviourScore(children.behaviour?.sleep_quality ?? 0);
+        const phbsScore = calculateBehaviourScore(children.behaviour?.phbs ?? 0);
+        const nutritionStatusScore = calculateNutritionScore(children.nutrition[0].nutrition_status.id);
+        let risk = 0;
+        if (!nutritionStatusScore || nutritionStatusScore < 3) {
+            risk = 0;
+        } else if (nutritionStatusScore >= 3) {
+            risk = 1;
+        }
+
+        return {
+            birthWeight,
+            birthWeightScore: score,
+            eatDrinkScore,
+            physicalActivityScore,
+            sleepQualityScore,
+            phbsScore,
+            nutrition: children.nutrition[0],
+            nutritionScore: nutritionStatusScore,
+            risk
+        }
+    }
+
+    async addFamilyMember2(familyId: number, familyMember: IFamilyMember) {
+        const residenceLastRow = await this.getResidenceByDesc();
+
+        const newMember = await this.prismaClient.familyMember.create({
+            data: {
+                full_name: familyMember.fullName,
+                birth_date: familyMember.birthDate.toISOString(),
+                education: familyMember.education,
+                gender: familyMember.gender,
+                relation: familyMember.relation,
+                job: {
+                    create: {
+                        income: familyMember.job.income,
+                        job_type_id: familyMember.job.jobTypeId
+                    }
+                },
+                residence: {
+                    connectOrCreate: {
+                        where: {
+                            id: familyMember.residence.id ?? residenceLastRow?.id ?? 1
+                        },
+                        create: {
+                            status: familyMember.residence.status,
+                            address: familyMember.residence.address,
+                            description: familyMember.residence.description
+                        }
+                    }
+                },
+                family: {
+                    connect: {
+                        id: familyId
+                    }
+                },
+                ...(familyMember.institutionId && {
+                    institution: {
+                        connect: {
+                            id: familyMember.institutionId
+                        }
+                    }
+                }),
+            },
+            include: {
+                residence: true,
+                family: true,
+                job: true,
+                knowledge_nutrition: true,
+                institution: true,
+                behaviour: true,
+                nutrition: true
+            }
+        })
+
+        return { familyMember: newMember }
+    }
 
 }

@@ -38,12 +38,14 @@ model User {
   updated_at  DateTime @default(now()) @db.Timestamp(2)
   is_verified Boolean  @default(false)
 
-  uks_activity       UKSActivityPlan[]
-  kie_content        KIEContent[]
-  institution        Institution?
-  health_care_member HealthCareMember?
-  nutrition          Nutrition[]
-  approval           UKSActivityApproval[]
+  intervention         Intervention[]
+  uks_activity         UKSActivityPlan[]
+  kie_content          KIEContent[]
+  institution          Institution?
+  health_care_member   HealthCareMember?
+  nutrition            Nutrition[]
+  approval             UKSActivityApproval[]
+  request_intervention RequestIntervention[]
 
   @@map("users")
 }
@@ -61,13 +63,17 @@ model Institution {
   user             User   @relation(fields: [user_id], references: [id])
   type             Int    @db.Int
 
-  family_member      FamilyMember[]
-  institution_type   InstitutionType    @relation(fields: [type], references: [id])
-  health_education   HealthEducation?
-  health_service     HealthService?
-  school_environment SchoolEnvironment?
-  health_care        HealthCare?
-  facility           SchoolFacility[]
+  family_member            FamilyMember[]
+  institution_type         InstitutionType         @relation(fields: [type], references: [id])
+  health_education         HealthEducation?
+  health_service           HealthService?
+  school_environment       SchoolEnvironment?
+  uks_management_quisioner UKSManagementQuisioner?
+  health_care              HealthCare?
+  facility                 SchoolFacility[]
+  request_intervention     RequestIntervention[]
+  intervention             Intervention[]
+  responses                Response[]
 
   @@map("institutions")
 }
@@ -93,6 +99,10 @@ model HealthEducation {
   nutrition_education               Boolean @default(false)
   healthy_living_implementation     Boolean @default(false)
   parent_involvement                Boolean @default(false)
+  score                             Int     @default(0) @db.Int
+  category_id                       Int     @db.Int
+
+  service_category ServiceCategory @relation(fields: [category_id], references: [id])
 
   school Institution @relation(fields: [school_id], references: [id])
 
@@ -106,8 +116,11 @@ model HealthService {
   referral_handling             Boolean @default(false)
   consuling_facility            Boolean @default(false)
   periodic_screening_inspection Boolean @default(false)
+  score                         Int     @default(0) @db.Int
+  category_id                   Int     @db.Int
 
-  school Institution @relation(fields: [school_id], references: [id])
+  school           Institution     @relation(fields: [school_id], references: [id])
+  service_category ServiceCategory @relation(fields: [category_id], references: [id])
 
   @@map("health_services")
 }
@@ -119,10 +132,43 @@ model SchoolEnvironment {
   green_space             Boolean @default(false)
   trash_can               Boolean @default(false)
   unprotected_area_policy Boolean @default(false)
+  score                   Int     @default(0) @db.Int
+  category_id             Int     @db.Int
 
-  school Institution @relation(fields: [school_id], references: [id])
+  school           Institution     @relation(fields: [school_id], references: [id])
+  service_category ServiceCategory @relation(fields: [category_id], references: [id])
 
   @@map("school_environments")
+}
+
+model UKSManagementQuisioner {
+  id                      Int     @id @default(autoincrement()) @db.Int
+  health_hand_book        Boolean @default(false)
+  person_in_charge        Boolean @default(false)
+  health_kie              Boolean @default(false)
+  sport_infrastructure    Boolean @default(false)
+  budget                  Boolean @default(false)
+  health_care_partnership Boolean @default(false)
+  activity_plan           Boolean @default(false)
+  score                   Int     @default(0) @db.Int
+  category_id             Int     @db.Int
+  school_id               Int     @unique @default(0)
+
+  service_category ServiceCategory @relation(fields: [category_id], references: [id])
+  school           Institution     @relation(fields: [school_id], references: [id])
+
+  @@map("uks_managements")
+}
+
+model ServiceCategory {
+  id          Int     @id @default(autoincrement()) @db.Int
+  name        String  @db.VarChar(255)
+  description String? @db.Text
+
+  health_education         HealthEducation[]
+  health_service           HealthService[]
+  school_environment       SchoolEnvironment[]
+  uks_management_quisioner UKSManagementQuisioner[]
 }
 
 model HealthCare {
@@ -215,20 +261,40 @@ model FamilyMember {
 
   institution Institution? @relation(fields: [institution_id], references: [id])
 
-  family              Family              @relation(fields: [family_id], references: [id])
-  job                 Job                 @relation(fields: [job_id], references: [id])
-  residence           Residence           @relation(fields: [residence_id], references: [id])
-  knowledge_nutrition KnowledgeNutrition? @relation(fields: [knowledge_nutrition_id], references: [id])
-  nutrition           Nutrition[]
-  behaviour           Behaviour?
+  family               Family                @relation(fields: [family_id], references: [id])
+  job                  Job                   @relation(fields: [job_id], references: [id])
+  residence            Residence             @relation(fields: [residence_id], references: [id])
+  knowledge_nutrition  KnowledgeNutrition?   @relation(fields: [knowledge_nutrition_id], references: [id])
+  nutrition            Nutrition[]
+  behaviour            Behaviour?
+  request_intervention RequestIntervention[]
+  responses            Response[]
 
   @@map("family_members")
 }
 
+enum JOBTYPE {
+  TIDAK_BEKERJA_BURUH_SEJENISNYA
+  PEKERJA_HONORER_KONTRAK
+  PEGAWAI_NEGERI_KARYAWAN_SWASTA
+}
+
+model JobType {
+  id   Int     @id @default(autoincrement()) @db.Int
+  name String? @db.VarChar(255)
+  type JOBTYPE
+
+  job Job[]
+
+  @@map("job_types")
+}
+
 model Job {
-  id     Int    @id @default(autoincrement()) @db.Int
-  name   String @db.VarChar(255)
-  income BigInt @db.BigInt
+  id          Int    @id @default(autoincrement()) @db.Int
+  income      BigInt @db.BigInt
+  job_type_id Int    @db.Int
+
+  job_type JobType @relation(fields: [job_type_id], references: [id])
 
   family_members FamilyMember[]
 }
@@ -286,6 +352,7 @@ model Behaviour {
   family_member_id  Int @unique @db.Int
   sleep_quality     Int @db.Int
   physical_activity Int @db.Int
+  phbs              Int @default(0) @db.Int
 
   family_member FamilyMember @relation(fields: [family_member_id], references: [id])
 
@@ -485,43 +552,130 @@ model UKSActivityAssigned {
   @@map("activity_assigneds")
 }
 
-// model HealthCareFacility {
-//   id        Int    @id @default(autoincrement())
-//   name      String @db.VarChar(255)
-//   status_id Int    @db.Int
+model RequestIntervention {
+  id               Int      @id @default(autoincrement()) @db.Int
+  puskesmas_id     Int      @db.Int
+  created_at       DateTime @default(now()) @db.Timestamp(2)
+  updated_at       DateTime @default(now()) @db.Timestamp(2)
+  created_by       Int      @db.Int
+  family_member_id Int      @db.Int
+  information      String?  @db.Text
 
-//   status HealthCareFacilityStatus @relation(fields: [status_id], references: [id])
+  family_member FamilyMember  @relation(fields: [family_member_id], references: [id])
+  institution   Institution   @relation(fields: [puskesmas_id], references: [id])
+  user          User          @relation(fields: [created_by], references: [id])
+  intervention  Intervention?
 
-//   @@map("health_care_facilities")
-// }
+  @@map("request_interventions")
+}
 
-// model HealthCareFacilityStatus {
-//   id   Int    @id @default(autoincrement())
-//   name String @db.VarChar(255)
+model Intervention {
+  id                      Int      @id @default(autoincrement()) @db.Int
+  recommendation          String   @db.Text
+  request_intervention_id Int      @unique @db.Int
+  created_by              Int      @db.Int
+  created_at              DateTime @default(now()) @db.Timestamp(2)
+  updated_at              DateTime @default(now()) @db.Timestamp(2)
+  puskesmas_id            Int      @db.Int
 
-//   facility HealthCareFacility[]
+  user                 User                @relation(fields: [created_by], references: [id])
+  institution          Institution         @relation(fields: [puskesmas_id], references: [id])
+  program              Program[]
+  request_intervention RequestIntervention @relation(fields: [request_intervention_id], references: [id])
 
-//   @@map("health_care_facility_status")
-// }
+  @@map("intervention")
+}
 
-// model Parent {
-//   id           Int     @id @default(autoincrement())
-//   full_name    String? @db.VarChar(255)
-//   phone_number String? @db.VarChar(255)
-//   user_id      Int     @unique @db.Int
+model Program {
+  id          Int     @id @default(autoincrement()) @db.Int
+  name        String  @db.VarChar(255)
+  description String? @db.Text
 
-//   @@map("parents")
-// }
+  intervention Intervention[]
+}
 
-// model SchoolFacility {
-//   id                   Int    @id @default(autoincrement()) @db.Int
-//   school_id            Int    @db.Int
-//   facility_category_id Int    @db.Int
-//   name                 String @db.VarChar(255)
-//   total
-// }
+enum QUESTIONTYPE {
+  MULTIPLE_CHOICE
+  BOOLEAN
+  SCALE
+  TEXT
+}
 
-// model FacilityCategory {
-//   id   Int    @id @default(autoincrement())
-//   name String @db.VarChar(255)
-// }
+enum STRATIFICATION {
+  MINIMAL
+  STANDAR
+  OPTIMAL
+  PARIPURNA
+}
+
+model Quisioner {
+  id             Int             @id @default(autoincrement()) @db.Int
+  title          String          @db.VarChar(255)
+  description    String?         @db.Text()
+  created_at     DateTime        @default(now()) @db.Timestamp(2)
+  stratification STRATIFICATION?
+  for            String?         @db.VarChar(255)
+
+  questions Question[]
+  response  Response[]
+
+  @@map("quisioners")
+}
+
+model Question {
+  id           Int          @id @default(autoincrement()) @db.Int
+  quisioner_id Int          @db.Int
+  question     String       @db.Text
+  type         QUESTIONTYPE
+  created_at   DateTime     @default(now()) @db.Timestamp(2)
+  updated_at   DateTime     @default(now()) @db.Timestamp(2)
+  is_required  Boolean      @default(true)
+
+  quisioner Quisioner @relation(fields: [quisioner_id], references: [id], onDelete: Cascade)
+  options   Option[]
+
+  @@map("questions")
+}
+
+model Option {
+  id          Int    @id @default(autoincrement()) @db.Int
+  question_id Int    @db.Int
+  title       String @db.Text
+  score       Int?   @default(0) @db.Int
+
+  created_at DateTime @default(now()) @db.Timestamp(2)
+  question   Question @relation(fields: [question_id], references: [id], onDelete: Cascade)
+
+  @@map("options")
+}
+
+model Response {
+  id               Int      @id @default(autoincrement()) @db.Int
+  quisioner_id     Int      @db.Int
+  created_at       DateTime @default(now()) @db.Timestamp(2)
+  total_score      Int?     @default(0) @db.Int
+  family_member_id Int?     @db.Int
+  institution_id   Int?     @db.Int
+
+  quisioner     Quisioner     @relation(fields: [quisioner_id], references: [id], onDelete: Cascade)
+  answers       Answer[]
+  family_member FamilyMember? @relation(fields: [family_member_id], references: [id])
+  institution   Institution?  @relation(fields: [institution_id], references: [id])
+
+  @@map("responses")
+}
+
+model Answer {
+  id            Int      @id @default(autoincrement()) @db.Int
+  question_id   Int      @db.Int
+  response_id   Int      @db.Int
+  score         Int?     @default(0) @db.Int
+  boolean_value Boolean?
+  text_value    String?
+  option_id     Int?
+  scaleValue    Int?
+
+  response Response @relation(fields: [response_id], references: [id], onDelete: Cascade)
+
+  @@map("answers")
+}

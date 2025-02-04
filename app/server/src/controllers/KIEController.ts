@@ -255,4 +255,30 @@ export class KIEController {
             handleError(err, res);
         }
     }
+
+    async getTags(req: Request, res: Response) {
+        try {
+            const { tags } = await this.kieService.getTags();
+            res.status(200).json({
+                status: 'Success',
+                message: 'Tags fetched successfully',
+                data: tags
+            })
+        } catch (err: any) {
+            handleError(err, res);
+        }
+    }
+
+    async getTypes(req: Request, res: Response) {
+        try {
+            const { types } = await this.kieService.getTypes();
+            res.status(200).json({
+                status: 'Success',
+                message: 'Types fetched successfully',
+                data: types
+            })
+        } catch (err: any) {
+            handleError(err, res);
+        }
+    }
 };

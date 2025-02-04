@@ -12,7 +12,9 @@ export class SeedService {
         await this.seedAdminAccount(),
         await this.seedNutritionStatus(),
         await this.seedKIEtype(),
-        await this.seedFacilityType()
+        await this.seedFacilityType(),
+        await this.seedCategoryStratification(),
+        await this.seedJobType()
         ])
     }
 
@@ -72,9 +74,10 @@ export class SeedService {
             await this.prismaClient.user.create({
                 data: {
                     id: 1,
-                    username: process.env.ADMIN_USERNAME ?? 'admin',
-                    password: bcrypt.hashSync(process.env.ADMIN_PASSWORD ?? 'admin', 10),
-                    email: process.env.SMTP_EMAIL ?? 'admin@gmail.com',
+                    // username: process.env.ADMIN_USERNAME ?? 'admin',
+                    username: 'admin',
+                    password: bcrypt.hashSync('admin', 10),
+                    email: 'admin@gmail.com',
                     is_verified: true,
                     role_id: 1,
                 }
@@ -192,5 +195,60 @@ export class SeedService {
             })
 
         }
+    }
+
+    async seedCategoryStratification() {
+        const categories = await this.prismaClient.serviceCategory.findMany();
+        if (!categories.length) {
+            await this.prismaClient.serviceCategory.createMany({
+                data: [
+                    {
+                        id: 1,
+                        name: 'Minimal'
+                    },
+                    {
+                        id: 2,
+                        name: 'Standar'
+                    },
+                    {
+                        id: 3,
+                        name: 'Optimal'
+                    },
+                    {
+                        id: 4,
+                        name: 'Paripurna'
+                    }
+                ]
+            })
+        }
+        console.log('Category Stratification Seeded');
+    }
+
+    async seedJobType() {
+        const jobTypes = await this.prismaClient.jobType.findMany();
+        if (!jobTypes.length) {
+            await this.prismaClient.jobType.createMany({
+                data: [
+                    {
+                        id: 1,
+                        type: 'TIDAK_BEKERJA_BURUH_SEJENISNYA',
+                        name: 'Tidak bekerja/buruh dan sejenisnya'
+                    },
+                    {
+                        id: 2,
+                        type: 'PEKERJA_HONORER_KONTRAK',
+                        name: 'Pekerja honorer/kontrak'
+                    },
+                    {
+                        id: 3,
+                        type: 'PEGAWAI_NEGERI_KARYAWAN_SWASTA',
+                        name: 'Pegawai negeri/karyawan swasta'
+                    },
+                ]
+            });
+
+        }
+
+        console.log('Job Type Seeded');
     }
 }

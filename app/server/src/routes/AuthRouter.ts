@@ -1,5 +1,5 @@
 
-import express from 'express';
+import express, { Request, Response } from 'express';
 
 import { AuthService, EmailService } from '../services';
 import { AuthController } from "../controllers/AuthController";
@@ -40,10 +40,20 @@ authRouter.get('/email/verify', async (req, res) => {
     await authController.verifyEmail(req, res);
 })
 
-authRouter.post('/register/schools/:schoolId/health-care/:healthCareId/email', AuthorizationMiddleware(['admin', 'school']), async (req, res) => {
+authRouter.post('/register/schools/:schoolId/health-care/:healthCareId/email', AuthorizationMiddleware(['admin', 'school', 'uks']), async (req, res) => {
     await authController.sendEmailCompleteRegistration(req, res);
 })
 
-authRouter.post('/register/schools/:schoolId/health-care/:healthCareId/member', AuthorizationMiddleware(['admin', 'school']), async (req, res) => {
+authRouter.post('/register/schools/:schoolId/health-care/:healthCareId/member', AuthorizationMiddleware(['admin', 'school', 'uks']), async (req, res) => {
     await authController.verifyEmailCompleteRegistration(req, res);
+})
+
+authRouter.post('/jwt/decode', AuthorizationMiddleware([]), (req: Request, res: Response) => {
+    const user = (req as any).user;
+
+    res.status(200).json({
+        status: 'Success',
+        message: 'User Decoded Successfully',
+        data: user
+    })
 })

@@ -1,7 +1,9 @@
 import { PrismaClient } from "@prisma/client";
-import { IFacility, IHealthCare, IHealthCareMember, IHealthEducation, IHealthServicePayload, ISchoolEnvironment } from "../types/school";
+import { IFacility, IHealthCare, IHealthCareMember, IHealthEducation, IHealthServicePayload, ISchoolEnvironment, IUKSQuisioner } from "../types/school";
 import { InvariantError, NotFoundError } from "../common/exception";
 import { AuthService } from "./AuthService";
+import { calculateServiceScore, categorizeServiceScore } from "../common/utils/CalculateServiceScore";
+import { IInstitution } from "../types/auth";
 
 export class SchoolService {
     constructor(public prismaClient: PrismaClient, public authService: AuthService) { }
@@ -16,6 +18,10 @@ export class SchoolService {
     }
 
     async createHealthEducation(schoolId: number, payload: IHealthEducation) {
+        const serviceScore = calculateServiceScore(Object.values(payload));
+        const categorize_id = categorizeServiceScore(serviceScore);
+
+        console.log({ serviceScore, categorize_id });
         const healthEducation = await this.prismaClient.healthEducation.create({
             data: {
                 health_education_plan: payload.healthEducationPlan,
@@ -30,7 +36,12 @@ export class SchoolService {
                 nutrition_education: payload.nutritionEducation,
                 parent_involvement: payload.parentInvolvement,
                 physical_class_activities: payload.physicalClassActivities,
-                school_id: schoolId
+                school_id: schoolId,
+                category_id: categorize_id,
+                score: serviceScore,
+            },
+            include: {
+                service_category: true
             }
 
         })
@@ -41,6 +52,8 @@ export class SchoolService {
     }
 
     async updateHealthEducation(schoolId: number, payload: IHealthEducation) {
+        const serviceScore = calculateServiceScore(Object.values(payload));
+        const categorize_id = categorizeServiceScore(serviceScore);
         const { healthEducation } = await this.getHealthEducation(schoolId);
         if (!healthEducation) {
             throw new NotFoundError('Health Education not found');
@@ -63,6 +76,11 @@ export class SchoolService {
                 parent_involvement: payload.parentInvolvement,
                 physical_class_activities: payload.physicalClassActivities,
                 physical_education: payload.physicalEducation,
+                score: serviceScore,
+                category_id: categorize_id
+            },
+            include: {
+                service_category: true
             }
         })
 
@@ -73,6 +91,9 @@ export class SchoolService {
         const healthEducation = await this.prismaClient.healthEducation.findUnique({
             where: {
                 school_id: schoolId
+            },
+            include: {
+                service_category: true
             }
         });
 
@@ -103,13 +124,21 @@ export class SchoolService {
     }
 
     async createHealthService(schoolId: number, payload: IHealthServicePayload) {
+        const serviceScore = calculateServiceScore(Object.values(payload));
+        const categorize_id = categorizeServiceScore(serviceScore);
+
         const healthService = await this.prismaClient.healthService.create({
             data: {
                 health_check_routine: payload.healthCheckRoutine,
                 referral_handling: payload.referralHandling,
                 consuling_facility: payload.consulingFacility,
                 periodic_screening_inspection: payload.periodicScreeningInspection,
-                school_id: schoolId
+                school_id: schoolId,
+                category_id: categorize_id,
+                score: serviceScore,
+            },
+            include: {
+                service_category: true
             }
         });
 
@@ -117,6 +146,8 @@ export class SchoolService {
     }
 
     async updateHealthService(schoolId: number, payload: IHealthServicePayload) {
+        const serviceScore = calculateServiceScore(Object.values(payload));
+        const categorize_id = categorizeServiceScore(serviceScore);
         const healthService = await this.prismaClient.healthService.update({
             where: {
                 school_id: schoolId
@@ -125,7 +156,12 @@ export class SchoolService {
                 referral_handling: payload.referralHandling,
                 consuling_facility: payload.consulingFacility,
                 periodic_screening_inspection: payload.periodicScreeningInspection,
-                health_check_routine: payload.healthCheckRoutine
+                health_check_routine: payload.healthCheckRoutine,
+                score: serviceScore,
+                category_id: categorize_id
+            },
+            include: {
+                service_category: true
             }
         })
 
@@ -146,6 +182,9 @@ export class SchoolService {
         const schoolEnvironment = await this.prismaClient.schoolEnvironment.findUnique({
             where: {
                 school_id: schoolId
+            },
+            include: {
+                service_category: true
             }
         });
 
@@ -153,13 +192,21 @@ export class SchoolService {
     }
 
     async createSchoolEnvironment(schoolId: number, payload: ISchoolEnvironment) {
+        const serviceScore = calculateServiceScore(Object.values(payload));
+        const categorize_id = categorizeServiceScore(serviceScore);
+
         const schoolEnvironment = await this.prismaClient.schoolEnvironment.create({
             data: {
                 canteen: payload.canteen,
                 green_space: payload.greenSpace,
                 trash_can: payload.trashCan,
                 unprotected_area_policy: payload.unprotectedAreaPolicy,
-                school_id: schoolId
+                school_id: schoolId,
+                category_id: categorize_id,
+                score: serviceScore,
+            },
+            include: {
+                service_category: true
             }
         });
 
@@ -167,6 +214,8 @@ export class SchoolService {
     }
 
     async updateSchoolEnvironment(schoolId: number, payload: ISchoolEnvironment) {
+        const serviceScore = calculateServiceScore(Object.values(payload));
+        const categorize_id = categorizeServiceScore(serviceScore);
         const schoolEnvironment = await this.prismaClient.schoolEnvironment.update({
             where: {
                 school_id: schoolId
@@ -176,6 +225,11 @@ export class SchoolService {
                 green_space: payload.greenSpace,
                 trash_can: payload.trashCan,
                 unprotected_area_policy: payload.unprotectedAreaPolicy,
+                score: serviceScore,
+                category_id: categorize_id
+            },
+            include: {
+                service_category: true
             }
         });
 
@@ -406,5 +460,220 @@ export class SchoolService {
         return {
             facility: updatedFacility
         }
+    }
+
+    async createOrUpdateUKSQuisioner(schoolId: number, payload: IUKSQuisioner) {
+        const { uksQuisioner } = await this.getUKSQuisioner(schoolId);
+        if (!uksQuisioner) {
+            return await this.createUKSQuisioner(schoolId, payload);
+        }
+
+        return await this.updateUKSQuisioner(schoolId, payload);
+    }
+
+    async createUKSQuisioner(schoolId: number, payload: IUKSQuisioner) {
+        const serviceScore = calculateServiceScore(Object.values(payload));
+        const categorize_id = categorizeServiceScore(serviceScore);
+
+        const uksQuisioner = await this.prismaClient.uKSManagementQuisioner.create({
+            data: {
+                activity_plan: payload.activityPlan,
+                budget: payload.budget,
+                health_care_partnership: payload.healthCarePartnership,
+                health_hand_book: payload.healthHandBook,
+                health_kie: payload.healthKie,
+                person_in_charge: payload.personInCharge,
+                score: serviceScore,
+                school_id: schoolId,
+                sport_infrastructure: payload.sportInfrastructure,
+                category_id: categorize_id
+            },
+            include: {
+                service_category: true
+            }
+        });
+
+        return {
+            uksQuisioner
+        }
+    }
+
+    async updateUKSQuisioner(schoolId: number, payload: IUKSQuisioner) {
+        const serviceScore = calculateServiceScore(Object.values(payload));
+        const categorize_id = categorizeServiceScore(serviceScore);
+        const { uksQuisioner } = await this.getUKSQuisioner(schoolId);
+        if (!uksQuisioner) {
+            throw new NotFoundError('UKS Quisioner not found');
+        }
+
+        const updatedUKSQuisioner = await this.prismaClient.uKSManagementQuisioner.update({
+            where: {
+                school_id: schoolId
+            },
+            data: {
+                activity_plan: payload.activityPlan,
+                budget: payload.budget,
+                health_care_partnership: payload.healthCarePartnership,
+                health_hand_book: payload.healthHandBook,
+                health_kie: payload.healthKie,
+                person_in_charge: payload.personInCharge,
+                score: serviceScore,
+                sport_infrastructure: payload.sportInfrastructure,
+                category_id: categorize_id
+            },
+            include: {
+                service_category: true
+            }
+        });
+
+        return {
+            uksQuisioner: updatedUKSQuisioner
+        }
+    }
+
+    async getUKSQuisioner(schoolId: number) {
+        const uksQuisioner = await this.prismaClient.uKSManagementQuisioner.findUnique({
+            where: {
+                school_id: schoolId
+            },
+            include: {
+                service_category: true
+            }
+        });
+
+        return {
+            uksQuisioner
+        }
+    }
+
+    async getSchoolStratifications(schoolId: number) {
+        const schoolStratification = await this.prismaClient.institution.findUnique({
+            where: {
+                id: schoolId
+            },
+            include: {
+                health_education: {
+                    include: {
+                        service_category: true
+                    }
+                },
+                health_service: {
+                    include: {
+                        service_category: true
+                    }
+                },
+                school_environment: {
+                    include: {
+                        service_category: true
+                    }
+                },
+                uks_management_quisioner: {
+                    include: {
+                        service_category: true
+                    }
+                }
+            }
+        });
+
+        return {
+            schoolStratification
+        }
+    }
+
+    async getStudentLatestNutrition(schoolId: number) {
+        const studentNutritions = await this.prismaClient.familyMember.findMany({
+            where: {
+                institution_id: schoolId,
+                relation: 'ANAK',
+            },
+            include: {
+                nutrition: {
+                    take: 1,
+                    orderBy: {
+                        created_at: 'desc'
+                    },
+                    include: {
+                        nutrition_status: true
+                    }
+                }
+            }
+        });
+
+        return { studentNutritions }
+    }
+
+    async getStudentWithNutritionStatus(schoolId: number, nutritionStatus: number) {
+        const students = await this.prismaClient.familyMember.findMany({
+            where: {
+                institution_id: schoolId,
+                relation: 'ANAK',
+                nutrition: {
+                    some: {
+                        nutrition_status: {
+                            id: nutritionStatus
+                        }
+                    }
+                }
+            },
+            include: {
+                nutrition: {
+                    take: 1,
+                    orderBy: {
+                        created_at: 'desc'
+                    },
+                    include: {
+                        nutrition_status: true
+                    }
+                }
+            }
+        });
+
+        return { students }
+    }
+
+
+    async getAllSchools() {
+        const schools = await this.prismaClient.institution.findMany({
+            where: {
+                type: 1
+            }
+        });
+
+        return { schools }
+    }
+
+    async getSchoolById(schoolId: number) {
+        const school = await this.prismaClient.institution.findUnique({
+            where: {
+                id: schoolId,
+                type: 1
+            }
+        });
+
+        return { school }
+    }
+
+    async updateSchool(schoolId: number, payload: IInstitution) {
+        const { school } = await this.getSchoolById(schoolId);
+        if (!school) {
+            throw new NotFoundError('School not found');
+        }
+        const updatedSchool = await this.prismaClient.institution.update({
+            where: {
+                id: schoolId,
+                type: 1
+            },
+            data: {
+                ...school,
+                name: payload.name,
+                address: payload.address,
+                phone_number: payload.phoneNumber,
+                email: payload.email,
+                head_name: payload.headName,
+                head_nip: payload.headNIP
+            }
+        });
+
+        return { school: updatedSchool }
     }
 }

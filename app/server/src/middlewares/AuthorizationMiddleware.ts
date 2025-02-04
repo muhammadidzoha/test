@@ -27,6 +27,7 @@ export const AuthorizationMiddleware = (role: Role[]) => {
             if (!role.length) {
                 (req as any).user = decodedToken;
                 next();
+                return;
             }
             if (!role.includes(decodedToken.role)) {
                 res.status(403).json({

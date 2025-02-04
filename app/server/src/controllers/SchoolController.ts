@@ -3,11 +3,11 @@ import { SchoolService } from "../services/SchoolService";
 import { handleError, validatePayload } from "../common/http";
 import { HealthEducationSchema } from "../common/http/requestvalidator/HealthEducationValidator";
 import { IFacility, IHealthCare, IHealthEducation, IHealthServicePayload } from "../types/school";
-import { InvariantError } from "../common/exception";
+import { InvariantError, NotFoundError } from "../common/exception";
 import { HealthServiceSchema } from "../common/http/requestvalidator/HealthServiceValidator";
 import { schoolEnvironmentSchema } from "../common/http/requestvalidator/SchoolEnvironmentValidator";
 import { addHealthCareMemberSchema, CreateHealthCareSchema } from "../common/http/requestvalidator/HealhCareValidator";
-import { createFacilitySchema } from "../common/http/requestvalidator/SchoolValidator";
+import { createFacilitySchema, createSchoolSchema, createUKSQuisionerSchema } from "../common/http/requestvalidator/SchoolValidator";
 
 export class SchoolController {
     constructor(public schoolService: SchoolService) { }
@@ -19,6 +19,8 @@ export class SchoolController {
             if (!schoolId) {
                 throw new InvariantError('School Id is required in Parameter');
             }
+
+            console.log({ schoolId });
 
             const reqPayload: IHealthEducation = req.body;
 
@@ -203,6 +205,196 @@ export class SchoolController {
                 status: 'Success',
                 message: 'Facility is updated',
                 data: facility
+            })
+        } catch (err: any) {
+            handleError(err, res);
+        }
+    }
+
+    async getHealthCareBySchoolId(req: Request, res: Response) {
+        try {
+            const { schoolId } = req.params;
+            if (!schoolId) {
+                throw new InvariantError('School Id is required in Parameter');
+            }
+            const { healthCare } = await this.schoolService.getHealthCareBySchoolId(+schoolId);
+            res.status(200).json({
+                status: 'Success',
+                message: 'Health Care Data',
+                data: healthCare
+            })
+        } catch (err: any) {
+            handleError(err, res);
+        }
+    }
+
+    async getHealthServiceBySchoolId(req: Request, res: Response) {
+        try {
+            const { schoolId } = req.params;
+            if (!schoolId) {
+                throw new InvariantError('School Id is required in Parameter');
+            }
+            const { healthService } = await this.schoolService.getHealthService(+schoolId);
+            res.status(200).json({
+                status: 'Success',
+                message: 'Health Service Data',
+                data: healthService
+            })
+        } catch (err: any) {
+            handleError(err, res);
+        }
+    }
+
+    async schoolEnvironment(req: Request, res: Response) {
+        try {
+            const { schoolId } = req.params;
+            if (!schoolId) {
+                throw new InvariantError('School Id is required in Parameter');
+            }
+            const { schoolEnvironment } = await this.schoolService.getSchoolEnvironment(+schoolId);
+            res.status(200).json({
+                status: 'Success',
+                message: 'School Environment Data',
+                data: schoolEnvironment
+            })
+        } catch (err: any) {
+            handleError(err, res);
+        }
+    }
+
+    async createOrUpdateUKSManagementQuisioner(req: Request, res: Response) {
+        try {
+            validatePayload(createUKSQuisionerSchema, req.body);
+            const { schoolId } = req.params;
+            if (!schoolId) {
+                throw new InvariantError('School Id is required in Parameter');
+            }
+            const { uksQuisioner } = await this.schoolService.createOrUpdateUKSQuisioner(+schoolId, req.body);
+            res.status(201).json({
+                status: 'Success',
+                message: 'UKS Management Data is Created or Updated',
+                data: uksQuisioner
+            })
+        } catch (err: any) {
+            handleError(err, res);
+        }
+    }
+
+    async getUKSManagementQuisioner(req: Request, res: Response) {
+        try {
+            const { schoolId } = req.params;
+            if (!schoolId) {
+                throw new InvariantError('School Id is required in Parameter');
+            }
+            const { uksQuisioner } = await this.schoolService.getUKSQuisioner(+schoolId);
+            res.status(200).json({
+                status: 'Success',
+                message: 'UKS Management Data',
+                data: uksQuisioner
+            })
+        } catch (err: any) {
+            handleError(err, res);
+        }
+    }
+
+    async getAllSchoolStratification(req: Request, res: Response) {
+        try {
+            const { schoolId } = req.params;
+            if (!schoolId) {
+                throw new InvariantError('School Id is required in Parameter');
+            }
+            const { schoolStratification } = await this.schoolService.getSchoolStratifications(+schoolId);
+
+            res.status(200).json({
+                status: 'Success',
+                message: 'School Stratification Data',
+                data: schoolStratification
+            })
+        } catch (err: any) {
+            handleError(err, res);
+        }
+    }
+
+    async getStudentLatestNutrition(req: Request, res: Response) {
+        try {
+            const { schoolId } = req.params;
+            if (!schoolId) {
+                throw new InvariantError('School Id is required in Parameter');
+            }
+            const { studentNutritions } = await this.schoolService.getStudentLatestNutrition(+schoolId);
+            res.status(200).json({
+                status: 'Success',
+                message: 'Student Nutrition Data',
+                data: studentNutritions
+            })
+        } catch (err: any) {
+            handleError(err, res);
+        }
+    }
+
+    async getSickStudents(req: Request, res: Response) {
+        try {
+            const { schoolId, nutritionStatusId } = req.params;
+            if (!schoolId || !nutritionStatusId) {
+                throw new InvariantError('School Id is required in Parameter');
+            }
+            const { students } = await this.schoolService.getStudentWithNutritionStatus(+schoolId, +nutritionStatusId);
+            res.status(200).json({
+                status: 'Success',
+                message: 'Sick Student Data',
+                data: students
+            })
+        } catch (err: any) {
+            handleError(err, res);
+        }
+    }
+
+    async getAllSchools(req: Request, res: Response) {
+        try {
+            const { schools } = await this.schoolService.getAllSchools();
+            res.status(200).json({
+                status: 'Success',
+                message: 'School Data',
+                data: schools
+            })
+        } catch (err: any) {
+            handleError(err, res);
+        }
+    }
+
+    async getSchoolById(req: Request, res: Response) {
+        try {
+            const { schoolId } = req.params;
+            if (!schoolId) {
+                throw new InvariantError('School Id is required in Parameter');
+            }
+            const { school } = await this.schoolService.getSchoolById(+schoolId);
+            if (!school) {
+                throw new NotFoundError('School not found')
+            }
+            res.status(200).json({
+                status: 'Success',
+                message: 'School Data',
+                data: school
+            })
+        } catch (err: any) {
+            handleError(err, res)
+        }
+    }
+
+    async updateSchool(req: Request, res: Response) {
+        try {
+            validatePayload(createSchoolSchema, req.body);
+            const { schoolId } = req.params;
+            if (!schoolId) {
+                throw new InvariantError('School Id is required in Parameter');
+            }
+            const payload = req.body;
+            const { school } = await this.schoolService.updateSchool(+schoolId, payload);
+            res.status(200).json({
+                status: 'Success',
+                message: 'School Data Updated',
+                data: school
             })
         } catch (err: any) {
             handleError(err, res);

@@ -44,11 +44,11 @@ uksRouter.delete('/:healthCareId/activity-plans/:activityPlanId', AuthorizationM
     uksController.deleteActivityPlanById(req, res);
 });
 
-uksRouter.get('/:healthCareId/activity-plans/:activityPlanId', AuthorizationMiddleware(['admin', 'school', 'uks']), (req: Request, res: Response) => {
+uksRouter.get('/:healthCareId/activity-plans/:activityPlanId', AuthorizationMiddleware(['admin', 'school', 'uks', 'healthcare']), (req: Request, res: Response) => {
     uksController.getActivityPlanById(req, res);
 })
 
-uksRouter.get('/:healthCareId/activity-plans', AuthorizationMiddleware(['admin', 'school', 'uks']), (req: Request, res: Response) => {
+uksRouter.get('/:healthCareId/activity-plans', AuthorizationMiddleware(['admin', 'school', 'uks', 'healthcare']), (req: Request, res: Response) => {
     uksController.getActivityPlans(req, res);
 })
 
@@ -60,6 +60,6 @@ uksRouter.post('/:healthCareId/activity-plans/:activityPlanId/assignee/:memberId
     uksController.assignActivityPlan(req, res);
 })
 
-uksRouter.get('/:healthCareId/activity-plans/:activityPlanId/assignee', AuthorizationMiddleware(['admin', 'school', 'uks']), (req: Request, res: Response) => {
+uksRouter.get('/:healthCareId/activity-plans/:activityPlanId/assignee', AuthorizationMiddleware(['admin', 'school', 'uks', 'healthcare']), (req: Request, res: Response) => {
     uksController.getActivityPlanAssignee(req, res);
 })

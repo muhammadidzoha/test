@@ -18,7 +18,7 @@ export const addMemberSchema = joi.object({
     }),
     job: joi.object({
         id: joi.number(),
-        name: joi.string().required(),
+        jobTypeId: joi.number().required(),
         income: joi.number().required()
     }).required(),
     knowledgeNutrition: {
@@ -59,6 +59,7 @@ export const addMemberSchema = joi.object({
         eatFrequency: joi.number().required(),
         drinkFrequency: joi.number().required(),
         physicalActivity: joi.number().required(),
-        sleepQuality: joi.number().required()
+        sleepQuality: joi.number().required(),
+        phbs: joi.number().required()
     })
 })

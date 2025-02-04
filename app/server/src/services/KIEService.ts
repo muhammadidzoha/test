@@ -344,4 +344,16 @@ export class KIEService {
         return { contents }
     }
 
+    async getTags() {
+        const tags = await this.prismaClient.kIETag.findMany();
+
+        return { tags }
+    }
+
+    async getTypes() {
+        const types = await this.prismaClient.kIEType.findMany();
+
+        return { types }
+    }
+
 };
