@@ -3,7 +3,7 @@ import joi from 'joi';
 export const createQuisionerSchema = joi.object({
     title: joi.string().required(),
     description: joi.string(),
-    stratification: joi.string().valid('MINIMAL', 'STANDAR', 'OPTIMAL', 'PARIPURNA'),
+    stratification: joi.string(),
     questions: joi.array().items(joi.object({
         question: joi.string().required(),
         type: joi.string().valid('MULTIPLE_CHOICE', 'BOOLEAN', 'SCALE', 'TEXT').required(),
@@ -19,3 +19,18 @@ export const createQuisionerSchema = joi.object({
     })).min(1).required(),
     for: joi.valid('SCHOOL', 'PARENT', 'PUSKESMAS').required()
 });
+
+export const createResponseQuisioner = joi.object({
+    familyMemberId: joi.number(),
+    institutionId: joi.number(),
+    answers: joi.array().items(
+        joi.object({
+            questionId: joi.number().required(),
+            score: joi.number(),
+            booleanValue: joi.boolean(),
+            textValue: joi.string(),
+            optionId: joi.number(),
+            scaleValue: joi.number()
+        })
+    ).min(1).required()
+})

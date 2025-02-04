@@ -94,3 +94,8 @@ schoolRouter.get('/:schoolId/nutritions', AuthorizationMiddleware([]), (req, res
 schoolRouter.get('/:schoolId/students/sicks/:nutritionStatusId', AuthorizationMiddleware([]), (req, res) => {
     schoolController.getSickStudents(req, res);
 })
+
+// Stratification
+schoolRouter.get('/:schoolId/stratifies', AuthorizationMiddleware([]), (req, res) => {
+    schoolController.getStratifiedSchool(req, res);
+})

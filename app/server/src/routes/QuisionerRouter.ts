@@ -24,3 +24,20 @@ quisionerRouter.post('/', AuthorizationMiddleware(['admin']), (req: Request, res
 quisionerRouter.delete('/:quisionerId', AuthorizationMiddleware(['admin']), (req: Request, res: Response) => {
     quisionerController.deleteQuisionerById(req, res);
 })
+
+// Answers
+quisionerRouter.post('/:quisionerId/responses', AuthorizationMiddleware([]), (req: Request, res: Response) => {
+    quisionerController.responseQuisioner(req, res);
+});
+
+quisionerRouter.get('/responses/:responseId', AuthorizationMiddleware([]), (req: Request, res: Response) => {
+    quisionerController.getQuisionerResponseById(req, res);
+});
+
+quisionerRouter.get('/responses/institutions/:institutionId', AuthorizationMiddleware([]), (req: Request, res: Response) => {
+    quisionerController.getQuisionerResponseByInstitutionId(req, res);
+});
+
+quisionerRouter.get('/responses/families/:familyMemberId', AuthorizationMiddleware([]), (req: Request, res: Response) => {
+    quisionerController.getResponseByFamilyId(req, res);
+});

@@ -21,7 +21,6 @@ export class SchoolService {
         const serviceScore = calculateServiceScore(Object.values(payload));
         const categorize_id = categorizeServiceScore(serviceScore);
 
-        console.log({ serviceScore, categorize_id });
         const healthEducation = await this.prismaClient.healthEducation.create({
             data: {
                 health_education_plan: payload.healthEducationPlan,
@@ -676,4 +675,82 @@ export class SchoolService {
 
         return { school: updatedSchool }
     }
+
+    async getStratifiedSchool(schoolId: number) {
+        const { stratify: healthEducationStratification } = await this.getServiceStratification(schoolId, 'HEALTH_EDUCATION') ?? null;
+        const { stratify: healthServiceStratification } = await this.getServiceStratification(schoolId, 'HEALTH_SERVICE') ?? null;
+        const { stratify: schoolEnvironmentStratification } = await this.getServiceStratification(schoolId, 'SCHOOL_ENVIRONMENT') ?? null;
+        const { stratify: uksStratification } = await this.getServiceStratification(schoolId, 'UKS_MANAGEMENT') ?? null;
+
+        return {
+            healthEducationStratification,
+            healthServiceStratification,
+            schoolEnvironmentStratification,
+            uksStratification
+        }
+    }
+
+    async getServiceStratification(schoolId: number, service: string) {
+        const { stratify: isMinimal } = await this.checkHealthEducationStratification(schoolId, service, 'MINIMAL');
+        const { stratify: isStandar } = await this.checkHealthEducationStratification(schoolId, service, 'STANDAR');
+        const { stratify: isOptimal } = await this.checkHealthEducationStratification(schoolId, service, 'OPTIMAL');
+        const { stratify: isParipurna } = await this.checkHealthEducationStratification(schoolId, service, 'PARIPURNA');
+        if (isMinimal && isStandar && isOptimal && isParipurna) {
+            return {
+                stratify: 'PARIPURNA'
+            }
+        }
+        if (isMinimal && isStandar && isOptimal) {
+            return {
+                stratify: 'OPTIMAL'
+            }
+        }
+        if (isMinimal && isStandar) {
+            return {
+                stratify: 'STANDAR'
+            }
+        }
+        return {
+            stratify: 'MINIMAL'
+        }
+    }
+
+    async checkHealthEducationStratification(schoolId: number, service: string, stratification: 'MINIMAL' | 'STANDAR' | 'OPTIMAL' | 'PARIPURNA') {
+        const serviceQuisioner = await this.prismaClient.question.findMany({
+            where: {
+                quisioner: {
+                    stratification: `${service}_${stratification}`,
+                    for: 'SCHOOL',
+                }
+            },
+            include: {
+                _count: true
+            }
+        });
+        if (!serviceQuisioner.length) {
+            throw new NotFoundError(`Quisioner is not found or not created yet for school with id ${schoolId} ${service}_${stratification}`);
+        }
+        const serviceAnswer = await this.prismaClient.answer.findMany({
+            where: {
+                response: {
+                    institution_id: schoolId,
+                    quisioner: {
+                        stratification: `${service}_${stratification}`,
+                        for: 'SCHOOL'
+                    }
+                }
+            }
+        });
+        if (!serviceAnswer.length) {
+            throw new NotFoundError(`Answer is not found or not created yet by school with id ${schoolId} ${service}_${stratification}`);
+        }
+
+
+        const stratify = serviceQuisioner.length === serviceAnswer.length && serviceAnswer.every(answer => answer.boolean_value);
+        return {
+            stratify
+        }
+
+    }
+
 }

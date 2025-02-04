@@ -400,4 +400,21 @@ export class SchoolController {
             handleError(err, res);
         }
     }
+
+    async getStratifiedSchool(req: Request, res: Response) {
+        try {
+            const { schoolId } = req.params;
+            if (!schoolId) {
+                throw new InvariantError('School Id is required in Parameter');
+            }
+            const stratifiedServices = await this.schoolService.getStratifiedSchool(+schoolId);
+            res.status(200).json({
+                status: 'Success',
+                message: 'Stratified School Data',
+                data: stratifiedServices
+            })
+        } catch (err: any) {
+            handleError(err, res);
+        }
+    }
 };

@@ -26,8 +26,23 @@ export interface IQuisioner {
 export interface QuisionerPayload extends IQuisioner extends IQuestions {
 }
 
+export interface IAnswer {
+    questionId: number;
+    score: number?;
+    booleanValue: boolean?;
+    textValue: string?;
+    scaleValue: number?;
+    optionId: number?;
+}
+
 export interface IResponse {
     quisionerId: number;
     familyMemberId: number?;
     institutionId: number?;
+    totalScore: number?;
+}
+
+export interface IResponsePayload {
+    response: IResponse;
+    answers: IAnswer[];
 }

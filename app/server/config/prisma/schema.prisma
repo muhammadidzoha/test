@@ -258,6 +258,8 @@ model FamilyMember {
   relation               RELATION
   family_id              Int       @db.Int
   institution_id         Int?      @db.Int
+  phone_number           String?   @db.VarChar(255)
+  class                  String?   @db.VarChar(255)
 
   institution Institution? @relation(fields: [institution_id], references: [id])
 
@@ -601,24 +603,18 @@ enum QUESTIONTYPE {
   TEXT
 }
 
-enum STRATIFICATION {
-  MINIMAL
-  STANDAR
-  OPTIMAL
-  PARIPURNA
-}
-
 model Quisioner {
-  id             Int             @id @default(autoincrement()) @db.Int
-  title          String          @db.VarChar(255)
-  description    String?         @db.Text()
-  created_at     DateTime        @default(now()) @db.Timestamp(2)
-  stratification STRATIFICATION?
-  for            String?         @db.VarChar(255)
+  id             Int      @id @default(autoincrement()) @db.Int
+  title          String   @db.VarChar(255)
+  description    String?  @db.Text()
+  created_at     DateTime @default(now()) @db.Timestamp(2)
+  stratification String?  @db.VarChar(255)
+  for            String?  @db.VarChar(255)
 
   questions Question[]
   response  Response[]
 
+  @@unique([stratification])
   @@map("quisioners")
 }
 
@@ -667,7 +663,7 @@ model Response {
 
 model Answer {
   id            Int      @id @default(autoincrement()) @db.Int
-  question_id   Int      @db.Int
+  question_id   Int      @unique() @db.Int
   response_id   Int      @db.Int
   score         Int?     @default(0) @db.Int
   boolean_value Boolean?
@@ -677,5 +673,6 @@ model Answer {
 
   response Response @relation(fields: [response_id], references: [id], onDelete: Cascade)
 
+  @@unique([question_id, response_id])
   @@map("answers")
 }
