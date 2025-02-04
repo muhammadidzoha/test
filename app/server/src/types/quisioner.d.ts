@@ -25,3 +25,9 @@ export interface IQuisioner {
 
 export interface QuisionerPayload extends IQuisioner extends IQuestions {
 }
+
+export interface IResponse {
+    quisionerId: number;
+    familyMemberId: number?;
+    institutionId: number?;
+}

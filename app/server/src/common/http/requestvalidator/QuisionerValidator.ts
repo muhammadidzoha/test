@@ -16,5 +16,6 @@ export const createQuisionerSchema = joi.object({
             })).min(1).required(),
             otherwise: joi.forbidden()
         })
-    })).min(1).required()
+    })).min(1).required(),
+    for: joi.valid('SCHOOL', 'PARENT', 'PUSKESMAS').required()
 });
