@@ -61,7 +61,23 @@ export class QuisionerController {
 
     async getAllQuisioners(req: Request, res: Response) {
         try {
-            const quisioners = await this.quisionerService.getAllQuisioners();
+            const { forWho } = req.query;
+            console.log({ forWho });
+            const quisioners = await this.quisionerService.getAllQuisioners(forWho as string ?? undefined);
+            res.status(200).json({
+                status: 'Success',
+                message: 'Quisioners fetched successfully',
+                data: quisioners
+            })
+        } catch (err: any) {
+            handleError(err, res);
+        }
+    }
+
+    async getAllQuisionersByFor(req: Request, res: Response) {
+        try {
+            const { forWho } = req.query;
+            const quisioners = await this.quisionerService.getAllQuisioners(forWho as string);
             res.status(200).json({
                 status: 'Success',
                 message: 'Quisioners fetched successfully',
