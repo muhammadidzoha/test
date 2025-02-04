@@ -9,7 +9,7 @@ export const createQuisionerSchema = joi.object({
         type: joi.string().valid('MULTIPLE_CHOICE', 'BOOLEAN', 'SCALE', 'TEXT').required(),
         isRequired: joi.boolean().required(),
         options: joi.when('type', {
-            is: 'MULTIPLE_CHOICE',
+            is: joi.valid('MULTIPLE_CHOICE', 'SCALE'),
             then: joi.array().items(joi.object({
                 title: joi.string().required(),
                 score: joi.number()

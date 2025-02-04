@@ -16,7 +16,7 @@ export class QuisionerService {
                         question: question.question,
                         type: question.type,
                         is_required: question.isRequired,
-                        ...(question.type === 'MULTIPLE_CHOICE' && {
+                        ...((question.type === 'MULTIPLE_CHOICE' || question.type === 'SCALE') && {
                             options: {
                                 create: question.options?.map(option => ({
                                     title: option.title,
