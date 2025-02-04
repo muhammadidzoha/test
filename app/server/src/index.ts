@@ -15,6 +15,7 @@ import { memberRouter } from './routes/MemberRouter';
 import { uksRouter } from './routes/UKSRouter';
 import { kieRouter } from './routes/KIERouter';
 import { interventionRouter } from './routes/InterventionRouter';
+import { quisionerRouter } from './routes/QuisionerRouter';
 
 // Middleware
 
@@ -37,6 +38,7 @@ const init = async () => {
     app.use('/health-care', uksRouter)
     app.use('/kie', kieRouter)
     app.use('/interventions', interventionRouter);
+    app.use('/quisioners', quisionerRouter)
 
     app.get('/', (req: Request, res: Response) => {
         res.send('ok');

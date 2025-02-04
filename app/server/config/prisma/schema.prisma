@@ -592,43 +592,85 @@ model Program {
   intervention Intervention[]
 }
 
-// model HealthCareFacility {
-//   id        Int    @id @default(autoincrement())
-//   name      String @db.VarChar(255)
-//   status_id Int    @db.Int
+enum QUESTIONTYPE {
+  MULTIPLE_CHOICE
+  BOOLEAN
+  SCALE
+  TEXT
+}
 
-//   status HealthCareFacilityStatus @relation(fields: [status_id], references: [id])
+enum STRATIFICATION {
+  MINIMAL
+  STANDAR
+  OPTIMAL
+  PARIPURNA
+}
 
-//   @@map("health_care_facilities")
-// }
+model Quisioner {
+  id             Int             @id @default(autoincrement()) @db.Int
+  title          String          @db.VarChar(255)
+  description    String?         @db.Text()
+  created_at     DateTime        @default(now()) @db.Timestamp(2)
+  stratification STRATIFICATION?
 
-// model HealthCareFacilityStatus {
-//   id   Int    @id @default(autoincrement())
-//   name String @db.VarChar(255)
+  questions Question[]
+  response  Response[]
 
-//   facility HealthCareFacility[]
+  @@map("quisioners")
+}
 
-//   @@map("health_care_facility_status")
-// }
+model Question {
+  id           Int          @id @default(autoincrement()) @db.Int
+  quisioner_id Int          @db.Int
+  question     String       @db.Text
+  type         QUESTIONTYPE
+  created_at   DateTime     @default(now()) @db.Timestamp(2)
+  updated_at   DateTime     @default(now()) @db.Timestamp(2)
+  is_required  Boolean      @default(true)
 
-// model Parent {
-//   id           Int     @id @default(autoincrement())
-//   full_name    String? @db.VarChar(255)
-//   phone_number String? @db.VarChar(255)
-//   user_id      Int     @unique @db.Int
+  quisioner Quisioner @relation(fields: [quisioner_id], references: [id], onDelete: Cascade)
+  options   Option[]
 
-//   @@map("parents")
-// }
+  @@map("questions")
+}
 
-// model SchoolFacility {
-//   id                   Int    @id @default(autoincrement()) @db.Int
-//   school_id            Int    @db.Int
-//   facility_category_id Int    @db.Int
-//   name                 String @db.VarChar(255)
-//   total
-// }
+model Option {
+  id          Int    @id @default(autoincrement()) @db.Int
+  question_id Int    @db.Int
+  title       String @db.Text
+  score       Int?   @default(0) @db.Int
 
-// model FacilityCategory {
-//   id   Int    @id @default(autoincrement())
-//   name String @db.VarChar(255)
-// }
+  created_at DateTime @default(now()) @db.Timestamp(2)
+  question   Question @relation(fields: [question_id], references: [id], onDelete: Cascade)
+
+  @@map("options")
+}
+
+model Response {
+  id               Int      @id @default(autoincrement()) @db.Int
+  quisioner_id     Int      @db.Int
+  created_at       DateTime @default(now()) @db.Timestamp(2)
+  total_score      Int?     @default(0) @db.Int
+  family_member_id Int?     @db.Int
+  user_id          Int?     @db.Int
+
+  quisioner Quisioner @relation(fields: [quisioner_id], references: [id], onDelete: Cascade)
+  answers   Answer[]
+
+  @@map("responses")
+}
+
+model Answer {
+  id            Int      @id @default(autoincrement()) @db.Int
+  question_id   Int      @db.Int
+  response_id   Int      @db.Int
+  score         Int?     @default(0) @db.Int
+  boolean_value Boolean?
+  text_value    String?
+  option_id     Int?
+  scaleValue    Int?
+
+  response Response @relation(fields: [response_id], references: [id], onDelete: Cascade)
+
+  @@map("answers")
+}

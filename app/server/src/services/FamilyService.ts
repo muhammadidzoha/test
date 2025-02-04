@@ -1,10 +1,9 @@
 import { PrismaClient } from "@prisma/client";
-import { IFamily, IFamilyMember } from "../types/family";
 import { InvariantError, NotFoundError } from "../common/exception";
-import { FormatDate } from "../common/utils/FormatDate";
 import { calculateBMI } from "../common/utils/CalculateBMI";
 import { determineNutritionStatus } from "../common/utils/CalculateZscore";
 import { calculateBehaviourScore, calculateGajiScore, calculateNutritionScore } from "../common/utils/Family";
+import { IFamily, IFamilyMember } from "../types/family";
 
 export class FamilyService {
     constructor(public prismaClient: PrismaClient) { }
@@ -315,4 +314,60 @@ export class FamilyService {
             risk
         }
     }
+
+    async addFamilyMember2(familyId: number, familyMember: IFamilyMember) {
+        const residenceLastRow = await this.getResidenceByDesc();
+
+        const newMember = await this.prismaClient.familyMember.create({
+            data: {
+                full_name: familyMember.fullName,
+                birth_date: familyMember.birthDate.toISOString(),
+                education: familyMember.education,
+                gender: familyMember.gender,
+                relation: familyMember.relation,
+                job: {
+                    create: {
+                        income: familyMember.job.income,
+                        job_type_id: familyMember.job.jobTypeId
+                    }
+                },
+                residence: {
+                    connectOrCreate: {
+                        where: {
+                            id: familyMember.residence.id ?? residenceLastRow?.id ?? 1
+                        },
+                        create: {
+                            status: familyMember.residence.status,
+                            address: familyMember.residence.address,
+                            description: familyMember.residence.description
+                        }
+                    }
+                },
+                family: {
+                    connect: {
+                        id: familyId
+                    }
+                },
+                ...(familyMember.institutionId && {
+                    institution: {
+                        connect: {
+                            id: familyMember.institutionId
+                        }
+                    }
+                }),
+            },
+            include: {
+                residence: true,
+                family: true,
+                job: true,
+                knowledge_nutrition: true,
+                institution: true,
+                behaviour: true,
+                nutrition: true
+            }
+        })
+
+        return { familyMember: newMember }
+    }
+
 }
