@@ -12,7 +12,6 @@ export interface IQuestions {
     type: 'MULTIPLE_CHOICE' | 'BOOLEAN' | 'SCALE' | 'TEXT';
     isRequired: boolean;
     options: IOption[]?;
-
 }
 
 
@@ -21,6 +20,7 @@ export interface IQuisioner {
     description: string?;
     questions: IQuestions[]
     stratification: ('MINIMAL' | 'STANDAR' | 'OPTIMAL' | 'PARIPURNA')?;
+    for: string?
 }
 
 export interface QuisionerPayload extends IQuisioner extends IQuestions {

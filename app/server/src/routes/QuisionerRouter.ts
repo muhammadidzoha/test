@@ -9,6 +9,10 @@ const quisionerController = new QuisionerController(quisionerService);
 
 export const quisionerRouter = express.Router();
 
+quisionerRouter.get('/', AuthorizationMiddleware([]), (req: Request, res: Response) => {
+    quisionerController.getAllQuisioners(req, res);
+})
+
 quisionerRouter.get('/:quisionerId', AuthorizationMiddleware([]), (req: Request, res: Response) => {
     quisionerController.getQuisionerById(req, res);
 })

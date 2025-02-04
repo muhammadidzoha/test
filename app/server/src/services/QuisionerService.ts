@@ -11,6 +11,7 @@ export class QuisionerService {
                 title: payload.title,
                 description: payload.description,
                 stratification: payload.stratification,
+                for: payload.for,
                 questions: {
                     create: payload.questions.map((question: IQuestions) => ({
                         question: question.question,
@@ -72,5 +73,29 @@ export class QuisionerService {
 
 
         return { quisioner };
+    }
+
+    async getAllQuisioners(forWho?: string) {
+        const quisioners = await this.prismaClient.quisioner.findMany({
+            ...(forWho && ({
+                where: {
+                    for: forWho
+                }
+            })),
+            include: {
+                questions: {
+                    include: {
+                        options: true,
+                    }
+                },
+                response: {
+                    include: {
+                        answers: true
+                    }
+                }
+            }
+        });
+
+        return { quisioners }
     }
 }

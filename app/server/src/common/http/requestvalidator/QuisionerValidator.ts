@@ -16,5 +16,5 @@ export const createQuisionerSchema = joi.object({
             })).min(1).required(),
             otherwise: joi.forbidden()
         })
-    }).required()).required()
+    })).min(1).required()
 });
