@@ -54,5 +54,7 @@ export interface IFamilyMember {
     nutrition: INutrition;
     behaviour: IBehaviour?;
     phoneNumber: string?;
-    class: string?
+    class: string?;
+    kkNumber: string?;
+    description: string?;
 }

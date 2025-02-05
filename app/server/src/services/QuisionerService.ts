@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client";
-import { IOption, IQuestions, IQuisioner, IResponsePayload, QuisionerPayload } from "../types/quisioner";
 import { InvariantError, NotFoundError } from "../common/exception";
+import { IOption, IQuestions, IQuisioner, IResponsePayload, QuisionerPayload } from "../types/quisioner";
 
 export class QuisionerService {
     constructor(public prismaClient: PrismaClient) { }
@@ -129,6 +129,10 @@ export class QuisionerService {
     }
 
     async responseQuisioner(responsePayload: IResponsePayload) {
+        const { quisioner } = await this.getQuisionerById(responsePayload.response.quisionerId);
+        if (!quisioner) {
+            throw new NotFoundError('Quisioner not found');
+        }
         if (responsePayload.response.familyMemberId) {
             await this.checkIfQuisionerIsAnswered(responsePayload.response.familyMemberId, responsePayload.response.quisionerId);
         }
@@ -171,19 +175,26 @@ export class QuisionerService {
         return { response }
     }
 
-    async checkIfQuisionerIsAnswered(answeredBy: number, quisionerId: number) {
+
+
+    async checkIfQuisionerIsAnswered(answeredBy: number, quisionerId: number, isFamilyMember: boolean = false) {
         const quisioner = await this.prismaClient.quisioner.findFirst({
             where: {
                 id: quisionerId,
                 response: {
                     some: {
-                        family_member_id: answeredBy
+                        ...(isFamilyMember && {
+                            family_member_id: answeredBy
+                        }),
+                        ...(!isFamilyMember && {
+                            institution_id: answeredBy
+                        })
                     }
                 }
             }
         })
         if (!!quisioner) {
-            throw new InvariantError('Quisioner already answered by this family member');
+            throw new InvariantError(`Quisioner already answered by ${isFamilyMember ? 'family member' : 'institution'}`);
         }
     }
 

@@ -221,6 +221,7 @@ model Family {
 
   family_member FamilyMember[]
 
+  @@unique([kk_number, head_phone_number])
   @@map("families")
 }
 
@@ -272,6 +273,7 @@ model FamilyMember {
   request_intervention RequestIntervention[]
   responses            Response[]
 
+  @@unique([phone_number])
   @@map("family_members")
 }
 

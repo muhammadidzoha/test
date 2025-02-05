@@ -60,17 +60,24 @@ export class FamilyController {
         try {
             validatePayload(addMemberSchemaV2, req.body);
             const { familyId } = req.params;
-            if (!familyId) {
-                throw new InvariantError('Family id is required in params to add member');
-            }
 
             const user = (req as any).user
-            const payload: IFamilyMember = req.body;
-            const { familyMember } = await this.familyService.addFamilyMember(+familyId, { ...payload, birthDate: new Date(payload.birthDate) }, user.id);
+            const payload: IFamilyMember & { residenceId?: number } = req.body;
+            if (payload.relation === 'ANAK' && !payload.nutrition.birth_weight) {
+                throw new InvariantError('Birth weight is required for children');
+            }
+            const { familyMember } = await this.familyService.addFamilyMemberV2(!!familyId ? +familyId : undefined, {
+                ...payload, birthDate: new Date(payload.birthDate), residence: {
+                    ...payload.residence,
+                    ...(payload.residenceId && {
+                        id: payload.residenceId ? payload.residenceId : undefined
+                    })
+                }
+            }, user.id);
 
             res.status(201).json({
                 status: 'Success',
-                message: 'Family member added successfully',
+                message: familyId ? 'Family member updated successfully' : 'Family member added successfully',
                 data: {
                     familyMember: {
                         ...familyMember,
@@ -81,6 +88,7 @@ export class FamilyController {
                     }
                 }
             })
+
         } catch (err: any) {
             handleError(err, res);
         }
@@ -153,6 +161,40 @@ export class FamilyController {
             })
         } catch (err: any) {
             handleError(err, res);
+        }
+    }
+
+    async getFamilyMembers(req: Request, res: Response) {
+        try {
+            const { familyId } = req.params;
+            if (!familyId) {
+                throw new InvariantError('Family id is required in params to get family members');
+            }
+            const familyMembers = await this.familyService.getFamilyMembers(+familyId);
+            res.status(200).json({
+                status: 'Success',
+                message: 'Family members fetched successfully',
+                data: familyMembers
+            })
+        } catch (err: any) {
+            handleError(err, res);
+        }
+    }
+
+    async getFamilyMember(req: Request, res: Response) {
+        try {
+            const { familyId, familyMemberId } = req.params;
+            if (!familyId || !familyMemberId) {
+                throw new InvariantError('Family id and family member id is required in params to get family member');
+            }
+            const familyMember = await this.familyService.getFamilyMember(+familyId, +familyMemberId);
+            res.status(200).json({
+                status: 'Success',
+                message: 'Family member fetched successfully',
+                data: familyMember
+            })
+        } catch (err: any) {
+            handleError(err, res)
         }
     }
 }

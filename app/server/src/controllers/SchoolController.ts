@@ -417,4 +417,22 @@ export class SchoolController {
             handleError(err, res);
         }
     }
+
+    async getStratifiedSchoolByType(req: Request, res: Response) {
+        try {
+            const { schoolId } = req.params;
+            const { stratification } = req.query;
+            if (!schoolId || !stratification) {
+                throw new InvariantError('School Id and stratificationstratification is required in Parameter and query');
+            }
+            const stratifiedServices = await this.schoolService.getServiceStratification(+schoolId, stratification as string);
+            res.status(200).json({
+                status: 'Success',
+                message: `Stratified School Data By ${stratification}`,
+                data: stratifiedServices
+            })
+        } catch (err: any) {
+            handleError(err, res);
+        }
+    }
 };

@@ -188,14 +188,25 @@ export class FamilyService {
         const familyMembers = await this.prismaClient.familyMember.findMany({
             where: {
                 family_id: familyId
-            }
+            },
         })
         const totalFamily = familyMembers.length;
+
+        const test = await this.prismaClient.job.findMany({
+            where: {
+                family_members: {
+                    some: {
+                        family_id: familyId
+                    }
+                }
+            }
+        })
+        console.log({ test });
 
         const totalGaji = await this.prismaClient.job.aggregate({
             where: {
                 family_members: {
-                    every: {
+                    some: {
                         family_id: familyId
                     }
                 }
@@ -204,6 +215,7 @@ export class FamilyService {
                 income: true
             }
         });
+
 
         const totalWages = totalGaji._sum.income?.toString() ?? 0;
         const categoryScore = calculateGajiScore(+totalWages, totalFamily, umr);
@@ -315,9 +327,31 @@ export class FamilyService {
         }
     }
 
-    async addFamilyMember2(familyId: number, familyMember: IFamilyMember) {
-        const residenceLastRow = await this.getResidenceByDesc();
+    async addFamilyMemberV2(familyId: number | undefined, familyMember: IFamilyMember, createdBy: number) {
+        if (familyId) {
 
+            if (!await this.checkFamilyExist(familyId)) {
+                throw new NotFoundError('Family not found, please provide correct familyId');
+            }
+            const isHeadFamilyExist = await this.checkIfHeadFamilyExist(familyId);
+            if (isHeadFamilyExist && familyMember.relation === 'AYAH') {
+                throw new InvariantError('Cannot add this user as a head family because head family already exists')
+            }
+            const isMotherExist = await this.checkIfMotherExist(familyId);
+            if (isMotherExist && familyMember.relation === 'IBU') {
+                throw new InvariantError('Cannot add this user as a mother because mother already exists')
+            }
+        }
+
+        if (familyMember.phoneNumber) {
+            const isPhoneNumberExist = await this.checkIfPhoneNumberExist(familyMember.phoneNumber);
+            if (isPhoneNumberExist) {
+                throw new InvariantError('Phone number already exist');
+            }
+        }
+        const bmi = calculateBMI(familyMember.nutrition.height, familyMember.nutrition.weight);
+
+        const determinedNutritionStatus = determineNutritionStatus(bmi);
         const newMember = await this.prismaClient.familyMember.create({
             data: {
                 full_name: familyMember.fullName,
@@ -333,21 +367,27 @@ export class FamilyService {
                         job_type_id: familyMember.job.jobTypeId
                     }
                 },
-                residence: {
-                    connectOrCreate: {
-                        where: {
-                            id: familyMember.residence.id ?? residenceLastRow?.id ?? 1
-                        },
-                        create: {
-                            status: familyMember.residence.status,
-                            address: familyMember.residence.address,
-                            description: familyMember.residence.description
-                        }
+                residence: familyMember.residence?.id ? {
+                    connect: {
+                        id: familyMember.residence.id
+                    }
+                } : {
+                    create: {
+                        status: familyMember.residence.status,
+                        address: familyMember.residence.address,
+                        description: familyMember.residence.description
                     }
                 },
-                family: {
+                family: familyId ? {
                     connect: {
                         id: familyId
+                    },
+                } : {
+                    create: {
+                        head_family: familyMember.fullName,
+                        head_phone_number: familyMember.phoneNumber!,
+                        kk_number: familyMember.kkNumber,
+                        description: familyMember.description
                     }
                 },
                 ...(familyMember.institutionId && {
@@ -357,6 +397,20 @@ export class FamilyService {
                         }
                     }
                 }),
+                nutrition: {
+                    create: {
+                        height: familyMember.nutrition.height,
+                        weight: familyMember.nutrition.weight,
+                        created_by: createdBy,
+                        updated_by: createdBy,
+                        ...(familyMember.nutrition.birth_weight && {
+                            birth_weight: familyMember.nutrition.birth_weight
+                        }),
+                        bmi: familyMember.nutrition.bmi ?? bmi,
+                        status_id: determinedNutritionStatus.statusId
+                    }
+                },
+
             },
             include: {
                 residence: true,
@@ -365,11 +419,105 @@ export class FamilyService {
                 knowledge_nutrition: true,
                 institution: true,
                 behaviour: true,
-                nutrition: true
+                nutrition: {
+                    include: {
+                        nutrition_status: true
+                    }
+                }
             }
         })
 
         return { familyMember: newMember }
     }
 
+    async checkFamilyExist(familyId: number) {
+        const family = await this.prismaClient.family.findUnique({
+            where: {
+                id: familyId
+            }
+        })
+        return !!family;
+    }
+
+    async checkIfPhoneNumberExist(phoneNumber: string) {
+        const familyMember = await this.prismaClient.familyMember.findUnique({
+            where: {
+                phone_number: phoneNumber
+            }
+        });
+
+        return !!familyMember
+    }
+
+    async checkIfHeadFamilyExist(familyId: number) {
+        const family = await this.prismaClient.family.findUnique({
+            where: {
+                id: familyId,
+                head_family: {
+                    not: undefined
+                }
+            }
+        });
+        return !!family;
+    }
+
+    async checkIfMotherExist(familyId: number) {
+        const mother = await this.prismaClient.familyMember.findFirst({
+            where: {
+                family_id: familyId,
+                relation: 'IBU'
+            }
+        });
+
+        return !!mother;
+    }
+
+    async getFamilyMembers(familyId: number) {
+        const familyMembers = await this.prismaClient.familyMember.findMany({
+            where: {
+                family_id: familyId
+            },
+            include: {
+                residence: true,
+                family: true,
+                job: true,
+                institution: true,
+                nutrition: true,
+            }
+        });
+
+        return {
+            familyMembers: familyMembers.length ? familyMembers.map(member => ({ ...member, job: { ...member.job, income: member.job.income.toString() }, })) : []
+        };
+    }
+
+    async getFamilyMember(familyId: number, memberId: number) {
+        const familyMember = await this.prismaClient.familyMember.findUnique({
+            where: {
+                id: memberId,
+                family_id: familyId
+            },
+            include: {
+                residence: true,
+                family: true,
+                job: true,
+                institution: true,
+                nutrition: true,
+            }
+        });
+
+        if (!familyMember) {
+            throw new NotFoundError('Family member not found');
+        }
+
+        return {
+            familyMember: {
+                ...familyMember,
+                job: {
+                    ...familyMember.job,
+                    income: familyMember.job.income.toString()
+                }
+            }
+        }
+    }
 }

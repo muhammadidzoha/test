@@ -17,6 +17,10 @@ familyRouter.post('/:familyId/members', AuthorizationMiddleware([]), (req: Reque
     familyController.addFamilyMember(req, res);
 });
 
+familyRouter.put('/v2/members/:familyId?', AuthorizationMiddleware([]), (req: Request, res: Response) => {
+    familyController.AddFamilyMemberV2(req, res);
+});
+
 familyRouter.get('/:familyId/wages', AuthorizationMiddleware([]), (req: Request, res: Response) => {
     familyController.getTotalGaji(req, res);
 })
@@ -27,4 +31,12 @@ familyRouter.get('/:familyId/members/:familyMemberId/wages', AuthorizationMiddle
 
 familyRouter.get('/members/:familyMemberId/children', AuthorizationMiddleware([]), (req: Request, res: Response) => {
     familyController.getChildrenScore(req, res);
+})
+
+familyRouter.get('/:familyId/members', AuthorizationMiddleware([]), (req: Request, res: Response) => {
+    familyController.getFamilyMembers(req, res);
+})
+
+familyRouter.get('/:familyId/members/:familyMemberId', AuthorizationMiddleware([]), (req: Request, res: Response) => {
+    familyController.getFamilyMember(req, res);
 })

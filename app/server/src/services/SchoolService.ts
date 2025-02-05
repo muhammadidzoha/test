@@ -715,7 +715,15 @@ export class SchoolService {
         }
     }
 
+    async getHealthEducationStratification(schoolId: number) {
+        const { stratify } = await this.getServiceStratification(schoolId, 'HEALTH_EDUCATION');
+        return {
+            stratify
+        }
+    }
+
     async checkHealthEducationStratification(schoolId: number, service: string, stratification: 'MINIMAL' | 'STANDAR' | 'OPTIMAL' | 'PARIPURNA') {
+        console.log({ schoolId, service, stratification })
         const serviceQuisioner = await this.prismaClient.question.findMany({
             where: {
                 quisioner: {
@@ -741,6 +749,8 @@ export class SchoolService {
                 }
             }
         });
+        console.log({ serviceAnswer })
+
         if (!serviceAnswer.length) {
             throw new NotFoundError(`Answer is not found or not created yet by school with id ${schoolId} ${service}_${stratification}`);
         }

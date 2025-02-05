@@ -48,7 +48,7 @@ export const addMemberSchema = joi.object({
         }
         return value;
     }),
-    institutionId: joi.number(),
+    institutionId: joi.number().required(),
     nutrition: joi.object({
         height: joi.number().required(),
         weight: joi.number().required(),
@@ -80,17 +80,21 @@ export const addMemberSchemaV2 = joi.object({
         jobTypeId: joi.number().required(),
         income: joi.number().required()
     }).required(),
-    residence: joi.object({
-        id: joi.number(),
-        address: joi.string(),
-        description: joi.string(),
-        status: joi.string().custom((value, helpers) => {
-            if (!['OWN', 'RENT', 'OTHER'].includes(value)) {
-                return helpers.error('Only allowed OWN, RENT, OTHER');
-            }
-            return value;
+    residenceId: joi.number(),
+    residence: joi.when('residenceId', {
+        is: joi.exist(),
+        then: joi.forbidden(),
+        otherwise: joi.object({
+            address: joi.string().required(),
+            description: joi.string(),
+            status: joi.string().custom((value, helpers) => {
+                if (!['OWN', 'RENT', 'OTHER'].includes(value)) {
+                    return helpers.error('Only allowed OWN, RENT, OTHER');
+                }
+                return value;
+            }).required()
         }).required()
-    }).required(),
+    }),
     gender: joi.string().required().custom((value, helpers) => {
         if (!['L', 'P'].includes(value)) {
             return helpers.error('Only allowed L, P');
@@ -103,13 +107,22 @@ export const addMemberSchemaV2 = joi.object({
         }
         return value;
     }),
-    institutionId: joi.number(),
+    institutionId: joi.number().required(),
     nutrition: joi.object({
         height: joi.number().required(),
         weight: joi.number().required(),
         bmi: joi.number(),
         birth_weight: joi.number(),
     }).required(),
-    class: joi.string(),
-    phoneNumber: joi.string()
+    phoneNumber: joi.when('relation', {
+        is: joi.valid('AYAH', 'IBU'),
+        then: joi.string().required(),
+        otherwise: joi.string()
+    }),
+    class: joi.when('relation', {
+        is: 'ANAK',
+        then: joi.string().required(),
+        otherwise: joi.string()
+    }),
+    kkNumber: joi.string()
 })
