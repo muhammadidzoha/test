@@ -34,3 +34,18 @@ export const createResponseQuisioner = joi.object({
         })
     ).min(1).required()
 })
+
+export const addQuestionToQuisionerSchema = joi.object({
+    question: joi.string().required(),
+    type: joi.string().valid('MULTIPLE_CHOICE', 'BOOLEAN', 'SCALE', 'TEXT').required(),
+    isRequired: joi.boolean().required(),
+    options: joi.when('type', {
+        is: joi.valid('MULTIPLE_CHOICE', 'SCALE'),
+        then: joi.array().items(
+            joi.object({
+                title: joi.string().required(),
+                score: joi.number()
+            })
+        ).min(1).required()
+    })
+})

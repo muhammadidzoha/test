@@ -21,9 +21,14 @@ quisionerRouter.post('/', AuthorizationMiddleware(['admin']), (req: Request, res
     quisionerController.createQuisioner(req, res);
 })
 
+quisionerRouter.put('/:quisionerId', AuthorizationMiddleware(['admin']), (req: Request, res: Response) => {
+    quisionerController.updateQuisionerById(req, res);
+});
+
 quisionerRouter.delete('/:quisionerId', AuthorizationMiddleware(['admin']), (req: Request, res: Response) => {
     quisionerController.deleteQuisionerById(req, res);
 })
+
 
 // Answers
 quisionerRouter.post('/:quisionerId/responses', AuthorizationMiddleware([]), (req: Request, res: Response) => {
@@ -40,4 +45,25 @@ quisionerRouter.get('/responses/institutions/:institutionId', AuthorizationMiddl
 
 quisionerRouter.get('/responses/families/:familyMemberId', AuthorizationMiddleware([]), (req: Request, res: Response) => {
     quisionerController.getResponseByFamilyId(req, res);
+});
+
+// Question
+quisionerRouter.put('/:quisionerId/questions/:questionId', AuthorizationMiddleware(['admin']), (req: Request, res: Response) => {
+    quisionerController.updateQuestionById(req, res);
+})
+
+quisionerRouter.delete('/:quisionerId/questions/:questionId', AuthorizationMiddleware(['admin']), (req: Request, res: Response) => {
+    quisionerController.deleteQuestionById(req, res);
+})
+quisionerRouter.post('/:quisionerId/questions', AuthorizationMiddleware(['admin']), (req: Request, res: Response) => {
+    quisionerController.addQuestionToQuisioner(req, res);
+});
+
+// options
+quisionerRouter.put('/:quisionerId/questions/:questionId/options/:optionId', AuthorizationMiddleware(['admin']), (req: Request, res: Response) => {
+    quisionerController.updateOptionById(req, res);
+});
+
+quisionerRouter.delete('/:quisionerId/questions/:questionId/options/:optionId', AuthorizationMiddleware(['admin']), (req: Request, res: Response) => {
+    quisionerController.deleteOptionById(req, res);
 });

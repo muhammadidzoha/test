@@ -88,8 +88,8 @@ export class QuisionerService {
             include: {
                 questions: {
                     include: {
-                        options: true
-                    }
+                        options: true,
+                    },
                 },
                 response: {
                     include: {
@@ -251,5 +251,238 @@ export class QuisionerService {
         });
 
         return { responses }
+    }
+
+    async updateQuisioner(quisionerId: number, payload: Partial<IQuisioner>) {
+        const { quisioner } = await this.getQuisionerById(quisionerId);
+        if (!quisioner) {
+            throw new NotFoundError('Quisioner not found');
+        }
+        const isQuisionerHaveResponse = await this.checkIfQuisionerHaveResponse(quisionerId);
+        console.log({ isQuisionerHaveResponse, payload })
+        if (isQuisionerHaveResponse && (!!payload.for || !!payload.stratification)) {
+            throw new InvariantError('Quisioner already have response, cannot update for and stratification');
+        }
+
+        const updatedQuisioner = await this.prismaClient.quisioner.update({
+            where: {
+                id: quisionerId
+            },
+            data: {
+                title: payload.title,
+                description: payload.description,
+                for: payload.for,
+                stratification: payload.stratification
+            }
+        });
+
+        return {
+            quisioner: updatedQuisioner
+        }
+    }
+
+    async checkIfQuisionerHaveResponse(quisionerId: number) {
+        const quisioner = await this.prismaClient.quisioner.findUnique({
+            where: {
+                id: quisionerId
+            },
+            include: {
+                response: true
+            }
+        });
+        console.log({ quisionerResponse: quisioner?.response })
+        return quisioner?.response.length ? true : false;
+    }
+
+
+
+    async checkIfQuestionHaveResponse(questionId: number) {
+        const question = await this.prismaClient.question.findUnique({
+            where: {
+                id: questionId
+            },
+            include: {
+                quisioner: {
+                    include: {
+                        response: true
+                    }
+                }
+            }
+        });
+
+        return question?.quisioner.response.length ? true : false;
+    }
+
+    async getQuestionById(questionId: number) {
+        const question = await this.prismaClient.question.findUnique({
+            where: {
+                id: questionId
+            },
+            include: {
+                options: true
+            }
+        });
+
+        return { question }
+    }
+
+    async updateOption(optionId: number, payload: Partial<IOption>) {
+        const { option } = await this.getOptionById(optionId);
+        if (!option) {
+            throw new NotFoundError('Option not found');
+        }
+        if (await this.checkIfOptionHaveResponse(optionId)) {
+            throw new InvariantError('Option already have response, cannot change option');
+        }
+
+        const updatedOption = await this.prismaClient.option.update({
+            where: {
+                id: optionId
+            },
+            data: {
+                title: payload.title,
+                score: payload.score
+            }
+        });
+
+        return {
+            option: updatedOption
+        }
+    }
+
+    async getOptionById(optionId: number) {
+        const option = await this.prismaClient.option.findUnique({
+            where: {
+                id: optionId
+            }
+        });
+
+        return { option }
+    }
+
+    async checkIfOptionHaveResponse(optionId: number) {
+        const option = await this.prismaClient.option.findUnique({
+            where: {
+                id: optionId
+            },
+            include: {
+                question: {
+                    select: {
+                        quisioner: {
+                            select: {
+                                response: true
+                            }
+                        }
+                    }
+                }
+
+            }
+        });
+
+        return option?.question.quisioner.response.length ? true : false;
+    }
+
+    async deleteQuestion(questionId: number, force: boolean = false) {
+        const { question } = await this.getQuestionById(questionId);
+        if (!question) {
+            throw new NotFoundError('Question not found');
+        }
+        if (await this.checkIfQuestionHaveResponse(questionId) && !force) {
+            throw new InvariantError('Question already have response, cannot delete');
+        }
+
+        const deletedQuestion = await this.prismaClient.question.delete({
+            where: {
+                id: questionId
+            }
+        });
+
+        return {
+            question: deletedQuestion
+        }
+    }
+
+    async deleteOption(optionId: number, force: boolean = false) {
+        const { option } = await this.getOptionById(optionId);
+        if (!option) {
+            throw new NotFoundError('Option not found');
+        }
+        if (await this.checkIfOptionHaveResponse(optionId) && !!force) {
+            throw new InvariantError('Option already have response, cannot delete');
+        }
+
+        const deletedOption = await this.prismaClient.option.delete({
+            where: {
+                id: optionId
+            }
+        });
+
+        return {
+            option: deletedOption
+        }
+    }
+
+    async updateQuestion(questionId: number, payload: Partial<IQuestions>) {
+        if ((payload.type === "MULTIPLE_CHOICE" || payload.type === "SCALE") && !payload.options) {
+            throw new InvariantError('Options is required for multiple choice and scale type');
+        }
+        const { question: isQuestionExist } = await this.getQuestionById(questionId);
+        if (!isQuestionExist) {
+            throw new NotFoundError('Question not found');
+        }
+        const question = await this.prismaClient.question.update({
+            data: {
+                question: payload.question,
+                type: payload.type,
+                is_required: payload.isRequired,
+                ...((payload.type === 'MULTIPLE_CHOICE' || payload.type === 'SCALE') && {
+                    options: {
+                        create: payload.options?.map(option => ({
+                            title: option.title,
+                            score: option.score ?? 0
+                        }))
+                    }
+                }),
+                ...((isQuestionExist.type === 'MULTIPLE_CHOICE' || isQuestionExist.type === 'SCALE') && (payload.type == 'BOOLEAN' || payload.type === 'TEXT')) && {
+                    options: {
+                        deleteMany: {}
+                    }
+                }
+            },
+            where: {
+                id: questionId
+            },
+        });
+
+        return { question };
+    }
+
+
+    async addQuestionToQuisioner(quisionerId: number, payload: Omit<IQuestions, 'quisionerId'>) {
+        const { quisioner } = await this.getQuisionerById(quisionerId);
+        if (!quisioner) {
+            throw new NotFoundError('Quisioner not found');
+        }
+        const question = await this.prismaClient.question.create({
+            data: {
+                quisioner_id: quisionerId,
+                question: payload.question,
+                type: payload.type,
+                is_required: payload.isRequired,
+                ...((payload.type === 'MULTIPLE_CHOICE' || payload.type === 'SCALE') && {
+                    options: {
+                        create: payload.options?.map(option => ({
+                            title: option.title,
+                            score: option.score ?? 0
+                        }))
+                    }
+                })
+            },
+            include: {
+                quisioner: true
+            }
+        });
+
+        return { question }
     }
 }

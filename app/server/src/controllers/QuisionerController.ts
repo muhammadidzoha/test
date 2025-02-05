@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { QuisionerService } from "../services/QuisionerService";
 import { handleError, validatePayload } from "../common/http";
-import { createQuisionerSchema, createResponseQuisioner } from "../common/http/requestvalidator/QuisionerValidator";
+import { addQuestionToQuisionerSchema, createQuisionerSchema, createResponseQuisioner } from "../common/http/requestvalidator/QuisionerValidator";
 import { InvariantError, NotFoundError } from "../common/exception";
 import { IAnswer, IResponsePayload } from "../types/quisioner";
 
@@ -190,6 +190,127 @@ export class QuisionerController {
                 status: 'Success',
                 message: `Quisioner responses fetched successfully`,
                 data: responses
+            })
+        } catch (err: any) {
+            handleError(err, res);
+        }
+    }
+
+    async updateQuisionerById(req: Request, res: Response) {
+        try {
+            const { quisionerId } = req.params;
+            if (!quisionerId) {
+                throw new InvariantError('Quisioner id is required');
+            }
+            const { title, description, stratification, for: forWho } = req.body;
+            if (!title || !description) {
+                throw new InvariantError('Title, for and stratification is required');
+            }
+            const { quisioner } = await this.quisionerService.updateQuisioner(+quisionerId, { title, description, stratification, for: forWho });
+            res.status(200).json({
+                status: 'Success',
+                message: `Quisioner with id ${quisioner.id} updated successfully`,
+                data: quisioner
+            })
+        } catch (err: any) {
+            handleError(err, res);
+        }
+    }
+
+
+
+    async deleteQuestionById(req: Request, res: Response) {
+        try {
+            const { questionId } = req.params;
+            if (!questionId) {
+                throw new InvariantError('Question id is required');
+            }
+            const { question } = await this.quisionerService.deleteQuestion(+questionId);
+            res.status(200).json({
+                status: 'Success',
+                message: `Question with id ${question.id} deleted successfully`,
+                data: question
+            })
+        } catch (err: any) {
+            handleError(err, res);
+        }
+    }
+
+    async updateOptionById(req: Request, res: Response) {
+        try {
+            const { optionId } = req.params;
+            if (!optionId) {
+                throw new InvariantError('Option id is required');
+            }
+            const { title, score } = req.body;
+            const { option: updatedOption } = await this.quisionerService.updateOption(+optionId, { title, score });
+            res.status(200).json({
+                status: 'Success',
+                message: `Option with id ${updatedOption.id} updated successfully`,
+                data: updatedOption
+            })
+        } catch (err: any) {
+            handleError(err, res);
+        }
+    }
+
+    async deleteOptionById(req: Request, res: Response) {
+        try {
+            const { optionId } = req.params;
+            if (!optionId) {
+                throw new InvariantError('Option id is required');
+            }
+            const { option } = await this.quisionerService.deleteOption(+optionId);
+            res.status(200).json({
+                status: 'Success',
+                message: `Option with id ${option.id} deleted successfully`,
+                data: option
+            })
+        } catch (err: any) {
+            handleError(err, res);
+        }
+    }
+
+    async updateQuestionById(req: Request, res: Response) {
+        try {
+            const { questionId } = req.params;
+            if (!questionId) {
+                throw new InvariantError('Question id is required');
+            }
+            const { question, type, options, isRequired } = req.body;
+            if (!question || !isRequired || !type) {
+                throw new InvariantError('question, isRequired and type is required');
+            }
+            if (type === 'MULTIPLE_CHOICE' && (!options || options.length === 0)) {
+                throw new InvariantError('Options is required for multiple choice question');
+            }
+            if (type === "SCALE" && (!options || options.length === 0)) {
+                throw new InvariantError('Options is required for scale question');
+            }
+            const { question: updatedQuestion } = await this.quisionerService.updateQuestion(+questionId, { question, type, options, isRequired });
+            res.status(200).json({
+                status: 'Success',
+                message: `Question with id ${question.id} updated successfully`,
+                data: updatedQuestion
+            })
+        } catch (err: any) {
+            handleError(err, res);
+        }
+    }
+
+    async addQuestionToQuisioner(req: Request, res: Response) {
+        try {
+            validatePayload(addQuestionToQuisionerSchema, req.body);
+            const { quisionerId } = req.params;
+            if (!quisionerId) {
+                throw new InvariantError('Quisioner id is required');
+            }
+            const { question, type, options, isRequired } = req.body;
+            const { question: newQuestion } = await this.quisionerService.addQuestionToQuisioner(+quisionerId, { question, type, options, isRequired });
+            res.status(201).json({
+                status: 'Success',
+                message: `Question added to quisioner with id ${quisionerId} successfully`,
+                data: newQuestion
             })
         } catch (err: any) {
             handleError(err, res);

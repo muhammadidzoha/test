@@ -1,4 +1,5 @@
 export interface IOption {
+    id: number?;
     questionId: number;
     title: string;
     score: number?;
@@ -19,7 +20,7 @@ export interface IQuisioner {
     title: string;
     description: string?;
     questions: IQuestions[]
-    stratification: ('MINIMAL' | 'STANDAR' | 'OPTIMAL' | 'PARIPURNA')?;
+    stratification: string?;
     for: string?
 }
 

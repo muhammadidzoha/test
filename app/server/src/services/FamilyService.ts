@@ -325,6 +325,8 @@ export class FamilyService {
                 education: familyMember.education,
                 gender: familyMember.gender,
                 relation: familyMember.relation,
+                class: familyMember.class,
+                phone_number: familyMember.phoneNumber,
                 job: {
                     create: {
                         income: familyMember.job.income,
