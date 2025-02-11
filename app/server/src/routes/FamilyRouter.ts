@@ -17,6 +17,10 @@ familyRouter.post('/:familyId/members', AuthorizationMiddleware([]), (req: Reque
     familyController.addFamilyMember(req, res);
 });
 
+familyRouter.post('/', AuthorizationMiddleware(['admin', 'parent']), (req: Request, res: Response) => {
+    familyController.createFamilyWithMembers(req, res);
+})
+
 familyRouter.put('/v2/members/:familyId?', AuthorizationMiddleware([]), (req: Request, res: Response) => {
     familyController.AddFamilyMemberV2(req, res);
 });
@@ -40,3 +44,11 @@ familyRouter.get('/:familyId/members', AuthorizationMiddleware([]), (req: Reques
 familyRouter.get('/:familyId/members/:familyMemberId', AuthorizationMiddleware([]), (req: Request, res: Response) => {
     familyController.getFamilyMember(req, res);
 })
+
+familyRouter.get('/head/:headName/members', AuthorizationMiddleware([]), (req: Request, res: Response) => {
+    familyController.getFamilyMemberByHeadName(req, res);
+})
+
+familyRouter.get('/head/phone/:phoneNumber/members', AuthorizationMiddleware([]), (req: Request, res: Response) => {
+    familyController.getFamilyMembersByHeadPhoneNumber(req, res);
+});

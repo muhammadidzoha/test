@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { InvariantError } from "../common/exception";
 import { handleError, validatePayload } from "../common/http";
-import { addMemberSchema, addMemberSchemaV2, createFamilySchema } from "../common/http/requestvalidator/FamilyValidator";
+import { addMemberSchema, addMemberSchemaV2, addMemberSchemaV3, createFamilySchema } from "../common/http/requestvalidator/FamilyValidator";
 import { FamilyService } from "../services/FamilyService";
 import { IFamily, IFamilyMember } from "../types/family";
 
@@ -89,6 +89,22 @@ export class FamilyController {
                 }
             })
 
+        } catch (err: any) {
+            handleError(err, res);
+        }
+    }
+
+    async createFamilyWithMembers(req: Request, res: Response) {
+        try {
+            validatePayload(addMemberSchemaV3, req.body);
+            const user = (req as any).user
+            const { members } = req.body;
+            const { familyMembers } = await this.familyService.createFamilyWithMember(members, user.id);
+            res.status(201).json({
+                status: "Success",
+                message: "Family created successfully",
+                data: familyMembers
+            })
         } catch (err: any) {
             handleError(err, res);
         }
@@ -195,6 +211,40 @@ export class FamilyController {
             })
         } catch (err: any) {
             handleError(err, res)
+        }
+    }
+
+    async getFamilyMemberByHeadName(req: Request, res: Response) {
+        try {
+            const { headName } = req.params;
+            if (!headName) {
+                throw new InvariantError('headName is required in params to get family member by head name');
+            }
+            const { familyMembers } = await this.familyService.getFamilyMembersByHeadName(headName);
+            res.status(200).json({
+                status: 'Success',
+                message: 'Family member fetched successfully',
+                data: familyMembers
+            })
+        } catch (err: any) {
+            handleError(err, res);
+        }
+    }
+
+    async getFamilyMembersByHeadPhoneNumber(req: Request, res: Response) {
+        try {
+            const { phoneNumber } = req.params;
+            if (!phoneNumber) {
+                throw new InvariantError('phoneNumber is required in params to get family member by head phone number');
+            }
+            const { familyMembers } = await this.familyService.getFamilyMemberByHeadPhoneNumber(phoneNumber);
+            res.status(200).json({
+                status: 'Success',
+                message: 'Family member fetched successfully',
+                data: familyMembers
+            })
+        } catch (err: any) {
+            handleError(err, res);
         }
     }
 }

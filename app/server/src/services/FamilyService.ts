@@ -3,7 +3,7 @@ import { InvariantError, NotFoundError } from "../common/exception";
 import { calculateBMI } from "../common/utils/CalculateBMI";
 import { determineNutritionStatus } from "../common/utils/CalculateZscore";
 import { calculateBehaviourScore, calculateGajiScore, calculateNutritionScore } from "../common/utils/Family";
-import { IFamily, IFamilyMember } from "../types/family";
+import { IFamily, IFamilyMember, IMember } from "../types/family";
 
 export class FamilyService {
     constructor(public prismaClient: PrismaClient) { }
@@ -518,6 +518,166 @@ export class FamilyService {
                     income: familyMember.job.income.toString()
                 }
             }
+        }
+    }
+
+    async createFamilyWithMember(members: IMember[], createdBy: number) {
+        const [headMember] = members;
+        const { familyMembers } = await this.prismaClient.$transaction(async (prisma) => {
+            const family = await prisma.family.create({
+                data: {
+                    head_family: headMember.fullName,
+                    head_phone_number: headMember.phoneNumber!,
+                    kk_number: headMember.kkNumber,
+                    description: headMember.description
+                }
+            });
+            if (!family) {
+                throw new InvariantError('Failed to create family');
+            }
+            await Promise.all(members.map(async (member) => {
+                const memberBMI = calculateBMI(member.nutrition.height, member.nutrition.weight);
+
+                const determinedNutritionStatus = determineNutritionStatus(memberBMI);
+
+                if (member.phoneNumber) {
+                    const isPhoneNumberExists = await this.checkIfPhoneNumberExist(member.phoneNumber);
+                    if (isPhoneNumberExists) {
+                        throw new InvariantError(`Phone number ${member.phoneNumber} already exists`);
+                    }
+                }
+                await prisma.familyMember.create({
+                    data: {
+                        full_name: member.fullName,
+                        birth_date: member.birthDate,
+                        education: member.education,
+                        gender: member.gender,
+                        relation: member.relation,
+                        class: member.class,
+                        phone_number: member.phoneNumber,
+                        family: {
+                            connect: {
+                                id: family.id
+                            }
+                        },
+                        residence: member.residence?.id ? {
+                            connect: {
+                                id: member.residence.id
+                            }
+                        } : {
+                            create: {
+                                status: member.residence!.status,
+                                address: member.residence!.address,
+                                description: member.residence!.description
+                            }
+                        },
+                        ...(member.institutionId && {
+                            institution: {
+                                connect: {
+                                    id: member.institutionId
+                                }
+                            }
+                        }),
+                        nutrition: {
+                            create: {
+                                height: member.nutrition.height,
+                                weight: member.nutrition.weight,
+                                ...(member.nutrition.birth_weight && {
+                                    birth_weight: member.nutrition.birth_weight
+                                }),
+                                bmi: memberBMI,
+                                status_id: determinedNutritionStatus.statusId,
+                                created_by: createdBy,
+                                updated_by: createdBy
+                            }
+                        },
+                        job: {
+                            create: {
+                                income: member.job.income,
+                                job_type_id: member.job.jobTypeId
+                            }
+                        }
+                    }
+                })
+            }))
+
+            const familyMembers = await prisma.familyMember.findMany({
+                where: { family_id: family.id },
+                include: {
+                    nutrition: true,
+                    residence: true,
+                    institution: true
+                }
+            });
+            return { familyMembers }
+        })
+
+        return { familyMembers }
+    }
+
+    async getFamilyMembersByHeadName(headName: string) {
+        const familyMembers = await this.prismaClient.familyMember.findMany({
+            where: {
+                family: {
+                    head_family: headName
+                }
+            },
+            include: {
+                job: true,
+                nutrition: {
+                    include: {
+                        nutrition_status: true
+                    }
+                },
+                residence: true
+            }
+        });
+
+        return {
+            familyMembers: familyMembers.map(member => ({
+                ...member,
+                job: {
+                    ...member.job,
+                    income: member.job.income.toString()
+                }
+            }))
+        }
+    }
+
+    async getFamilyMemberByHeadPhoneNumber(phoneNumber: string) {
+        const familyMembers = await this.prismaClient.familyMember.findMany({
+            where: {
+                family: {
+                    head_phone_number: phoneNumber
+                }
+            },
+            include: {
+                job: {
+                    include: {
+                        job_type: true
+                    }
+                },
+                nutrition: {
+                    include: {
+                        nutrition_status: true
+                    },
+                    take: 1,
+                    orderBy: {
+                        created_at: 'desc'
+                    }
+                },
+                residence: true
+            },
+        });
+
+        return {
+            familyMembers: familyMembers.map(member => ({
+                ...member,
+                job: {
+                    ...member.job,
+                    income: member.job.income.toString(),
+                }
+            }))
         }
     }
 }

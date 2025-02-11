@@ -13,6 +13,7 @@ export interface IJob {
 }
 
 export interface IResidence {
+    id: number?;
     status: RESIDENCESTATUS,
     address: string?;
     description: string?;
@@ -55,6 +56,23 @@ export interface IFamilyMember {
     behaviour: IBehaviour?;
     phoneNumber: string?;
     class: string?;
+    kkNumber: string?;
+    description: string?;
+}
+
+
+export interface IMember {
+    fullName: string;
+    birthDate: Date;
+    education: EDUCATION;
+    gender: GENDER;
+    relation: RELATION;
+    job: IJob;
+    residence: IResidence?;
+    nutrition: INutrition;
+    institutionId: number?;
+    class: string?;
+    phoneNumber: string?;
     kkNumber: string?;
     description: string?;
 }
