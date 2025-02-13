@@ -7,9 +7,9 @@ export interface IInstitution {
     address: string;
     phoneNumber: string;
     email: string;
-    headName: string
-    headNIP: string;
-    licenseDocument: string;
+    headName?: string
+    headNIP?: string;
+    licenseDocument?: string;
 }
 
 export interface IPayloadToken {

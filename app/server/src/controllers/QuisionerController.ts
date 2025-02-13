@@ -316,4 +316,51 @@ export class QuisionerController {
             handleError(err, res);
         }
     }
+
+    // async getQuisionerByStratification(req: Request, res: Response) {
+    //     try {
+    //         const { stratification } = req.params;
+    //         if (!stratification) {
+    //             throw new InvariantError('Stratification is required in params');
+    //         }
+    //         const quisioners = await this.quisionerService.getQuisionerByStratification(stratification as string);
+    //         res.status(200).json({
+    //             status: 'Success',
+    //             message: 'Quisioners fetched successfully',
+    //             data: quisioners
+    //         })
+    //     } catch (err: any) {
+    //         handleError(err, res);
+    //     }
+    // }
+
+    async getQuisionerByStratifications(req: Request, res: Response) {
+        try {
+            const { stratification } = req.params;
+            if (!stratification) {
+                throw new InvariantError('stratification is required in params');
+            }
+            const quisioners = await this.quisionerService.getQuisionerByStratifications(stratification as string);
+            res.status(200).json({
+                status: 'Success',
+                message: 'Quisioners fetched successfully',
+                data: quisioners
+            })
+        } catch (err: any) {
+            handleError(err, res);
+        }
+    }
+
+    async getQuisionerByStratificationsBelongToSchool(req: Request, res: Response) {
+        try {
+            const { quisioners } = await this.quisionerService.getQuisionerStratificationsBelongToSchool();
+            res.status(200).json({
+                status: 'Success',
+                message: 'Quisioners fetched successfully',
+                data: quisioners
+            })
+        } catch (err: any) {
+            handleError(err, res);
+        }
+    }
 }

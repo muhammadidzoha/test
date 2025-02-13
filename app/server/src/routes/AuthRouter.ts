@@ -28,7 +28,7 @@ authRouter.post('/login', async (req, res) => {
     await authController.login(req, res);
 });
 
-authRouter.post('/register/institution', multerMiddleware.single('image'), async (req, res) => {
+authRouter.post('/register/institution', async (req, res) => {
     await authController.registerForInstitution(req, res);
 })
 

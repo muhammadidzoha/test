@@ -63,6 +63,44 @@ export class QuisionerService {
         return { quisioner }
     }
 
+    async getQuisionerByStratifications(stratification: string) {
+        const quisioners = await this.prismaClient.quisioner.findMany({
+            where: {
+                stratification: {
+                    startsWith: stratification
+                }
+            },
+            include: {
+                questions: {
+                    include: {
+                        options: true
+                    }
+                }
+            }
+        });
+
+        return { quisioners }
+    }
+
+    async getQuisionerStratificationsBelongToSchool() {
+        const quisioners = await this.prismaClient.quisioner.findMany({
+            where: {
+                for: 'SCHOOL'
+            },
+            include: {
+                questions: {
+                    include: {
+                        options: true
+                    },
+                }
+            }
+        });
+
+        return {
+            quisioners
+        }
+    }
+
     async deleteQuisioner(id: number) {
         const { quisioner: isQuisionerExist } = await this.getQuisionerById(id);
         if (!isQuisionerExist) {

@@ -28,3 +28,7 @@ userRouter.get('/', AuthorizationMiddleware(['admin', 'school']), (req: Request,
 userRouter.get('/with-relation/:uniqueValue', AuthorizationMiddleware(['admin', 'school']), (req: Request, res: Response) => {
     userController.getUserWithRelation(req, res);
 })
+
+userRouter.get('/statistics/register', AuthorizationMiddleware(['admin']), (req: Request, res: Response) => {
+    userController.getUserRegisterStatistic(req, res);
+})

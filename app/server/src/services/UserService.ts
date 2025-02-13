@@ -67,7 +67,15 @@ export class UserService {
     }
 
     async getUsers() {
-        const users = await this.prismaClient.user.findMany();
+        const users = await this.prismaClient.user.findMany({
+            include: {
+                role: {
+                    select: {
+                        name: true
+                    }
+                }
+            }
+        });
 
         return { users };
     }
@@ -116,5 +124,16 @@ export class UserService {
         });
 
         return { user };
+    }
+
+    async getUserRegisterStatistic(startDate: string = "", endDate: string = "") {
+        const stats: any[] = await this.prismaClient.$queryRaw`SELECT DATE_FORMAT(created_at, "%Y-%M") AS tanggal, COUNT(*) as total_users FROM users GROUP BY tanggal ORDER BY tanggal DESC`;
+        console.log({ stats });
+        return {
+            stats: stats.map(stats => ({
+                tanggal: stats.tanggal,
+                total_users: +stats.total_users.toString(),
+            }))
+        };
     }
 };

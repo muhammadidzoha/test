@@ -1,8 +1,7 @@
-import fs from 'fs';
 
 import { Request, Response } from "express";
-import { InvariantError, PayloadError } from "../common/exception";
-import { handleError, registerPayloadSchema, validatePayload, verifyEmailSchema } from "../common/http";
+import { PayloadError } from "../common/exception";
+import { handleError, institutionRegisterPayloadSchema, registerPayloadSchema, validatePayload, verifyEmailSchema } from "../common/http";
 import { CompleteRegistrationSchema } from '../common/http/requestvalidator/CompleteRegistrationValidator';
 import { AuthService } from "../services";
 import { IInstitution, RegisterPayloadType } from "../types/auth";
@@ -45,19 +44,14 @@ export class AuthController {
 
     async registerForInstitution(req: Request, res: Response) {
         try {
-            if (!req.file) {
-                throw new PayloadError('License Document is Required (upload legal document to prove legal institute)');
-            }
-            if (+req.body.roleId !== 2 && +req.body.roleId !== 3) {
-                throw new InvariantError('Role must be 2 (School) or 3 (Healthcare)');
-            }
+            validatePayload(institutionRegisterPayloadSchema, req.body);
 
             const { username, email, password, roleId, address, headNIP, headName, name, phoneNumber, institutionId }: Omit<IInstitution, 'licenseDocument'> & Omit<RegisterPayloadType, 'is_verified'> & {
                 institutionId: string
             } = req.body;
-            const licenseDocument = req.file.filename;
+            console.log(req.body);
 
-            const { userInstitution } = await this.authService.registerForInstitution({ username, email, password, roleId: +roleId, address, headNIP, headName, licenseDocument, name, phoneNumber });
+            const { userInstitution } = await this.authService.registerForInstitution({ username, email, password, roleId: +roleId, address, headNIP, headName, name, phoneNumber });
 
 
             res.status(201).json({
@@ -66,9 +60,7 @@ export class AuthController {
                 data: userInstitution
             })
         } catch (error: any) {
-            if (req.file) {
-                fs.unlinkSync(req.file.path);
-            };
+            console.log({ error, message: error.message });
             handleError(error, res);
         }
     }

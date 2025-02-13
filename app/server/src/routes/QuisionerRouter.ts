@@ -9,6 +9,7 @@ const quisionerController = new QuisionerController(quisionerService);
 
 export const quisionerRouter = express.Router();
 
+// Quisioner
 quisionerRouter.get('/', AuthorizationMiddleware([]), (req: Request, res: Response) => {
     quisionerController.getAllQuisioners(req, res);
 })
@@ -16,6 +17,14 @@ quisionerRouter.get('/', AuthorizationMiddleware([]), (req: Request, res: Respon
 quisionerRouter.get('/:quisionerId', AuthorizationMiddleware([]), (req: Request, res: Response) => {
     quisionerController.getQuisionerById(req, res);
 })
+
+quisionerRouter.get('/stratifications/:stratification', AuthorizationMiddleware([]), (req: Request, res: Response) => {
+    quisionerController.getQuisionerByStratifications(req, res);
+})
+
+quisionerRouter.get('/institutions/all', AuthorizationMiddleware([]), (req: Request, res: Response) => {
+    quisionerController.getQuisionerByStratificationsBelongToSchool(req, res);
+});
 
 quisionerRouter.post('/', AuthorizationMiddleware(['admin']), (req: Request, res: Response) => {
     quisionerController.createQuisioner(req, res);

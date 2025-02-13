@@ -120,4 +120,19 @@ export class UserController {
             handleError(err, res);
         }
     }
+
+    async getUserRegisterStatistic(req: Request, res: Response) {
+        try {
+            const { startDate, endDate } = req.query;
+            const { stats } = await this.userService.getUserRegisterStatistic();
+
+            res.status(200).json({
+                status: 'Success',
+                message: 'User register statistic retrieved',
+                data: stats
+            })
+        } catch (err: any) {
+            handleError(err, res);
+        }
+    }
 }

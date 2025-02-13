@@ -66,7 +66,7 @@ export class AuthService {
                 email: payload.email,
                 password: newPassword,
                 role_id: payload.roleId,
-                is_verified: false,
+                is_verified: true,
                 institution: {
                     create: {
                         name: payload.name,

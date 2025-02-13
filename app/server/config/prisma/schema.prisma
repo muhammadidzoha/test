@@ -51,17 +51,19 @@ model User {
 }
 
 model Institution {
-  id               Int    @id @default(autoincrement())
-  name             String @db.VarChar(255)
-  address          String @db.Text
-  phone_number     String @db.VarChar(255)
-  email            String @db.VarChar(255)
-  head_name        String @db.VarChar(255)
-  head_nip         String @db.VarChar(255)
-  license_document String @db.VarChar(255)
-  user_id          Int    @unique @db.Int
-  user             User   @relation(fields: [user_id], references: [id])
-  type             Int    @db.Int
+  id           Int    @id @default(autoincrement())
+  name         String @db.VarChar(255)
+  address      String @db.Text
+  phone_number String @db.VarChar(255)
+  email        String @db.VarChar(255)
+
+  head_name        String? @db.VarChar(255)
+  head_nip         String? @db.VarChar(255)
+  license_document String? @db.VarChar(255)
+
+  user_id Int  @unique @db.Int
+  user    User @relation(fields: [user_id], references: [id])
+  type    Int  @db.Int
 
   family_member            FamilyMember[]
   institution_type         InstitutionType         @relation(fields: [type], references: [id])
