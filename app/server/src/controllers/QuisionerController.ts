@@ -363,4 +363,17 @@ export class QuisionerController {
             handleError(err, res);
         }
     }
+
+    async getQuisionerByStratificationsBelongToParent(req: Request, res: Response) {
+        try {
+            const { quisioners } = await this.quisionerService.getQuisionerBelongsToParent();
+            res.status(200).json({
+                status: 'Success',
+                message: 'Quisioners fetched successfully',
+                data: quisioners
+            })
+        } catch (err: any) {
+            handleError(err, res);
+        }
+    }
 }

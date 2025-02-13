@@ -26,6 +26,10 @@ quisionerRouter.get('/institutions/all', AuthorizationMiddleware([]), (req: Requ
     quisionerController.getQuisionerByStratificationsBelongToSchool(req, res);
 });
 
+quisionerRouter.get('/parents/all', AuthorizationMiddleware([]), (req: Request, res: Response) => {
+    quisionerController.getQuisionerByStratificationsBelongToParent(req, res);
+});
+
 quisionerRouter.post('/', AuthorizationMiddleware(['admin']), (req: Request, res: Response) => {
     quisionerController.createQuisioner(req, res);
 })

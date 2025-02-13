@@ -101,6 +101,22 @@ export class QuisionerService {
         }
     }
 
+    async getQuisionerBelongsToParent() {
+        const quisioners = await this.prismaClient.quisioner.findMany({
+            where: {
+                for: 'PARENT'
+            },
+            include: {
+                questions: {
+                    include: {
+                        options: true
+                    },
+                }
+            }
+        });
+        return { quisioners }
+    }
+
     async deleteQuisioner(id: number) {
         const { quisioner: isQuisionerExist } = await this.getQuisionerById(id);
         if (!isQuisionerExist) {
