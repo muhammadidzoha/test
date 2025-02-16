@@ -376,4 +376,17 @@ export class QuisionerController {
             handleError(err, res);
         }
     }
+
+    async getAllResponses(req: Request, res: Response) {
+        try {
+            const responses = await this.quisionerService.getAllResponses();
+            res.status(200).json({
+                status: 'Success',
+                message: 'Responses fetched successfully',
+                data: responses
+            })
+        } catch (err: any) {
+            handleError(err, res);
+        }
+    }
 }
