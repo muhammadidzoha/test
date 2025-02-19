@@ -111,6 +111,11 @@ export class QuisionerService {
                     include: {
                         options: true
                     },
+                },
+                response: {
+                  include: {
+                    answers: true
+                  }
                 }
             }
         });
