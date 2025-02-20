@@ -102,17 +102,26 @@ export class QuisionerController {
             }
             const payload = req.body;
             const { booleanValue, textValue, scaleValue, optionId } = payload.answers[0];
+            console.log({answer: payload.answers[0]});
             if (!booleanValue && !textValue && !scaleValue && !optionId) {
                 throw new InvariantError('Answer.value is required');
             }
+            
+            const totalScore = payload.answers?.reduce((acc: number, answer: any) => {
+              if(typeof answer.booleanValue === 'boolean'){
+                return acc + answer.booleanValue ? 1 : 0
+              };
+              return acc + answer.score
+            }, 0) ?? 0;
 
-            const totalScore = payload.answers?.reduce((acc: number, answer: any) => acc + answer.score, 0) ?? 0;
+            
+            
             const { response } = await this.quisionerService.responseQuisioner({
                 response: {
                     familyMemberId: payload.familyMemberId,
                     institutionId: payload.institutionId,
                     quisionerId: +quisionerId,
-                    totalScore: payload.answers?.reduce((acc: number, answer: any) => acc + answer.score, 0) ?? 0
+                    totalScore: totalScore ?? 0
                 },
                 answers: payload.answers.map((answer: IAnswer) => ({
                     questionId: answer.questionId,
@@ -124,7 +133,6 @@ export class QuisionerController {
                 }))
             });
 
-            console.log({ body: req.body });
             res.status(201).json({
                 status: 'Success',
                 message: 'Quisioner response created successfully',
