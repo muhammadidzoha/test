@@ -384,4 +384,19 @@ export class QuisionerController {
             handleError(err, res);
         }
     }
+
+    async getAllResponses(req: Request, res: Response) {
+        try {
+            const { forWho } = req.query;
+            console.log({ forWho });
+            const responses = await this.quisionerService.getAllResponses(forWho as string ?? undefined);
+            res.status(200).json({
+                status: 'Success',
+                message: 'Responses fetched successfully',
+                data: responses
+            })
+        } catch (err: any) {
+            handleError(err, res);
+        }
+    }
 }

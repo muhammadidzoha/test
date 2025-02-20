@@ -1,5 +1,7 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, QUESTIONTYPE } from "@prisma/client";
 import bcrypt from 'bcrypt';
+import { seedQuisionerQuestions } from "./Seed";
+import { schoolQuisionerQuestions } from "./Seed/SchoolQuisioner";
 
 export class SeedService {
     constructor(public prismaClient: PrismaClient) {
@@ -14,7 +16,8 @@ export class SeedService {
         await this.seedKIEtype(),
         await this.seedFacilityType(),
         await this.seedCategoryStratification(),
-        await this.seedJobType()
+        await this.seedJobType(),
+        await this.seedQuisioners()
         ])
     }
 
@@ -250,5 +253,98 @@ export class SeedService {
         }
 
         console.log('Job Type Seeded');
+    }
+
+    async seedQuisioners() {
+        await Promise.all([this.seedParentQuisioner(), this.seedSchoolQuisioner()]);
+    }
+
+    async seedParentQuisioner() {
+        for (const quisionerData of seedQuisionerQuestions) {
+            const existingQuisioner = await this.prismaClient.quisioner.findFirst({
+                where: { title: quisionerData.title }
+            });
+
+            if (!existingQuisioner) {
+                await this.prismaClient.$transaction(async (tx) => {
+                    const newQuisioner = await tx.quisioner.create({
+                        data: {
+                            title: quisionerData.title,
+                            description: quisionerData.description,
+                            for: quisionerData.for,
+                        }
+                    });
+
+                    for (const questionData of quisionerData.questions) {
+                        const newQuestion = await tx.question.create({
+                            data: {
+                                quisioner_id: newQuisioner.id,
+                                question: questionData.question,
+                                type: questionData.type as QUESTIONTYPE,
+                                is_required: questionData.isRequired
+                            }
+                        });
+
+                        if (questionData.options) {
+                            await tx.option.createMany({
+                                data: questionData.options.map(option => ({
+                                    question_id: newQuestion.id,
+                                    title: option.title,
+                                    score: option.score
+                                }))
+                            });
+                        }
+                    }
+                });
+                console.log(`Quisioner "${quisionerData.title}" has been seeded.`);
+            }
+        }
+
+        console.log('Parent Quisioner Seeded');
+    }
+
+    async seedSchoolQuisioner() {
+        for (const quisionerData of schoolQuisionerQuestions) {
+            const existingQuisioner = await this.prismaClient.quisioner.findFirst({
+                where: { stratification: quisionerData.stratification }
+            });
+
+            if (!existingQuisioner) {
+                await this.prismaClient.$transaction(async (tx) => {
+                    const newQuisioner = await tx.quisioner.create({
+                        data: {
+                            title: quisionerData.title,
+                            description: quisionerData.description,
+                            for: quisionerData.for,
+                            stratification: quisionerData.stratification
+                        }
+                    });
+
+                    for (const questionData of quisionerData.questions) {
+                        const newQuestion = await tx.question.create({
+                            data: {
+                                quisioner_id: newQuisioner.id,
+                                question: questionData.question,
+                                type: questionData.type as QUESTIONTYPE,
+                                is_required: questionData.isRequired
+                            }
+                        });
+
+                        if (questionData.options) {
+                            await tx.option.createMany({
+                                data: questionData.options.map(option => ({
+                                    question_id: newQuestion.id,
+                                    title: option.title,
+                                    score: option.score
+                                }))
+                            });
+                        }
+                    }
+                });
+                console.log(`Quisioner "${quisionerData.title}" has been seeded.`);
+            }
+        }
+        console.log('School Quisioner Seeded');
+
     }
 }

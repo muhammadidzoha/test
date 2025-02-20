@@ -43,7 +43,7 @@ quisionerRouter.delete('/:quisionerId', AuthorizationMiddleware(['admin']), (req
 })
 
 
-// Answers
+// Responses / Answers
 quisionerRouter.post('/:quisionerId/responses', AuthorizationMiddleware([]), (req: Request, res: Response) => {
     quisionerController.responseQuisioner(req, res);
 });
@@ -58,6 +58,10 @@ quisionerRouter.get('/responses/institutions/:institutionId', AuthorizationMiddl
 
 quisionerRouter.get('/responses/families/:familyMemberId', AuthorizationMiddleware([]), (req: Request, res: Response) => {
     quisionerController.getResponseByFamilyId(req, res);
+});
+
+quisionerRouter.get('/answers/all', AuthorizationMiddleware([]), (req: Request, res: Response) => {
+    quisionerController.getAllResponses(req, res);
 });
 
 // Question

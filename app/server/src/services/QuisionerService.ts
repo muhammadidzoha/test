@@ -180,11 +180,23 @@ export class QuisionerService {
                     include: {
                         answers: true
                     }
-                }
+                },
+            },
+        });
+
+        const quisionerCount = await this.prismaClient.quisioner.count({
+            where: {
+                ...(forWho && {
+                    for: forWho
+                })
             }
         });
 
-        return { quisioners }
+
+        return {
+            quisioners,
+            count: quisionerCount
+        }
     }
 
     async responseQuisioner(responsePayload: IResponsePayload) {
@@ -554,5 +566,30 @@ export class QuisionerService {
         });
 
         return { question }
+    }
+
+    async getAllResponses(forWho: string) {
+        const responses = await this.prismaClient.response.findMany({
+            ...(forWho && ({
+                where: {
+                    quisioner: {
+                        for: forWho
+                    }
+                }
+            })),
+        });
+        const responseCount = await this.prismaClient.response.count({
+            ...(forWho && ({
+                where: {
+                    quisioner: {
+                        for: forWho
+                    }
+                }
+            })),
+        });
+        return {
+            responses,
+            count: responseCount
+        }
     }
 }
