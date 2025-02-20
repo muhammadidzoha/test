@@ -379,7 +379,9 @@ export class QuisionerController {
 
     async getAllResponses(req: Request, res: Response) {
         try {
-            const responses = await this.quisionerService.getAllResponses();
+            const { forWho } = req.query;
+            console.log({ forWho });
+            const responses = await this.quisionerService.getAllResponses(forWho as string ?? undefined);
             res.status(200).json({
                 status: 'Success',
                 message: 'Responses fetched successfully',
