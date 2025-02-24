@@ -16,6 +16,7 @@ import { uksRouter } from './routes/UKSRouter';
 import { kieRouter } from './routes/KIERouter';
 import { interventionRouter } from './routes/InterventionRouter';
 import { quisionerRouter } from './routes/QuisionerRouter';
+import { institutionRouter } from './routes/InstitutionRouter';
 
 // Middleware
 
@@ -31,7 +32,7 @@ const init = async () => {
     app.use('/public', express.static('uploads'))
 
     app.use('/auth', authRouter);
-    app.use('/institutions/schools', schoolRouter)
+    app.use('/institutions', institutionRouter)
     app.use('/families', familyRouter)
     app.use('/users', userRouter)
     app.use('/members', memberRouter)
