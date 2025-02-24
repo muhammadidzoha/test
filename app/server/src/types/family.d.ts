@@ -58,6 +58,7 @@ export interface IFamilyMember {
     class: string?;
     kkNumber: string?;
     description: string?;
+    className: string?;
 }
 
 

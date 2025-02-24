@@ -76,6 +76,7 @@ model Institution {
   request_intervention     RequestIntervention[]
   intervention             Intervention[]
   responses                Response[]
+  students Student[]
 
   @@map("institutions")
 }
@@ -263,6 +264,7 @@ model FamilyMember {
   institution_id         Int?      @db.Int
   phone_number           String?   @db.VarChar(255)
   class                  String?   @db.VarChar(255)
+  class_name String? @db.VarChar(255)
 
   institution Institution? @relation(fields: [institution_id], references: [id])
 
@@ -274,7 +276,8 @@ model FamilyMember {
   behaviour            Behaviour?
   request_intervention RequestIntervention[]
   responses            Response[]
-
+  student Student?
+  
   @@unique([phone_number])
   @@map("family_members")
 }
@@ -679,4 +682,18 @@ model Answer {
 
   @@unique([question_id, response_id])
   @@map("answers")
+}
+
+model Student {
+  id Int @id @db.Int @default(autoincrement())
+  school_id Int @db.Int
+  class String @db.VarChar(255)
+  class_name String @db.VarChar(255)
+  family_member_id Int @unique()
+
+  institution Institution @relation(fields: [school_id], references: [id])
+  family_member FamilyMember @relation(fields: [family_member_id], references: [id])
+
+
+  @@map("students")
 }

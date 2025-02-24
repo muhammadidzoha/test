@@ -124,6 +124,11 @@ export const addMemberSchemaV2 = joi.object({
         then: joi.string().required(),
         otherwise: joi.string()
     }),
+    className: joi.when("relation", {
+        is: 'ANAK',
+        then: joi.string().required(),
+        otherwise: joi.string()
+    }),
     kkNumber: joi.string()
 })
 
