@@ -435,4 +435,21 @@ export class SchoolController {
             handleError(err, res);
         }
     }
+
+    async getStudentsBelongToSchool(req: Request, res: Response) {
+        try{
+            const { schoolId } = req.params;
+            if(!schoolId){
+                throw new InvariantError('schoolId is required in params');
+            }
+            const { students } = await this.schoolService.getStudentsBelongToSchool(+schoolId);
+            res.status(200).json({
+                status: 'Success',
+                message: 'Students Retrieved',
+                data: students
+            })
+        }catch(err: any){
+            handleError(err, res);
+        }
+    }
 };

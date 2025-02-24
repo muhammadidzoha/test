@@ -474,6 +474,7 @@ export class FamilyService {
             class: familyMember.class!,
             class_name: familyMember.className!,
             school_id: familyMember.institutionId!,
+            family_member_id: newMember.id,
           },
         });
       }

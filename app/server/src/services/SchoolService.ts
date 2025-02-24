@@ -15,6 +15,7 @@ import {
   categorizeServiceScore,
 } from "../common/utils/CalculateServiceScore";
 import { IInstitution } from "../types/auth";
+import { payloadCheckMiddleware } from "../middlewares/PayloadCheckMiddleware";
 
 export class SchoolService {
   constructor(
@@ -856,5 +857,28 @@ export class SchoolService {
     return {
       stratify,
     };
+  }
+
+  async getStudentsBelongToSchool(schoolId: number) {
+    const students = await this.prismaClient.student.findMany({
+      where: {
+        institution: {
+          id: schoolId,
+          institution_type: {
+            id: 2,
+          },
+        },
+      },
+      include: {
+        family_member: {
+          include: {
+            nutrition: true,
+            behaviour: true,
+          },
+        },
+      },
+    });
+
+    return { students };
   }
 }
