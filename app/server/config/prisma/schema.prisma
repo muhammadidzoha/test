@@ -46,6 +46,7 @@ model User {
   nutrition            Nutrition[]
   approval             UKSActivityApproval[]
   request_intervention RequestIntervention[]
+  teacher Teacher?
 
   @@map("users")
 }
@@ -77,6 +78,10 @@ model Institution {
   intervention             Intervention[]
   responses                Response[]
   students Student[]
+  classes Class[]
+  teachers Teacher[]
+  class_histories ClassHistory[]
+  teacher_histories TeacherHistory[]
 
   @@map("institutions")
 }
@@ -687,13 +692,80 @@ model Answer {
 model Student {
   id Int @id @db.Int @default(autoincrement())
   school_id Int @db.Int
-  class String @db.VarChar(255)
-  class_name String @db.VarChar(255)
   family_member_id Int @unique()
+  full_name String @db.VarChar(255)
+  birth_date DateTime 
+  gender GENDER
 
-  institution Institution @relation(fields: [school_id], references: [id])
+  institution Institution @relation(fields: [school_id], references: [id], onDelete: Cascade)
   family_member FamilyMember @relation(fields: [family_member_id], references: [id])
-
+  class_histories ClassHistory[]
 
   @@map("students")
+}
+
+model Class {
+  id Int @db.Int @id @default(autoincrement())
+  class_category_id Int @db.Int
+  class String @db.VarChar(55)
+  school_id Int @db.Int
+
+  category ClassCategory @relation(fields: [class_category_id], references: [id])
+  institution Institution @relation(fields: [school_id], references: [id], onDelete: Cascade)
+  class_histories ClassHistory[]
+  teacher_histories TeacherHistory[]
+
+  @@unique([class, class_category_id])
+  @@map("classes")
+}
+
+model ClassCategory {
+  id Int @db.Int @id @default(autoincrement())
+  category String @db.VarChar(55)
+
+  class Class[]
+  @@map("class_categories")
+}
+
+model Teacher {
+  id Int @db.Int @id @default(autoincrement())
+  name String @db.VarChar(255)
+  user_id Int @db.Int @unique()
+  school_id Int @db.Int
+
+  institution Institution @relation(fields: [school_id], references: [id], onDelete: Cascade)
+  user User @relation(fields: [user_id], references: [id])
+  teacher_histories TeacherHistory[]
+
+  @@map("teachers")
+}
+
+model ClassHistory {
+  id Int @id  @db.Int @default(autoincrement())
+  school_id Int @db.Int
+  student_id Int @db.Int
+  class_id Int @db.Int
+  school_year String @db.VarChar(255)
+
+  student Student @relation(fields: [student_id], references: [id], onDelete: Cascade)
+  institution Institution @relation(fields: [school_id], references: [id], onDelete: Cascade)
+  class Class @relation(fields: [class_id], references: [id], onDelete: Cascade)
+  
+  @@unique([student_id, school_year])
+  @@map("class_histories")
+}
+
+model TeacherHistory {
+  id Int @db.Int @default(autoincrement()) @id
+  school_id Int @db.Int
+  teacher_id Int @db.Int
+  class_id Int @db.Int
+  school_year String @db.VarChar(255)
+
+  institution Institution @relation(fields: [school_id], references: [id], onDelete: Cascade)
+  teacher Teacher @relation(fields: [teacher_id], references: [id], onDelete: Cascade)
+  class Class @relation(fields: [class_id], references: [id], onDelete: Cascade)
+
+  @@unique([class_id, school_year])
+  @@map("teacher_histories")
 }
