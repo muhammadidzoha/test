@@ -1,5 +1,12 @@
 import { PrismaClient } from "@prisma/client";
+import { InvariantError, NotFoundError } from "../common/exception";
 import {
+  calculateServiceScore,
+  categorizeServiceScore,
+} from "../common/utils/CalculateServiceScore";
+import { IInstitution } from "../types/auth";
+import {
+  ICreateClass,
   IFacility,
   IHealthCare,
   IHealthCareMember,
@@ -8,14 +15,7 @@ import {
   ISchoolEnvironment,
   IUKSQuisioner,
 } from "../types/school";
-import { InvariantError, NotFoundError } from "../common/exception";
 import { AuthService } from "./AuthService";
-import {
-  calculateServiceScore,
-  categorizeServiceScore,
-} from "../common/utils/CalculateServiceScore";
-import { IInstitution } from "../types/auth";
-import { payloadCheckMiddleware } from "../middlewares/PayloadCheckMiddleware";
 
 export class SchoolService {
   constructor(
@@ -880,5 +880,49 @@ export class SchoolService {
     });
 
     return { students };
+  }
+
+  async createClass(payload: ICreateClass) {
+    const createdClass = await this.prismaClient.class.create({
+      data: {
+        class: payload.class,
+        school_id: payload.schoolId,
+        class_category_on_class: {
+          create: payload.categories.map((category) => ({
+            class_category: {
+              create: {
+                category: category.toUpperCase(),
+              },
+            },
+          })),
+        },
+      },
+    });
+
+    return { createdClass };
+  }
+
+  async addCategoryToClass(
+    classId: number,
+    { categories }: Pick<ICreateClass, "categories">
+  ) {
+    const craetedCategory = await this.prismaClient.class.update({
+      where: {
+        id: classId,
+      },
+      data: {
+        class_category_on_class: {
+          create: categories.map((category) => ({
+            class_category: {
+              create: {
+                category,
+              },
+            },
+          })),
+        },
+      },
+    });
+
+    return { craetedCategory };
   }
 }

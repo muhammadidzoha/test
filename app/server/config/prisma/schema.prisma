@@ -78,10 +78,10 @@ model Institution {
   intervention             Intervention[]
   responses                Response[]
   students Student[]
-  classes Class[]
   teachers Teacher[]
   class_histories StudentClassHistory[]
   teacher_histories TeacherHistory[]
+  class_categories ClassCategoryOnClass[]
 
   @@map("institutions")
 }
@@ -704,35 +704,35 @@ model Student {
 
 model Class {
   id Int @db.Int @id @default(autoincrement())
-  class String @db.VarChar(55)
-  school_id Int @db.Int
+  class String @db.VarChar(55) @unique()
 
-  institution Institution @relation(fields: [school_id], references: [id], onDelete: Cascade)
   teacher_histories TeacherHistory[]
   class_category_on_class ClassCategoryOnClass[]
 
-  @@unique([class, school_id])
   @@map("classes")
 }
 
 model ClassCategory {
   id Int @db.Int @id @default(autoincrement())
-  category String @db.VarChar(55)
-
+  category String @db.VarChar(55) @unique()
 
   class_category_on_class ClassCategoryOnClass[]
+
   @@map("class_categories")
 }
 
 model ClassCategoryOnClass {
   id Int @db.Int @default(autoincrement()) @id
-  class_id Int @db.Int @unique()
-  class_category_id Int @db.Int @unique()
+  class_id Int @db.Int
+  class_category_id Int @db.Int
+  school_id Int @db.Int
 
   class Class @relation(fields: [class_id], references: [id])
   class_category ClassCategory @relation(fields: [class_category_id], references: [id])
   student_class_histories StudentClassHistory[]
+  institution Institution @relation(fields: [school_id], references: [id])
 
+  @@unique([class_id, class_category_id, school_id])
   @@map("class_category_on_class")
 }
 
