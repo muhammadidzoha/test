@@ -80,7 +80,7 @@ model Institution {
   students Student[]
   classes Class[]
   teachers Teacher[]
-  class_histories ClassHistory[]
+  class_histories StudentClassHistory[]
   teacher_histories TeacherHistory[]
 
   @@map("institutions")
@@ -268,8 +268,6 @@ model FamilyMember {
   family_id              Int       @db.Int
   institution_id         Int?      @db.Int
   phone_number           String?   @db.VarChar(255)
-  class                  String?   @db.VarChar(255)
-  class_name String? @db.VarChar(255)
 
   institution Institution? @relation(fields: [institution_id], references: [id])
 
@@ -699,23 +697,21 @@ model Student {
 
   institution Institution @relation(fields: [school_id], references: [id], onDelete: Cascade)
   family_member FamilyMember @relation(fields: [family_member_id], references: [id])
-  class_histories ClassHistory[]
+  class_histories StudentClassHistory[]
 
   @@map("students")
 }
 
 model Class {
   id Int @db.Int @id @default(autoincrement())
-  class_category_id Int @db.Int
   class String @db.VarChar(55)
   school_id Int @db.Int
 
-  category ClassCategory @relation(fields: [class_category_id], references: [id])
   institution Institution @relation(fields: [school_id], references: [id], onDelete: Cascade)
-  class_histories ClassHistory[]
   teacher_histories TeacherHistory[]
+  class_category_on_class ClassCategoryOnClass[]
 
-  @@unique([class, class_category_id])
+  @@unique([class, school_id])
   @@map("classes")
 }
 
@@ -723,8 +719,21 @@ model ClassCategory {
   id Int @db.Int @id @default(autoincrement())
   category String @db.VarChar(55)
 
-  class Class[]
+
+  class_category_on_class ClassCategoryOnClass[]
   @@map("class_categories")
+}
+
+model ClassCategoryOnClass {
+  id Int @db.Int @default(autoincrement()) @id
+  class_id Int @db.Int @unique()
+  class_category_id Int @db.Int @unique()
+
+  class Class @relation(fields: [class_id], references: [id])
+  class_category ClassCategory @relation(fields: [class_category_id], references: [id])
+  student_class_histories StudentClassHistory[]
+
+  @@map("class_category_on_class")
 }
 
 model Teacher {
@@ -740,19 +749,20 @@ model Teacher {
   @@map("teachers")
 }
 
-model ClassHistory {
+model StudentClassHistory {
   id Int @id  @db.Int @default(autoincrement())
   school_id Int @db.Int
   student_id Int @db.Int
-  class_id Int @db.Int
+  class_category_on_class_id Int @db.Int
   school_year String @db.VarChar(255)
+  semester String @db.VarChar(55)
 
   student Student @relation(fields: [student_id], references: [id], onDelete: Cascade)
   institution Institution @relation(fields: [school_id], references: [id], onDelete: Cascade)
-  class Class @relation(fields: [class_id], references: [id], onDelete: Cascade)
+  class_category_on_class ClassCategoryOnClass @relation(fields: [class_category_on_class_id], references: [id])
   
-  @@unique([student_id, school_year])
-  @@map("class_histories")
+  @@unique([student_id, school_year, semester])
+  @@map("student_class_histories")
 }
 
 model TeacherHistory {

@@ -398,7 +398,6 @@ export class FamilyService {
           education: familyMember.education,
           gender: familyMember.gender,
           relation: familyMember.relation,
-          class: familyMember.class,
           phone_number: familyMember.phoneNumber,
           job: {
             create: {
@@ -469,12 +468,23 @@ export class FamilyService {
         },
       });
       if (familyMember.relation === "ANAK") {
-        await trx.student.create({
+        const student = await trx.student.create({
           data: {
-            class: familyMember.class!,
-            class_name: familyMember.className!,
             school_id: familyMember.institutionId!,
             family_member_id: newMember.id,
+            full_name: familyMember.fullName,
+            birth_date: familyMember.birthDate,
+            gender: familyMember.gender,
+          },
+        });
+        const schoolYear = new Date().getFullYear();
+        const studentClass = await trx.studentClassHistory.create({
+          data: {
+            school_year: `${schoolYear}/${schoolYear + 1}`,
+            semester: `${familyMember.semester ?? '1'}` ,
+            school_id: familyMember.institutionId!,
+            student_id: student.id,
+            class_category_on_class_id: familyMember.class_id!,
           },
         });
       }
@@ -622,7 +632,6 @@ export class FamilyService {
                 education: member.education,
                 gender: member.gender,
                 relation: member.relation,
-                class: member.class,
                 phone_number: member.phoneNumber,
                 family: {
                   connect: {
