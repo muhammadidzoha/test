@@ -158,7 +158,7 @@ export const addMemberSchemaV2 = joi.object({
   }),
   semester: joi.when("relation", {
     is: "ANAK",
-    then: joi.valid([1, 2]).required(),
+    then: joi.valid(1, 2).required(),
     otherwise: joi.number(),
   }),
   kkNumber: joi.string(),

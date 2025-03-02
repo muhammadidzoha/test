@@ -16,6 +16,8 @@ import {
   CreateHealthCareSchema,
 } from "../common/http/requestvalidator/HealhCareValidator";
 import {
+  createCategorySchema,
+  createClassSchema,
   createFacilitySchema,
   createSchoolSchema,
   createUKSQuisionerSchema,
@@ -532,10 +534,95 @@ export class SchoolController {
 
   async createClass(req: Request, res: Response) {
     try {
-      const { schoolId } = req.params;
-      if (!schoolId) {
-        throw new InvariantError("School Id is required in params");
-      }
+      validatePayload(createClassSchema, req.body);
+      const { classNumbers }: { classNumbers: string[] } = req.body;
+      const { createdClass } = await this.schoolService.createClass(
+        classNumbers
+      );
+
+      res.status(201).json({
+        status: "Success",
+        message: "Class Created",
+        data: createdClass,
+      });
+    } catch (err: any) {
+      handleError(err, res);
+    }
+  }
+
+  async getClasses(req: Request, res: Response) {
+    try {
+      const { classes } = await this.schoolService.getClasses();
+      res.status(200).json({
+        status: "Success",
+        message: "Classes Retrieved",
+        data: classes,
+      });
+    } catch (err: any) {
+      handleError(err, res);
+    }
+  }
+
+  async deleteClassById(req: Request, res: Response) {
+    try {
+      const { classId } = req.params;
+      const { deletedClass } = await this.schoolService.deleteClassById(
+        +classId
+      );
+      res.status(200).json({
+        status: "Success",
+        message: "Class Deleted",
+        data: deletedClass,
+      });
+    } catch (err: any) {
+      handleError(err, res);
+    }
+  }
+
+  async createCategories(req: Request, res: Response) {
+    try {
+      validatePayload(createCategorySchema, req.body);
+      const { classCategories } = req.body;
+      const { createdCategory } = await this.schoolService.createCategories(
+        classCategories
+      );
+
+      res.status(201).json({
+        status: "Success",
+        message: "Categories Created",
+        data: createdCategory,
+      });
+    } catch (err: any) {
+      handleError(err, res);
+    }
+  }
+
+  async getCategories(req: Request, res: Response) {
+    try {
+      const { categories } = await this.schoolService.getCategories();
+
+      res.status(201).json({
+        status: "Success",
+        message: "Categories Created",
+        data: categories,
+      });
+    } catch (err: any) {
+      handleError(err, res);
+    }
+  }
+
+  async deleteCategoryById(req: Request, res: Response) {
+    try {
+      const { categoryId } = req.params;
+      const { deletedCategory } = await this.schoolService.deleteCategoryById(
+        +categoryId
+      );
+
+      res.status(201).json({
+        status: "Success",
+        message: "Categories Created",
+        data: deletedCategory,
+      });
     } catch (err: any) {
       handleError(err, res);
     }

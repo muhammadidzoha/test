@@ -1,21 +1,31 @@
 export interface RegisterPayloadType {
-    username: string, email: string, password: string, roleId: number, isVerified: boolean
+  username: string;
+  email: string;
+  password: string;
+  roleId: number;
+  isVerified: boolean;
 }
 
 export interface IInstitution {
-    name: string;
-    address: string;
-    phoneNumber: string;
-    email: string;
-    headName?: string
-    headNIP?: string;
-    licenseDocument?: string;
+  name: string;
+  address: string;
+  phoneNumber: string;
+  email: string;
+  headName?: string;
+  headNIP?: string;
+  licenseDocument?: string;
 }
 
 export interface IPayloadToken {
-    id: userOnDatabase.id,
-    username: userOnDatabase.username,
-    role: 'admin' | 'school' | 'parent' | 'healthcare'
+  id: userOnDatabase.id;
+  username: userOnDatabase.username;
+  role: "admin" | "school" | "parent" | "healthcare";
 }
 
-export type Role = 'admin' | 'school' | 'parent' | 'healthcare' | 'uks'
+export type Role =
+  | "admin"
+  | "school"
+  | "parent"
+  | "healthcare"
+  | "uks"
+  | "teacher";

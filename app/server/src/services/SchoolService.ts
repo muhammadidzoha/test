@@ -882,16 +882,20 @@ export class SchoolService {
     return { students };
   }
 
-  async createClass(payload: ICreateClass) {
+  async createClassWithCategories(payload: ICreateClass) {
     const createdClass = await this.prismaClient.class.create({
       data: {
         class: payload.class,
-        school_id: payload.schoolId,
         class_category_on_class: {
           create: payload.categories.map((category) => ({
             class_category: {
               create: {
                 category: category.toUpperCase(),
+              },
+            },
+            institution: {
+              connect: {
+                id: payload.schoolId,
               },
             },
           })),
@@ -902,27 +906,113 @@ export class SchoolService {
     return { createdClass };
   }
 
-  async addCategoryToClass(
-    classId: number,
-    { categories }: Pick<ICreateClass, "categories">
-  ) {
-    const craetedCategory = await this.prismaClient.class.update({
+  async createClass(classNumbers: string[]) {
+    await this.checkClassOnDB(classNumbers);
+    const createdClass = await this.prismaClient.class.createMany({
+      data: classNumbers.map((classNumber) => {
+        return {
+          class: classNumber,
+        };
+      }),
+    });
+
+    return { createdClass };
+  }
+
+  async checkClassOnDB(classesToCheck: string[]) {
+    for (const classNumber of classesToCheck) {
+      const isClassExists = await this.isClassExists(classNumber);
+      if (isClassExists) {
+        throw new InvariantError(
+          `class ${classNumber} already exists on database`
+        );
+      }
+    }
+  }
+
+  async isClassExists(classNumber: string) {
+    return !!(await this.prismaClient.class.findFirst({
+      where: {
+        class: classNumber,
+      },
+    }));
+  }
+
+  async getClasses() {
+    const classes = await this.prismaClient.class.findMany({});
+    return { classes };
+  }
+
+  async deleteClassById(classId: number) {
+    const deletedClass = await this.prismaClient.class.delete({
       where: {
         id: classId,
       },
-      data: {
-        class_category_on_class: {
-          create: categories.map((category) => ({
-            class_category: {
-              create: {
-                category,
-              },
-            },
-          })),
-        },
+    });
+
+    return { deletedClass };
+  }
+
+  async createCategories(categories: string[]) {
+    await this.checkCategoriesOnDB(categories);
+
+    const createdCategory = await this.prismaClient.classCategory.createMany({
+      data: categories.map((category) => ({
+        category: category.toUpperCase(),
+      })),
+    });
+
+    return { createdCategory };
+  }
+
+  async checkCategoriesOnDB(categoriesToCheck: string[]) {
+    for (const classCategory of categoriesToCheck) {
+      const isClassExists = await this.isCategoryExist(classCategory);
+      if (isClassExists) {
+        throw new InvariantError(
+          `class ${classCategory} already exists on database`
+        );
+      }
+    }
+  }
+
+  async isCategoryExist(classCategory: string) {
+    return !!(await this.prismaClient.class.findFirst({
+      where: {
+        class: classCategory,
+      },
+    }));
+  }
+
+  async getCategories() {
+    const categories = await this.prismaClient.classCategory.findMany({});
+    return { categories };
+  }
+
+  async deleteCategoryById(categoryId: number) {
+    const deletedCategory = await this.prismaClient.classCategory.delete({
+      where: {
+        id: categoryId,
       },
     });
 
-    return { craetedCategory };
+    return { deletedCategory };
+  }
+
+  async createCategoryOnClass(payload: {
+    classId: number;
+    schoolId: number;
+    categoryId: number;
+  }) {
+    const createdCategoryOnClass =
+      await this.prismaClient.classCategoryOnClass.create({
+        data: {
+          class_id: payload.classId,
+          class_category_id: payload.categoryId,
+          school_id: payload.schoolId,
+        },
+      });
+
+    return { createdCategoryOnClass };
   }
 }

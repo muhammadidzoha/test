@@ -1,4 +1,4 @@
-import express from "express";
+import express, { Request, Response } from "express";
 import { AuthorizationMiddleware } from "../middlewares/AuthorizationMiddleware";
 import { SchoolService } from "../services";
 import { prismaDBClient } from "../../config/prisma";
@@ -36,6 +36,56 @@ schoolRouter.get(
 schoolRouter.put("/:schoolId", AuthorizationMiddleware([]), (req, res) => {
   schoolController.updateSchool(req, res);
 });
+
+// CLASSES
+schoolRouter.post(
+  "/classes/",
+  AuthorizationMiddleware(["admin", "school", "teacher"]),
+  (req: Request, res: Response) => {
+    schoolController.createClass(req, res);
+  }
+);
+
+schoolRouter.get(
+  "/classes/all",
+  AuthorizationMiddleware([]),
+  (req: Request, res: Response) => {
+    schoolController.getClasses(req, res);
+  }
+);
+
+schoolRouter.delete(
+  "/classes/:classId",
+  AuthorizationMiddleware(["admin"]),
+  (req: Request, res: Response) => {
+    schoolController.deleteClassById(req, res);
+  }
+);
+
+// Class Categories
+schoolRouter.post(
+  "/categories",
+  AuthorizationMiddleware(["admin", "teacher", "school"]),
+  (req: Request, res: Response) => {
+    schoolController.createCategories(req, res);
+  }
+);
+
+schoolRouter.get(
+  "/categories/all",
+  AuthorizationMiddleware([]),
+  (req: Request, res: Response) => {
+    schoolController.getCategories(req, res);
+  }
+);
+
+schoolRouter.delete(
+  "/categories/:categoryId",
+  AuthorizationMiddleware(["admin"]),
+  (req: Request, res: Response) => {
+    schoolController.deleteCategoryById(req, res);
+  }
+);
 
 // Health Education
 
