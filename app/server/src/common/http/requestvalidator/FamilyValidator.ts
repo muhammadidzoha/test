@@ -151,17 +151,18 @@ export const addMemberSchemaV2 = joi.object({
     then: joi.string().required(),
     otherwise: joi.string(),
   }),
-  class_id: joi.when("relation", {
+  classId: joi.when("relation", {
     is: "ANAK",
     then: joi.number().required(),
     otherwise: joi.number(),
   }),
   semester: joi.when("relation", {
     is: "ANAK",
-    then: joi.valid(1, 2).required(),
+    then: joi.valid("1", "2").required(),
     otherwise: joi.number(),
   }),
   kkNumber: joi.string(),
+  schoolYear: joi.string(),
 });
 
 export const addMemberSchemaV3 = joi.object({

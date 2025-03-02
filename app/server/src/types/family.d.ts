@@ -56,8 +56,9 @@ export interface IFamilyMember {
   phoneNumber: string?;
   kkNumber: string?;
   description: string?;
-  class_id: number?;
-  semester: number?;
+  classId: number?;
+  semester: string?;
+  schoolYear: string?;
 }
 
 export interface IMember {

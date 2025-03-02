@@ -468,6 +468,7 @@ export class FamilyService {
         },
       });
       if (familyMember.relation === "ANAK") {
+        const schoolYear = new Date().getFullYear();
         const student = await trx.student.create({
           data: {
             school_id: familyMember.institutionId!,
@@ -477,17 +478,19 @@ export class FamilyService {
             gender: familyMember.gender,
           },
         });
-        const schoolYear = new Date().getFullYear();
-        const studentClass = await trx.studentClassHistory.create({
+        console.log({ student });
+        const studentClassHistory = await trx.studentClassHistory.create({
           data: {
-            school_year: `${schoolYear}/${schoolYear + 1}`,
-            semester: `${familyMember.semester ?? '1'}` ,
+            school_year:
+              familyMember.schoolYear ?? `${schoolYear}/${schoolYear + 1}`,
+            semester: familyMember.semester!,
             school_id: familyMember.institutionId!,
+            class_category_on_class_id: familyMember.classId!,
             student_id: student.id,
-            class_category_on_class_id: familyMember.class_id!,
           },
         });
       }
+
       return newMember;
     });
 

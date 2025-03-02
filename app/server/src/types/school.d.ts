@@ -63,3 +63,11 @@ export interface ICreateClass {
   schoolId: number;
   categories: string[];
 }
+
+export interface IStudentPayload {
+  schoolId: number;
+  studentId: number;
+  categoryOnClassId: number;
+  schoolYear: string?;
+  semester: string;
+}

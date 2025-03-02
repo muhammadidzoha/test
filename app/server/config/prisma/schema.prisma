@@ -758,8 +758,8 @@ model StudentClassHistory {
   semester String @db.VarChar(55)
 
   student Student @relation(fields: [student_id], references: [id], onDelete: Cascade)
-  institution Institution @relation(fields: [school_id], references: [id], onDelete: Cascade)
-  class_category_on_class ClassCategoryOnClass @relation(fields: [class_category_on_class_id], references: [id])
+  institution Institution? @relation(fields: [school_id], references: [id], onDelete: Cascade)
+  class_category_on_class ClassCategoryOnClass? @relation(fields: [class_category_on_class_id], references: [id])
   
   @@unique([student_id, school_year, semester])
   @@map("student_class_histories")

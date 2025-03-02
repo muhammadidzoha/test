@@ -16,6 +16,7 @@ import {
   CreateHealthCareSchema,
 } from "../common/http/requestvalidator/HealhCareValidator";
 import {
+  addStudentSchema,
   connectCategoryOnClassSchema,
   createCategorySchema,
   createClassSchema,
@@ -652,6 +653,48 @@ export class SchoolController {
           classId: +classId,
           categoriesId: classCategoriesId,
         },
+      });
+    } catch (err: any) {
+      handleError(err, res);
+    }
+  }
+
+  async getClassesWithCategoriesBelongToSchool(req: Request, res: Response) {
+    try {
+      const { schoolId } = req.params;
+      if (!schoolId) {
+        throw new InvariantError("classId and schoolId is required in params");
+      }
+      const { classesWithCategories } =
+        await this.schoolService.getClassesWithCategoriesBelongToSchool(
+          +schoolId
+        );
+      res.status(200).json({
+        status: "Success",
+        message: "Class with category retrieved",
+        data: classesWithCategories,
+      });
+    } catch (err: any) {
+      handleError(err, res);
+    }
+  }
+
+  async addStudent(req: Request, res: Response) {
+    try {
+      validatePayload(addStudentSchema, req.body);
+      const { schoolId, studentId } = req.params;
+      if (!schoolId || !studentId) {
+        throw new InvariantError(
+          "schoolId and studentId is required in params"
+        );
+      }
+      const { schoolYear, semester, categoryOnClassId } = req.body;
+      const { student } = await this.schoolService.addStudent({
+        schoolId: +schoolId,
+        semester,
+        schoolYear,
+        categoryOnClassId: categoryOnClassId,
+        studentId: +studentId,
       });
     } catch (err: any) {
       handleError(err, res);

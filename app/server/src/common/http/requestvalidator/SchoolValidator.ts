@@ -37,3 +37,9 @@ export const createCategorySchema = joi.object({
 export const connectCategoryOnClassSchema = joi.object({
   classCategoriesId: joi.array().items(joi.number()).required().min(1),
 });
+
+export const addStudentSchema = joi.object({
+  schoolYear: joi.string(),
+  semester: joi.string().required(),
+  categoryOnClassId: joi.number().required()
+});

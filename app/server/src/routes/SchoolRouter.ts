@@ -87,12 +87,30 @@ schoolRouter.delete(
   }
 );
 
-// Connect Category On Class
+// Category On Class
+
+schoolRouter.get(
+  "/:schoolId/classes-categories",
+  AuthorizationMiddleware(["admin", "parent", "school", "teacher"]),
+  (req: Request, res: Response) => {
+    schoolController.getClassesWithCategoriesBelongToSchool(req, res);
+  }
+);
+
 schoolRouter.post(
   "/:schoolId/classes/:classId/categories",
   AuthorizationMiddleware(["admin", "school", "teacher"]),
   (req: Request, res: Response) => {
     schoolController.connectCategoryToClass(req, res);
+  }
+);
+
+// Student
+schoolRouter.post(
+  "/:schoolId/students/:studentId/classes",
+  AuthorizationMiddleware(["admin", "teacher", "school", "parent"]),
+  (req: Request, res: Response) => {
+    schoolController.addStudent(req, res);
   }
 );
 

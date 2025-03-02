@@ -13,6 +13,7 @@ import {
   IHealthEducation,
   IHealthServicePayload,
   ISchoolEnvironment,
+  IStudentPayload,
   IUKSQuisioner,
 } from "../types/school";
 import { AuthService } from "./AuthService";
@@ -865,7 +866,7 @@ export class SchoolService {
         institution: {
           id: schoolId,
           institution_type: {
-            id: 2,
+            id: 1,
           },
         },
       },
@@ -1015,6 +1016,9 @@ export class SchoolService {
           );
 
         if (!classWithCategories) {
+          for (const categoryId of payload.categoriesId) {
+            await this.checkCategoryExist(categoryId);
+          }
           await trx.classCategoryOnClass.createMany({
             data: payload.categoriesId.map((categoryId) => ({
               school_id: payload.schoolId,
@@ -1029,7 +1033,6 @@ export class SchoolService {
             classWithCategories.class_category_on_class.findIndex(
               (category) => category.class_category.id === categoryId
             );
-          console.log({ existCategoryIndex });
           if (existCategoryIndex !== -1) {
             continue;
           } else {
@@ -1115,5 +1118,37 @@ export class SchoolService {
     if (!category) {
       throw new NotFoundError(`Category with id ${categoryId} is not exists`);
     }
+  }
+
+  async getClassesWithCategoriesBelongToSchool(schoolId: number) {
+    const classesWithCategories =
+      await this.prismaClient.classCategoryOnClass.findMany({
+        where: {
+          school_id: schoolId,
+        },
+        select: {
+          id: true,
+          class: true,
+          class_category: true,
+        },
+      });
+
+    return { classesWithCategories };
+  }
+
+  async addStudent(payload: IStudentPayload) {
+    const student = await this.prismaClient.studentClassHistory.create({
+      data: {
+        school_year: payload.schoolYear ?? new Date().getFullYear().toString(),
+        student_id: payload.studentId,
+        school_id: payload.schoolId,
+        class_category_on_class_id: payload.categoryOnClassId,
+        semester: payload.semester,
+      },
+    });
+
+    return {
+      student,
+    };
   }
 }
