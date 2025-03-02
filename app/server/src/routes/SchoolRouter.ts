@@ -87,6 +87,15 @@ schoolRouter.delete(
   }
 );
 
+// Connect Category On Class
+schoolRouter.post(
+  "/:schoolId/classes/:classId/categories",
+  AuthorizationMiddleware(["admin", "school", "teacher"]),
+  (req: Request, res: Response) => {
+    schoolController.connectCategoryToClass(req, res);
+  }
+);
+
 // Health Education
 
 schoolRouter.put(

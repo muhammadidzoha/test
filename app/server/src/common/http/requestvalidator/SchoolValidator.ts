@@ -33,3 +33,7 @@ export const createClassSchema = joi.object({
 export const createCategorySchema = joi.object({
   classCategories: joi.array().items(joi.string()).required().min(1),
 });
+
+export const connectCategoryOnClassSchema = joi.object({
+  classCategoriesId: joi.array().items(joi.number()).required().min(1),
+});

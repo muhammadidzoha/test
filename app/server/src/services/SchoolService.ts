@@ -1002,17 +1002,118 @@ export class SchoolService {
   async createCategoryOnClass(payload: {
     classId: number;
     schoolId: number;
-    categoryId: number;
+    categoriesId: number[];
   }) {
-    const createdCategoryOnClass =
-      await this.prismaClient.classCategoryOnClass.create({
-        data: {
-          class_id: payload.classId,
-          class_category_id: payload.categoryId,
-          school_id: payload.schoolId,
-        },
-      });
+    await this.checkSchoolExist(payload.schoolId);
+    await this.checkClassExist(payload.classId);
+    const createdCategoryOnClass = await this.prismaClient.$transaction(
+      async (trx) => {
+        const { classWithCategories } =
+          await this.getClassWithCategoriesBelongToSchool(
+            payload.classId,
+            payload.schoolId
+          );
+
+        if (!classWithCategories) {
+          await trx.classCategoryOnClass.createMany({
+            data: payload.categoriesId.map((categoryId) => ({
+              school_id: payload.schoolId,
+              class_id: payload.classId,
+              class_category_id: categoryId,
+            })),
+          });
+          return;
+        }
+        for (const categoryId of payload.categoriesId) {
+          const existCategoryIndex =
+            classWithCategories.class_category_on_class.findIndex(
+              (category) => category.class_category.id === categoryId
+            );
+          console.log({ existCategoryIndex });
+          if (existCategoryIndex !== -1) {
+            continue;
+          } else {
+            await this.checkCategoryExist(categoryId);
+            await trx.classCategoryOnClass.create({
+              data: {
+                school_id: payload.schoolId,
+                class_id: payload.classId,
+                class_category_id: categoryId,
+              },
+            });
+          }
+        }
+      }
+    );
 
     return { createdCategoryOnClass };
+  }
+
+  async checkSchoolExist(schoolId: number) {
+    const { school } = await this.getSchoolById(schoolId);
+    if (!school) {
+      throw new NotFoundError(`School With id ${schoolId} Not Found`);
+    }
+  }
+
+  async checkClassExist(classId: number) {
+    const { className } = await this.getClassById(classId);
+    if (!className) {
+      throw new NotFoundError(`class With id ${classId} Not Found`);
+    }
+  }
+
+  async getClassWithCategoriesBelongToSchool(
+    classId: number,
+    schoolId: number
+  ) {
+    const classWithCategories = await this.prismaClient.class.findUnique({
+      where: {
+        id: classId,
+        class_category_on_class: {
+          some: {
+            school_id: schoolId,
+          },
+        },
+      },
+      select: {
+        class_category_on_class: {
+          select: {
+            class_category: true,
+          },
+        },
+      },
+    });
+
+    return { classWithCategories };
+  }
+
+  async getClassById(classId: number) {
+    const className = await this.prismaClient.class.findUnique({
+      where: {
+        id: classId,
+      },
+    });
+
+    return { className };
+  }
+
+  async getCategoryById(categoryId: number) {
+    const category = await this.prismaClient.classCategory.findUnique({
+      where: {
+        id: categoryId,
+      },
+    });
+
+    return {
+      category,
+    };
+  }
+
+  async checkCategoryExist(categoryId: number) {
+    const { category } = await this.getCategoryById(categoryId);
+    if (!category) {
+      throw new NotFoundError(`Category with id ${categoryId} is not exists`);
+    }
   }
 }

@@ -16,6 +16,7 @@ import {
   CreateHealthCareSchema,
 } from "../common/http/requestvalidator/HealhCareValidator";
 import {
+  connectCategoryOnClassSchema,
   createCategorySchema,
   createClassSchema,
   createFacilitySchema,
@@ -622,6 +623,35 @@ export class SchoolController {
         status: "Success",
         message: "Categories Created",
         data: deletedCategory,
+      });
+    } catch (err: any) {
+      handleError(err, res);
+    }
+  }
+
+  async connectCategoryToClass(req: Request, res: Response) {
+    try {
+      validatePayload(connectCategoryOnClassSchema, req.body);
+      const { schoolId, classId } = req.params;
+      if (!schoolId || !classId) {
+        throw new InvariantError(
+          "School Id, classId and categoryId is needed in params"
+        );
+      }
+      const { classCategoriesId } = req.body;
+      await this.schoolService.createCategoryOnClass({
+        classId: +classId,
+        schoolId: +schoolId,
+        categoriesId: classCategoriesId,
+      });
+
+      res.status(201).json({
+        status: "Success",
+        message: `Category connected to classId ${classId}`,
+        data: {
+          classId: +classId,
+          categoriesId: classCategoriesId,
+        },
       });
     } catch (err: any) {
       handleError(err, res);
