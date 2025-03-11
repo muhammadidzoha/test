@@ -478,7 +478,6 @@ export class FamilyService {
             gender: familyMember.gender,
           },
         });
-        console.log({ student });
         const studentClassHistory = await trx.studentClassHistory.create({
           data: {
             school_year:

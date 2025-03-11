@@ -696,6 +696,12 @@ export class SchoolController {
         categoryOnClassId: categoryOnClassId,
         studentId: +studentId,
       });
+
+      res.status(201).json({
+        status: "Success",
+        message: "student created",
+        data: student,
+      });
     } catch (err: any) {
       handleError(err, res);
     }

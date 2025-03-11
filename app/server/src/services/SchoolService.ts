@@ -873,8 +873,13 @@ export class SchoolService {
       include: {
         family_member: {
           include: {
-            nutrition: true,
+            nutrition: {
+              include: {
+                nutrition_status: true,
+              },
+            },
             behaviour: true,
+            student: true,
           },
         },
       },
@@ -1150,5 +1155,25 @@ export class SchoolService {
     return {
       student,
     };
+  }
+
+  async getStudentById(studentId: number) {
+    const student = await this.prismaClient.student.findUnique({
+      where: {
+        id: studentId,
+      },
+    });
+
+    return { student };
+  }
+
+  async deleteStudentById(studentId: number) {
+    const deletedStudent = await this.prismaClient.student.delete({
+      where: {
+        id: studentId,
+      },
+    });
+
+    return { deletedStudent };
   }
 }

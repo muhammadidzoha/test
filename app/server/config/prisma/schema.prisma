@@ -279,7 +279,7 @@ model FamilyMember {
   behaviour            Behaviour?
   request_intervention RequestIntervention[]
   responses            Response[]
-  student Student?
+  student Student? 
   
   @@unique([phone_number])
   @@map("family_members")
@@ -352,7 +352,7 @@ model Nutrition {
 
   nutrition_status NutritionStatus @relation(fields: [status_id], references: [id])
   user             User            @relation(fields: [created_by], references: [id])
-  family_member    FamilyMember    @relation(fields: [family_member_id], references: [id])
+  family_member    FamilyMember    @relation(fields: [family_member_id], references: [id], onDelete: Cascade)
 
   @@map("nutritions")
 }
@@ -366,7 +366,7 @@ model Behaviour {
   physical_activity Int @db.Int
   phbs              Int @default(0) @db.Int
 
-  family_member FamilyMember @relation(fields: [family_member_id], references: [id])
+  family_member FamilyMember @relation(fields: [family_member_id], references: [id], onDelete: Cascade)
 
   @@map("behaviours")
 }
@@ -573,7 +573,7 @@ model RequestIntervention {
   family_member_id Int      @db.Int
   information      String?  @db.Text
 
-  family_member FamilyMember  @relation(fields: [family_member_id], references: [id])
+  family_member FamilyMember  @relation(fields: [family_member_id], references: [id], onDelete: Cascade)
   institution   Institution   @relation(fields: [puskesmas_id], references: [id])
   user          User          @relation(fields: [created_by], references: [id])
   intervention  Intervention?
@@ -665,7 +665,7 @@ model Response {
 
   quisioner     Quisioner     @relation(fields: [quisioner_id], references: [id], onDelete: Cascade)
   answers       Answer[]
-  family_member FamilyMember? @relation(fields: [family_member_id], references: [id])
+  family_member FamilyMember? @relation(fields: [family_member_id], references: [id], onDelete: Cascade)
   institution   Institution?  @relation(fields: [institution_id], references: [id])
 
   @@map("responses")
@@ -696,7 +696,7 @@ model Student {
   gender GENDER
 
   institution Institution @relation(fields: [school_id], references: [id], onDelete: Cascade)
-  family_member FamilyMember @relation(fields: [family_member_id], references: [id])
+  family_member FamilyMember @relation(fields: [family_member_id], references: [id], onDelete: Cascade)
   class_histories StudentClassHistory[]
 
   @@map("students")
