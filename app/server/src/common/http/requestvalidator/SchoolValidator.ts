@@ -1,4 +1,4 @@
-import joi from "joi";
+import joi, { number } from "joi";
 
 export const createFacilitySchema = joi.object({
   name: joi.string().required(),
@@ -47,4 +47,9 @@ export const addStudentSchema = joi.object({
 export const addTeacherSchema = joi.object({
   name: joi.string().required(),
   userId: joi.number().required(),
+});
+
+export const enrolledTeacherSchema = joi.object({
+  teacherId: joi.number().required(),
+  schoolYear: joi.string().required(),
 });

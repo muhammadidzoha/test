@@ -1,30 +1,30 @@
 import { Request, Response } from "express";
-import { SchoolService } from "../services/SchoolService";
-import { handleError, validatePayload } from "../common/http";
-import { HealthEducationSchema } from "../common/http/requestvalidator/HealthEducationValidator";
-import {
-  IFacility,
-  IHealthCare,
-  IHealthEducation,
-  IHealthServicePayload,
-} from "../types/school";
 import { InvariantError, NotFoundError } from "../common/exception";
-import { HealthServiceSchema } from "../common/http/requestvalidator/HealthServiceValidator";
-import { schoolEnvironmentSchema } from "../common/http/requestvalidator/SchoolEnvironmentValidator";
+import { handleError, validatePayload } from "../common/http";
 import {
   addHealthCareMemberSchema,
   CreateHealthCareSchema,
 } from "../common/http/requestvalidator/HealhCareValidator";
+import { HealthEducationSchema } from "../common/http/requestvalidator/HealthEducationValidator";
+import { HealthServiceSchema } from "../common/http/requestvalidator/HealthServiceValidator";
+import { schoolEnvironmentSchema } from "../common/http/requestvalidator/SchoolEnvironmentValidator";
 import {
   addStudentSchema,
-  addTeacherSchema,
   connectCategoryOnClassSchema,
   createCategorySchema,
   createClassSchema,
   createFacilitySchema,
   createSchoolSchema,
   createUKSQuisionerSchema,
+  enrolledTeacherSchema,
 } from "../common/http/requestvalidator/SchoolValidator";
+import { SchoolService } from "../services/SchoolService";
+import {
+  IFacility,
+  IHealthCare,
+  IHealthEducation,
+  IHealthServicePayload,
+} from "../types/school";
 
 export class SchoolController {
   constructor(public schoolService: SchoolService) {}
@@ -734,6 +734,32 @@ export class SchoolController {
         status: "Success",
         message: "Teacher is created",
         data: newTeacher,
+      });
+    } catch (err: any) {
+      handleError(err, res);
+    }
+  }
+
+  async enrolledTeacherToClass(req: Request, res: Response) {
+    try {
+      validatePayload(enrolledTeacherSchema, req.body);
+      const { schoolId, classId } = req.params;
+      if (!schoolId || !classId) {
+        throw new InvariantError("schoolId and classId is required in params");
+      }
+      const { schoolYear, teacherId } = req.body;
+      const { enrolledTeacher } = await this.schoolService.enrollTeacherToClass(
+        {
+          classId: +classId,
+          schoolId: +schoolId,
+          schoolYear,
+          teacherId,
+        }
+      );
+      res.status(201).json({
+        status: "Success",
+        message: `Successfully enrolled teacher ${teacherId} to class ${classId}`,
+        data: enrolledTeacher,
       });
     } catch (err: any) {
       handleError(err, res);

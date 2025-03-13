@@ -125,6 +125,14 @@ schoolRouter.post(
   }
 );
 
+schoolRouter.post(
+  "/:schoolId/classes/:classId/teacher",
+  AuthorizationMiddleware(["admin", "school"]),
+  (req: Request, res: Response) => {
+    schoolController.enrolledTeacherToClass(req, res);
+  }
+);
+
 // Health Education
 
 schoolRouter.put(

@@ -707,7 +707,6 @@ model Class {
   id Int @db.Int @id @default(autoincrement())
   class String @db.VarChar(55) @unique()
 
-  teacher_histories TeacherHistory[]
   class_category_on_class ClassCategoryOnClass[]
 
   @@map("classes")
@@ -732,6 +731,7 @@ model ClassCategoryOnClass {
   class_category ClassCategory @relation(fields: [class_category_id], references: [id])
   student_class_histories StudentClassHistory[]
   institution Institution @relation(fields: [school_id], references: [id])
+  teacher_histories TeacherHistory[]
 
   @@unique([class_id, class_category_id, school_id])
   @@map("class_category_on_class")
@@ -776,7 +776,7 @@ model TeacherHistory {
 
   institution Institution @relation(fields: [school_id], references: [id], onDelete: Cascade)
   teacher Teacher @relation(fields: [teacher_id], references: [id], onDelete: Cascade)
-  class Class @relation(fields: [class_id], references: [id], onDelete: Cascade)
+  class ClassCategoryOnClass @relation(fields: [class_id], references: [id])
 
   @@unique([class_id, school_year])
   @@map("teacher_histories")

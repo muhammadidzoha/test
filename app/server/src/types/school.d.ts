@@ -78,3 +78,10 @@ export interface ITeacherPayload {
   schoolId: number;
   avatar: string | undefined;
 }
+
+export interface ITeacherRoomPayload {
+  schoolId: number;
+  teacherId: number;
+  classId: number;
+  schoolYear: string;
+}

@@ -15,6 +15,7 @@ import {
   ISchoolEnvironment,
   IStudentPayload,
   ITeacherPayload,
+  ITeacherRoomPayload,
   IUKSQuisioner,
 } from "../types/school";
 import { AuthService } from "./AuthService";
@@ -1270,5 +1271,78 @@ export class SchoolService {
     });
 
     return !!user;
+  }
+
+  async enrollTeacherToClass(payload: ITeacherRoomPayload) {
+    await this.checkIfTeacherAlreadyEnrolled({
+      teacherId: payload.teacherId,
+      schoolId: payload.schoolId,
+      classId: payload.classId,
+      schoolYear: payload.schoolYear,
+    });
+
+    await this.checkIfClassWithCategoryExist(payload.classId);
+
+    const enrolledTeacher = await this.prismaClient.teacherHistory.create({
+      data: {
+        teacher_id: payload.teacherId,
+        school_id: payload.schoolId,
+        class_id: payload.classId,
+        school_year: payload.schoolYear,
+      },
+      include: {
+        teacher: true,
+        class: {
+          include: {
+            class: true,
+            class_category: true,
+          },
+        },
+      },
+    });
+
+    return {
+      enrolledTeacher,
+    };
+  }
+
+  async checkIfTeacherAlreadyEnrolled({
+    teacherId,
+    schoolId,
+    classId,
+    schoolYear,
+  }: {
+    teacherId: number;
+    schoolId: number;
+    classId: number;
+    schoolYear: string;
+  }) {
+    console.log({ teacherId, schoolId, classId, schoolYear });
+    const teacher = await this.prismaClient.teacherHistory.findFirst({
+      where: {
+        teacher_id: teacherId,
+        school_id: schoolId,
+        class_id: classId,
+        school_year: schoolYear,
+      },
+    });
+
+    console.log({ teacher });
+
+    if (teacher) {
+      throw new InvariantError("Teacher already enrolled to class");
+    }
+  }
+
+  async checkIfClassWithCategoryExist(classCategoryId: number) {
+    const classPivot = await this.prismaClient.classCategoryOnClass.findUnique({
+      where: {
+        id: classCategoryId,
+      },
+    });
+
+    if (!classPivot) {
+      throw new NotFoundError(`Class with id ${classCategoryId} Is Not Found`);
+    }
   }
 }
