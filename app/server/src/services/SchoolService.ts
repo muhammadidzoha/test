@@ -816,7 +816,6 @@ export class SchoolService {
     service: string,
     stratification: "MINIMAL" | "STANDAR" | "OPTIMAL" | "PARIPURNA"
   ) {
-    console.log({ schoolId, service, stratification });
     const serviceQuisioner = await this.prismaClient.question.findMany({
       where: {
         quisioner: {
@@ -1142,6 +1141,16 @@ export class SchoolService {
   }
 
   async addStudent(payload: IStudentPayload) {
+    const isStudentEnrolled = await this.isStudentEnrolled({
+      schoolYear: payload.schoolYear ?? undefined,
+      semester: payload.semester,
+      studentId: payload.studentId,
+    });
+    if (isStudentEnrolled) {
+      throw new InvariantError(
+        `cannot enrolled student ${payload.studentId} [shoolYear(unique*), studentId(unique*), semester(unique*)]`
+      );
+    }
     const student = await this.prismaClient.studentClassHistory.create({
       data: {
         school_year: payload.schoolYear ?? new Date().getFullYear().toString(),
@@ -1155,6 +1164,24 @@ export class SchoolService {
     return {
       student,
     };
+  }
+
+  async isStudentEnrolled(payload: {
+    studentId: number;
+    schoolYear: string | undefined;
+    semester: string;
+  }) {
+    const student = await this.prismaClient.studentClassHistory.findFirst({
+      where: {
+        student_id: payload.studentId,
+        ...(payload.schoolYear !== null && {
+          school_year: payload.schoolYear,
+        }),
+        semester: payload.semester,
+      },
+    });
+
+    return !!student;
   }
 
   async getStudentById(studentId: number) {
