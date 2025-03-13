@@ -765,4 +765,50 @@ export class SchoolController {
       handleError(err, res);
     }
   }
+
+  async getTeachers(req: Request, res: Response) {
+    try {
+      const { teachers } = await this.schoolService.getTeachers();
+
+      res.status(200).json({
+        status: "Success",
+        message: "Teachers retrieved",
+        data: teachers,
+      });
+    } catch (err: any) {
+      handleError(err, res);
+    }
+  }
+
+  async getTeacherById(req: Request, res: Response) {
+    try {
+      const { teacherId } = req.params;
+      const { teacher } = await this.schoolService.getTeacherById(+teacherId);
+
+      res.status(200).json({
+        status: "Success",
+        message: "Teachers retrieved",
+        data: teacher,
+      });
+    } catch (err: any) {
+      handleError(err, res);
+    }
+  }
+
+  async getTeachersBelongToSchool(req: Request, res: Response) {
+    try {
+      const { schoolId } = req.params;
+      const { teachers } = await this.schoolService.getTeachersBelongToSchool(
+        +schoolId
+      );
+
+      res.status(200).json({
+        status: "Success",
+        message: "Teachers retrieved",
+        data: teachers,
+      });
+    } catch (err: any) {
+      handleError(err, res);
+    }
+  }
 }

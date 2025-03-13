@@ -116,6 +116,31 @@ schoolRouter.post(
 );
 
 // Teacher
+
+schoolRouter.get(
+  "/teachers/all",
+  AuthorizationMiddleware(["admin"]),
+  (req: Request, res: Response) => {
+    schoolController.getTeachers(req, res);
+  }
+);
+
+schoolRouter.get(
+  "/teachers/:teacherId",
+  AuthorizationMiddleware([]),
+  (req: Request, res: Response) => {
+    schoolController.getTeacherById(req, res);
+  }
+);
+
+schoolRouter.get(
+  "/:schoolId/teachers",
+  AuthorizationMiddleware([]),
+  (req: Request, res: Response) => {
+    schoolController.getTeachersBelongToSchool(req, res);
+  }
+);
+
 schoolRouter.post(
   "/:schoolId/teachers",
   AuthorizationMiddleware(["admin", "school"]),

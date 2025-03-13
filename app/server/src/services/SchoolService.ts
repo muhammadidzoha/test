@@ -1345,4 +1345,76 @@ export class SchoolService {
       throw new NotFoundError(`Class with id ${classCategoryId} Is Not Found`);
     }
   }
+
+  async getTeachers() {
+    const teachers = await this.prismaClient.teacher.findMany({
+      include: {
+        teacher_histories: {
+          include: {
+            class: {
+              include: {
+                class: true,
+                class_category: true,
+              },
+            },
+          },
+          orderBy: {
+            school_year: "desc",
+          },
+        },
+      },
+    });
+
+    return { teachers };
+  }
+
+  async getTeacherById(teacherId: number) {
+    const teacher = await this.prismaClient.teacher.findUnique({
+      where: {
+        id: teacherId,
+      },
+      include: {
+        teacher_histories: {
+          include: {
+            class: {
+              include: {
+                class: true,
+                class_category: true,
+              },
+            },
+          },
+          orderBy: {
+            school_year: "desc",
+          },
+        },
+      },
+    });
+
+    return { teacher };
+  }
+
+  async getTeachersBelongToSchool(schoolId: number) {
+    const teachers = await this.prismaClient.teacher.findMany({
+      where: {
+        school_id: schoolId,
+      },
+      include: {
+        teacher_histories: {
+          include: {
+            class: {
+              include: {
+                class: true,
+                class_category: true,
+              },
+            },
+          },
+          orderBy: {
+            school_year: "desc",
+          },
+        },
+      },
+    });
+
+    return { teachers };
+  }
 }
