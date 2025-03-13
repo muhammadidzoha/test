@@ -1,5 +1,6 @@
 import express, { Request, Response } from "express";
 import { AuthorizationMiddleware } from "../middlewares/AuthorizationMiddleware";
+import { multerMiddleware } from "../middlewares/MulterMiddleware";
 import { SchoolService } from "../services";
 import { prismaDBClient } from "../../config/prisma";
 import { SchoolController } from "../controllers/SchoolController";
@@ -118,6 +119,7 @@ schoolRouter.post(
 schoolRouter.post(
   "/:schoolId/teachers",
   AuthorizationMiddleware(["admin", "school"]),
+  multerMiddleware.single("avatar"),
   (req: Request, res: Response) => {
     schoolController.addTeacher(req, res);
   }

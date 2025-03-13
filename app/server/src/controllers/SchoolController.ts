@@ -710,18 +710,25 @@ export class SchoolController {
 
   async addTeacher(req: Request, res: Response) {
     try {
-      validatePayload(addTeacherSchema, req.body);
       const { schoolId } = req.params;
 
       if (!schoolId) {
         throw new InvariantError("schoolId is required in params");
       }
-
       const { name, userId } = req.body;
+      console.log({ name, userId });
+      if (!name || !userId) {
+        throw new InvariantError("Name or userId is required");
+      }
+      const file = req.file;
+
+      const avatar = file?.filename;
+
       const { newTeacher } = await this.schoolService.addTeacher({
         name,
-        userId,
+        userId: +userId,
         schoolId: +schoolId,
+        avatar: avatar ?? undefined,
       });
       res.status(201).json({
         status: "Success",

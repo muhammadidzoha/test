@@ -742,6 +742,7 @@ model Teacher {
   name String @db.VarChar(255)
   user_id Int @db.Int @unique()
   school_id Int @db.Int
+  avatar String? @db.VarChar(255)
 
   institution Institution @relation(fields: [school_id], references: [id], onDelete: Cascade)
   user User @relation(fields: [user_id], references: [id])

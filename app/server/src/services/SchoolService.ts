@@ -1214,15 +1214,17 @@ export class SchoolService {
     }
 
     await this.checkIfTeacherExist(
-      teacherPayload.name,
-      teacherPayload.schoolId
+      teacherPayload.schoolId,
+      teacherPayload.userId
     );
+
     await this.checkIfUserIsTeacher(teacherPayload.userId);
     const newTeacher = await this.prismaClient.teacher.create({
       data: {
         name: teacherPayload.name,
         school_id: teacherPayload.schoolId,
         user_id: teacherPayload.userId,
+        avatar: teacherPayload.avatar,
       },
       include: {
         institution: true,
@@ -1234,17 +1236,17 @@ export class SchoolService {
     };
   }
 
-  async checkIfTeacherExist(name: string, schoolId: number) {
+  async checkIfTeacherExist(schoolId: number, userId: number) {
     const teacher = await this.prismaClient.teacher.findFirst({
       where: {
         school_id: schoolId,
-        name: {
-          equals: name.toLowerCase(),
-        },
+        user_id: userId,
       },
     });
-    if (teacher) {
-      throw new InvariantError("Teacher is already exists");
+    if (!!teacher) {
+      throw new InvariantError(
+        `Teacher with userId ${userId} is already exists`
+      );
     }
   }
 

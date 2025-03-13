@@ -76,4 +76,5 @@ export interface ITeacherPayload {
   name: string;
   userId: number;
   schoolId: number;
+  avatar: string | undefined;
 }
