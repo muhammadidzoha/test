@@ -71,3 +71,9 @@ export interface IStudentPayload {
   schoolYear: string?;
   semester: string;
 }
+
+export interface ITeacherPayload {
+  name: string;
+  userId: number;
+  schoolId: number;
+}

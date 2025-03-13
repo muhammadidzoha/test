@@ -17,6 +17,7 @@ import {
 } from "../common/http/requestvalidator/HealhCareValidator";
 import {
   addStudentSchema,
+  addTeacherSchema,
   connectCategoryOnClassSchema,
   createCategorySchema,
   createClassSchema,
@@ -701,6 +702,31 @@ export class SchoolController {
         status: "Success",
         message: "student created",
         data: student,
+      });
+    } catch (err: any) {
+      handleError(err, res);
+    }
+  }
+
+  async addTeacher(req: Request, res: Response) {
+    try {
+      validatePayload(addTeacherSchema, req.body);
+      const { schoolId } = req.params;
+
+      if (!schoolId) {
+        throw new InvariantError("schoolId is required in params");
+      }
+
+      const { name, userId } = req.body;
+      const { newTeacher } = await this.schoolService.addTeacher({
+        name,
+        userId,
+        schoolId: +schoolId,
+      });
+      res.status(201).json({
+        status: "Success",
+        message: "Teacher is created",
+        data: newTeacher,
       });
     } catch (err: any) {
       handleError(err, res);

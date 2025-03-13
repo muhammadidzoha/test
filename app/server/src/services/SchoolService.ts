@@ -14,6 +14,7 @@ import {
   IHealthServicePayload,
   ISchoolEnvironment,
   IStudentPayload,
+  ITeacherPayload,
   IUKSQuisioner,
 } from "../types/school";
 import { AuthService } from "./AuthService";
@@ -1202,5 +1203,70 @@ export class SchoolService {
     });
 
     return { deletedStudent };
+  }
+
+  async addTeacher(teacherPayload: ITeacherPayload) {
+    const isUserExist = await this.checkIsUserExist(teacherPayload.userId);
+    if (!isUserExist) {
+      throw new InvariantError(
+        `Teacher / User with id ${teacherPayload.userId} is not exists`
+      );
+    }
+
+    await this.checkIfTeacherExist(
+      teacherPayload.name,
+      teacherPayload.schoolId
+    );
+    await this.checkIfUserIsTeacher(teacherPayload.userId);
+    const newTeacher = await this.prismaClient.teacher.create({
+      data: {
+        name: teacherPayload.name,
+        school_id: teacherPayload.schoolId,
+        user_id: teacherPayload.userId,
+      },
+      include: {
+        institution: true,
+      },
+    });
+
+    return {
+      newTeacher,
+    };
+  }
+
+  async checkIfTeacherExist(name: string, schoolId: number) {
+    const teacher = await this.prismaClient.teacher.findFirst({
+      where: {
+        school_id: schoolId,
+        name: {
+          equals: name.toLowerCase(),
+        },
+      },
+    });
+    if (teacher) {
+      throw new InvariantError("Teacher is already exists");
+    }
+  }
+
+  async checkIfUserIsTeacher(userId: number) {
+    const isUserTeacher = await this.prismaClient.user.findUnique({
+      where: {
+        id: userId,
+        role_id: 6,
+      },
+    });
+    if (!isUserTeacher) {
+      throw new InvariantError(`User with id ${userId} is not a teacher`);
+    }
+  }
+
+  async checkIsUserExist(userId: number) {
+    const user = await this.prismaClient.user.findUnique({
+      where: {
+        id: userId,
+      },
+    });
+
+    return !!user;
   }
 }

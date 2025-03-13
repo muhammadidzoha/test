@@ -41,5 +41,10 @@ export const connectCategoryOnClassSchema = joi.object({
 export const addStudentSchema = joi.object({
   schoolYear: joi.string(),
   semester: joi.string().required(),
-  categoryOnClassId: joi.number().required()
+  categoryOnClassId: joi.number().required(),
+});
+
+export const addTeacherSchema = joi.object({
+  name: joi.string().required(),
+  userId: joi.number().required(),
 });

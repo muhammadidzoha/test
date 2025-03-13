@@ -114,6 +114,15 @@ schoolRouter.post(
   }
 );
 
+// Teacher
+schoolRouter.post(
+  "/:schoolId/teachers",
+  AuthorizationMiddleware(["admin", "school"]),
+  (req: Request, res: Response) => {
+    schoolController.addTeacher(req, res);
+  }
+);
+
 // Health Education
 
 schoolRouter.put(

@@ -349,6 +349,7 @@ model Nutrition {
   created_by       Int      @db.Int
   updated_by       Int      @default(0) @db.Int
   status_id        Int      @default(3) @db.Int
+  avatar String? @db.VarChar(255)
 
   nutrition_status NutritionStatus @relation(fields: [status_id], references: [id])
   user             User            @relation(fields: [created_by], references: [id])
