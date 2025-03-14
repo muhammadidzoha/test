@@ -708,6 +708,33 @@ export class SchoolController {
     }
   }
 
+  async deleteStudentById(req: Request, res: Response) {
+    try {
+      const { studentId, schoolId } = req.params;
+      if (!studentId) {
+        throw new InvariantError("studentId is required in params");
+      }
+
+      const { student } = await this.schoolService.getStudentById(+studentId);
+      if (!student) {
+        throw new NotFoundError(`student with id ${studentId} is not found`);
+      }
+      await this.schoolService.checkIfStudentBelongToSchool(
+        +studentId,
+        +schoolId
+      );
+      await this.schoolService.deleteStudentById(+studentId);
+
+      res.status(200).json({
+        status: "Success",
+        message: `Student with id ${studentId} is deleted`,
+        data: student,
+      });
+    } catch (err: any) {
+      handleError(err, res);
+    }
+  }
+
   async addTeacher(req: Request, res: Response) {
     try {
       const { schoolId } = req.params;

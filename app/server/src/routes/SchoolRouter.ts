@@ -158,6 +158,10 @@ schoolRouter.post(
   }
 );
 
+schoolRouter.delete("/:schoolId/students/:studentId", AuthorizationMiddleware(["admin", "school"]), (req: Request, res: Response) => {
+  schoolController.deleteStudentById(req, res);
+});
+
 // Health Education
 
 schoolRouter.put(

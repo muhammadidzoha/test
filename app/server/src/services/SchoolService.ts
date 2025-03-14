@@ -1206,6 +1206,20 @@ export class SchoolService {
     return { deletedStudent };
   }
 
+  async checkIfStudentBelongToSchool(studentId: number, schoolId: number) {
+    const student = await this.prismaClient.student.findUnique({
+      where: {
+        id: studentId,
+      },
+    });
+    if (!student) {
+      throw new NotFoundError("Student is not exists");
+    }
+    if (student.school_id !== schoolId) {
+      throw new InvariantError("Student is not belong to this school");
+    }
+  }
+
   async addTeacher(teacherPayload: ITeacherPayload) {
     const isUserExist = await this.checkIsUserExist(teacherPayload.userId);
     if (!isUserExist) {
