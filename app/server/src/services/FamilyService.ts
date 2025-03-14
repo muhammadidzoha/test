@@ -854,8 +854,32 @@ export class FamilyService {
         ...(payload.institutionId && {
           institution: {
             connect: {
-              id: payload.institutionId
-            }
+              id: payload.institutionId,
+            },
+          },
+          student: {
+            ...(member.student &&
+              member.student.id && {
+                update: {
+                  where: {
+                    id: member.student.id,
+                  },
+                  data: {
+                    school_id: payload.institutionId,
+                    birth_date: new Date(payload.birthDate).toISOString(),
+                    full_name: payload.fullName,
+                    gender: payload.gender,
+                  },
+                },
+              }),
+            ...(!member.student && {
+              create: {
+                school_id: payload.institutionId,
+                birth_date: new Date(payload.birthDate).toISOString(),
+                full_name: payload.fullName,
+                gender: payload.gender,
+              },
+            }),
           },
         }),
       },
