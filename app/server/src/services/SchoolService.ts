@@ -1094,7 +1094,6 @@ export class SchoolService {
         },
       },
     });
-
     return { classWithCategories };
   }
 

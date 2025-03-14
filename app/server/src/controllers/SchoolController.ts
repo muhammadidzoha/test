@@ -678,7 +678,16 @@ export class SchoolController {
       res.status(200).json({
         status: "Success",
         message: "Class with category retrieved",
-        data: classesWithCategories,
+        data: classesWithCategories
+          .map((classWithCategory) => ({
+            id: classWithCategory.id,
+            classNumber: classWithCategory.class.class,
+            classCategory: classWithCategory.class_category.category,
+          }))
+          .sort(
+            (a: any, b: any) =>
+              a.classNumber - b.classNumber || a.classCategory - b.classCategory
+          ),
       });
     } catch (err: any) {
       handleError(err, res);
