@@ -764,4 +764,54 @@ export class FamilyService {
       })),
     };
   }
+
+  async addMemberToSchool(memberId: number, schoolId: number) {
+    const { member } = await this.getMemberById(memberId);
+    if (!member) {
+      throw new NotFoundError(`Member with id ${memberId} not found`);
+    }
+    if (member.relation !== "ANAK") {
+      throw new InvariantError(
+        "Member is not children, so it cannot embedded to a school"
+      );
+    }
+    if (member.student && member.student.id) {
+      throw new InvariantError(
+        `Cannot enroll member ${memberId} because member is already become a student`
+      );
+    }
+
+    const updatedMember = await this.prismaClient.familyMember.update({
+      where: {
+        id: memberId,
+      },
+      data: {
+        student: {
+          create: {
+            birth_date: member.birth_date,
+            full_name: member.full_name,
+            gender: member.gender,
+            school_id: schoolId,
+          },
+        },
+      },
+      include: {
+        institution: true,
+      },
+    });
+
+    return { updatedMember };
+  }
+
+  async getMemberById(memberId: number) {
+    const member = await this.prismaClient.familyMember.findUnique({
+      where: {
+        id: memberId,
+      },
+      include: {
+        student: true,
+      },
+    });
+    return { member };
+  }
 }
