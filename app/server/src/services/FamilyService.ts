@@ -814,4 +814,35 @@ export class FamilyService {
     });
     return { member };
   }
+
+  async updateMember(memberId: number, payload: IMember) {
+    await this.checkIfMemberExist(memberId);
+    const updatedMember = await this.prismaClient.familyMember.update({
+      where: {
+        id: memberId,
+      },
+      data: {
+        full_name: payload.fullName,
+        birth_date: payload.birthDate,
+        education: payload.education,
+        relation: payload.relation,
+        gender: payload.gender,
+        ...(payload.phoneNumber && { phone_number: payload.phoneNumber }),
+      },
+    });
+
+    return { updatedMember };
+  }
+
+  async checkIfMemberExist(memberId: number) {
+    const member = await this.prismaClient.familyMember.findUnique({
+      where: {
+        id: memberId,
+      },
+    });
+
+    if (!member) {
+      throw new NotFoundError(`Member with id ${memberId} is not found`);
+    }
+  }
 }

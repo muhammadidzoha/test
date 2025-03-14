@@ -1197,10 +1197,23 @@ export class SchoolService {
   }
 
   async deleteStudentById(studentId: number) {
-    const deletedStudent = await this.prismaClient.student.delete({
-      where: {
-        id: studentId,
-      },
+    const deletedStudent = await this.prismaClient.$transaction(async (trx) => {
+      const deletedStudent = await trx.student.delete({
+        where: {
+          id: studentId,
+        },
+      });
+
+      await trx.familyMember.update({
+        where: {
+          id: deletedStudent.family_member_id,
+        },
+        data: {
+          institution_id: null,
+        },
+      });
+
+      return deletedStudent;
     });
 
     return { deletedStudent };
