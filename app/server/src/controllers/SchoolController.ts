@@ -26,9 +26,13 @@ import {
   IHealthEducation,
   IHealthServicePayload,
 } from "../types/school";
+import { NutritionService } from "../services/NutritionService";
 
 export class SchoolController {
-  constructor(public schoolService: SchoolService) {}
+  constructor(
+    public schoolService: SchoolService,
+    public nutritionService: NutritionService
+  ) {}
 
   async createOrUpdateHealthEducation(req: Request, res: Response) {
     try {
@@ -884,13 +888,32 @@ export class SchoolController {
       validatePayload(addSchoolSchema, req.body);
       const payload = req.body;
       const { newSchool } = await this.schoolService.addSchool({
-        ...payload
-      })
+        ...payload,
+      });
       res.status(201).json({
         status: "Success",
         message: "School created",
-        data: newSchool
-      })
+        data: newSchool,
+      });
+    } catch (err: any) {
+      handleError(err, res);
+    }
+  }
+
+  async getNutritionStatistics(req: Request, res: Response) {
+    try {
+      const { statusTypeId } = req.query;
+      const { statistic } = await this.nutritionService.getNutritionStatistics(
+        statusTypeId ? +statusTypeId : 3
+      );
+      res.status(201).json({
+        status: "Success",
+        message: "Nutrition Statistic retrieves",
+        data: statistic.map((stat) => ({
+          ...stat,
+          total: +stat.total.toString(),
+        })),
+      });
     } catch (err: any) {
       handleError(err, res);
     }

@@ -1060,6 +1060,7 @@ export class SchoolService {
 
   async checkSchoolExist(schoolId: number) {
     const { school } = await this.getSchoolById(schoolId);
+    console.log({ schoolId, school });
     if (!school) {
       throw new NotFoundError(`School With id ${schoolId} Not Found`);
     }
@@ -1519,11 +1520,11 @@ export class SchoolService {
         address: payload.address,
         phone_number: payload.phoneNumber,
         email: payload.email,
-        type: 2,
-        user_id: null
+        type: 1,
+        user_id: null,
       },
     });
 
-    return {newSchool};
+    return { newSchool };
   }
 }

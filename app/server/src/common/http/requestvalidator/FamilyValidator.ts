@@ -163,6 +163,11 @@ export const addMemberSchemaV2 = joi.object({
   }),
   kkNumber: joi.string(),
   schoolYear: joi.string(),
+  nis: joi.when("relation", {
+    is: "ANAK",
+    then: joi.string().required(),
+    otherwise: joi.string(),
+  }),
 });
 
 export const addMemberSchemaV3 = joi.object({

@@ -8,12 +8,14 @@ import { AuthService } from "../services";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { EmailService } from "../services";
+import { NutritionService } from "../services/NutritionService";
 
 const emailService = new EmailService();
 const authService = new AuthService(prismaDBClient, bcrypt, jwt, emailService);
 const schoolService = new SchoolService(prismaDBClient, authService);
+const nutritionService = new NutritionService(prismaDBClient);
 
-const schoolController = new SchoolController(schoolService);
+const schoolController = new SchoolController(schoolService, nutritionService);
 
 export const schoolRouter = express.Router();
 
@@ -291,6 +293,14 @@ schoolRouter.get(
   AuthorizationMiddleware([]),
   (req, res) => {
     schoolController.getStudentLatestNutrition(req, res);
+  }
+);
+
+schoolRouter.get(
+  "/:schoolId/stats/nutritions/:nutritionId",
+  AuthorizationMiddleware([]),
+  (req: Request, res: Response) => {
+    schoolController.getNutritionStatistics(req, res);
   }
 );
 
