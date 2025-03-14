@@ -7,7 +7,7 @@ import {
   calculateGajiScore,
   calculateNutritionScore,
 } from "../common/utils/Family";
-import { IFamily, IFamilyMember, IMember } from "../types/family";
+import { IFamily, IFamilyMember, IMember, IResidence } from "../types/family";
 
 export class FamilyService {
   constructor(public prismaClient: PrismaClient) {}
@@ -816,18 +816,48 @@ export class FamilyService {
   }
 
   async updateMember(memberId: number, payload: IMember) {
-    await this.checkIfMemberExist(memberId);
+    const { member } = await this.getMemberById(memberId);
+    if (!member) {
+      throw new InvariantError(`Member with id ${memberId} is not found`);
+    }
     const updatedMember = await this.prismaClient.familyMember.update({
       where: {
         id: memberId,
       },
       data: {
         full_name: payload.fullName,
-        birth_date: payload.birthDate,
+        birth_date: new Date(payload.birthDate),
         education: payload.education,
         relation: payload.relation,
         gender: payload.gender,
+        job: {
+          create: {
+            income: payload.job.income,
+            job_type_id: payload.job.jobTypeId as number,
+          },
+        },
+        ...(payload.residence && {
+          residence: {
+            update: {
+              where: {
+                id: member.residence_id,
+              },
+              data: {
+                status: payload.residence.status,
+                address: payload.residence.address,
+                description: payload.residence.description,
+              },
+            },
+          },
+        }),
         ...(payload.phoneNumber && { phone_number: payload.phoneNumber }),
+        ...(payload.institutionId && {
+          institution: {
+            connect: {
+              id: payload.institutionId
+            }
+          },
+        }),
       },
     });
 

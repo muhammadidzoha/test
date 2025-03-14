@@ -249,3 +249,26 @@ export const addMemberSchemaV3 = joi.object({
     .min(1)
     .required(),
 });
+
+export const updateMemberSchema = joi.object({
+  fullName: joi.string().required(),
+  birthDate: joi.string().required(),
+  education: joi.valid("SD", "SMP", "SMA", "D3", "S1", "S2", "S3").required(),
+  job: joi
+    .object({
+      jobTypeId: joi.number().required(),
+      income: joi.number().required(),
+    })
+    .required(),
+  relation: joi.valid("AYAH", "IBU", "ANAK", "LAINNYA").required(),
+  residence: joi
+    .object({
+      status: joi.valid("OWN", "RENT", "OTHER").required(),
+      description: joi.string(),
+      address: joi.string().required(),
+    })
+    .required(),
+  gender: joi.valid("L", "P").required(),
+  phoneNumber: joi.string(),
+  institutionId: joi.number().required(),
+});

@@ -13,7 +13,7 @@ export interface IJob {
 }
 
 export interface IResidence {
-  id: number?;
+  id?: number;
   status: RESIDENCESTATUS;
   address: string?;
   description: string?;

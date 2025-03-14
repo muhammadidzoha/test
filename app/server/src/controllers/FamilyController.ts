@@ -6,9 +6,10 @@ import {
   addMemberSchemaV2,
   addMemberSchemaV3,
   createFamilySchema,
+  updateMemberSchema,
 } from "../common/http/requestvalidator/FamilyValidator";
 import { FamilyService } from "../services/FamilyService";
-import { IFamily, IFamilyMember } from "../types/family";
+import { IFamily, IFamilyMember, IMember } from "../types/family";
 
 export class FamilyController {
   constructor(public familyService: FamilyService) {}
@@ -317,6 +318,29 @@ export class FamilyController {
       res.status(200).json({
         status: "Success",
         message: "Member is added to a school",
+        data: updatedMember,
+      });
+    } catch (err: any) {
+      handleError(err, res);
+    }
+  }
+
+  async updateMember(req: Request, res: Response) {
+    try {
+      validatePayload(updateMemberSchema, req.body);
+      const { memberId } = req.params;
+      if (!memberId) {
+        throw new InvariantError("memberId is required in params");
+      }
+      const payload: IMember = req.body;
+
+      const { updatedMember } = await this.familyService.updateMember(
+        +memberId,
+        payload
+      );
+      res.status(200).json({
+        status: "Success",
+        message: "Member updated",
         data: updatedMember,
       });
     } catch (err: any) {

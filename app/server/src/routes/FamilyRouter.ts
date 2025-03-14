@@ -106,3 +106,11 @@ familyRouter.put(
     familyController.addMemberToSchool(req, res);
   }
 );
+
+familyRouter.put(
+  "/v2/members/:memberId/profile",
+  AuthorizationMiddleware([]),
+  (req: Request, res: Response) => {
+    familyController.updateMember(req, res);
+  }
+);
