@@ -1233,6 +1233,67 @@ export class SchoolService {
     }
   }
 
+  async updateEnrolledStudent(
+    historyClassId: number,
+    payload: {
+      schoolId: number;
+      studentId: number;
+      classCategoryOnClassId: number;
+      schoolYear: string;
+      semester: string;
+    }
+  ) {
+    const { studentClassHistory } = await this.getEnrolledStudentById(
+      historyClassId
+    );
+    if (!studentClassHistory) {
+      throw new InvariantError("student not enrolled to this id");
+    }
+    const updatedEnroll = await this.prismaClient.studentClassHistory.update({
+      where: {
+        id: historyClassId,
+      },
+      data: {
+        school_year: payload.schoolYear,
+        school_id: payload.schoolId,
+        student_id: payload.studentId,
+        semester: payload.semester,
+        class_category_on_class_id: payload.classCategoryOnClassId,
+      },
+      include: {
+        class_category_on_class: {
+          include: {
+            class: true,
+            class_category: true,
+          },
+        },
+        student: true,
+      },
+    });
+
+    return { updatedEnroll };
+  }
+
+  async getEnrolledStudentById(enrollId: number) {
+    const studentClassHistory =
+      await this.prismaClient.studentClassHistory.findUnique({
+        where: {
+          id: enrollId,
+        },
+        include: {
+          student: true,
+          class_category_on_class: {
+            include: {
+              class: true,
+              class_category: true,
+            },
+          },
+        },
+      });
+
+    return { studentClassHistory };
+  }
+
   async addTeacher(teacherPayload: ITeacherPayload) {
     const isUserExist = await this.checkIsUserExist(teacherPayload.userId);
     if (!isUserExist) {

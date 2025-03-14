@@ -115,6 +115,14 @@ schoolRouter.post(
   }
 );
 
+schoolRouter.put(
+  "/:schoolId/students/:studentId/class/:baseClassId",
+  AuthorizationMiddleware([]),
+  (req: Request, res: Response) => {
+    schoolController.updateEnrolledStudent(req, res);
+  }
+);
+
 // Teacher
 
 schoolRouter.get(
@@ -158,9 +166,13 @@ schoolRouter.post(
   }
 );
 
-schoolRouter.delete("/:schoolId/students/:studentId", AuthorizationMiddleware(["admin", "school"]), (req: Request, res: Response) => {
-  schoolController.deleteStudentById(req, res);
-});
+schoolRouter.delete(
+  "/:schoolId/students/:studentId",
+  AuthorizationMiddleware(["admin", "school"]),
+  (req: Request, res: Response) => {
+    schoolController.deleteStudentById(req, res);
+  }
+);
 
 // Health Education
 

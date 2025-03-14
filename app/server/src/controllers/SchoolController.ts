@@ -735,6 +735,45 @@ export class SchoolController {
     }
   }
 
+  async updateEnrolledStudent(req: Request, res: Response) {
+    try {
+      const { schoolId, studentId, baseClassId } = req.params;
+      if (!schoolId || !studentId) {
+        throw new InvariantError(
+          "schoolId and studentId is required in params"
+        );
+      }
+      const { classId, schoolYear, semester } = req.body;
+      if (!classId) {
+        throw new InvariantError("classId is required in body");
+      }
+      if (!schoolYear) {
+        throw new InvariantError("School Year is required in body");
+      }
+      if (!semester) {
+        throw new InvariantError("semester is required in body");
+      }
+
+      const { updatedEnroll } = await this.schoolService.updateEnrolledStudent(
+        +baseClassId,
+        {
+          schoolId: +schoolId,
+          studentId: +studentId,
+          semester,
+          schoolYear,
+          classCategoryOnClassId: classId,
+        }
+      );
+      res.status(200).json({
+        status: "Success",
+        msesage: "Student updated",
+        data: updatedEnroll,
+      });
+    } catch (err: any) {
+      handleError(err, res);
+    }
+  }
+
   async addTeacher(req: Request, res: Response) {
     try {
       const { schoolId } = req.params;
