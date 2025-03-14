@@ -214,7 +214,6 @@ export class FamilyService {
         },
       },
     });
-    console.log({ test });
 
     const totalGaji = await this.prismaClient.job.aggregate({
       where: {
@@ -476,6 +475,7 @@ export class FamilyService {
             full_name: familyMember.fullName,
             birth_date: familyMember.birthDate,
             gender: familyMember.gender,
+            nis: familyMember.nis,
           },
         });
         const studentClassHistory = await trx.studentClassHistory.create({
@@ -792,6 +792,7 @@ export class FamilyService {
             full_name: member.full_name,
             gender: member.gender,
             school_id: schoolId,
+            nis: member.nis,
           },
         },
       },
@@ -804,14 +805,15 @@ export class FamilyService {
   }
 
   async getMemberById(memberId: number) {
-    const member = await this.prismaClient.familyMember.findUnique({
-      where: {
-        id: memberId,
-      },
-      include: {
-        student: true,
-      },
-    });
+    const member: any & { nis: string } =
+      await this.prismaClient.familyMember.findUnique({
+        where: {
+          id: memberId,
+        },
+        include: {
+          student: true,
+        },
+      });
     return { member };
   }
 
@@ -869,6 +871,7 @@ export class FamilyService {
                     birth_date: new Date(payload.birthDate).toISOString(),
                     full_name: payload.fullName,
                     gender: payload.gender,
+                    nis: payload.nis,
                   },
                 },
               }),
@@ -878,6 +881,7 @@ export class FamilyService {
                 birth_date: new Date(payload.birthDate).toISOString(),
                 full_name: payload.fullName,
                 gender: payload.gender,
+                nis: payload.nis,
               },
             }),
           },

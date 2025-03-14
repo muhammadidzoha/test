@@ -1505,4 +1505,25 @@ export class SchoolService {
 
     return { teachers };
   }
+
+  async addSchool(payload: {
+    name: string;
+    address: string;
+    phoneNumber: string;
+    email: string;
+    type: number;
+  }) {
+    const newSchool = await this.prismaClient.institution.create({
+      data: {
+        name: payload.name,
+        address: payload.address,
+        phone_number: payload.phoneNumber,
+        email: payload.email,
+        type: 2,
+        user_id: null
+      },
+    });
+
+    return {newSchool};
+  }
 }

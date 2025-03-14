@@ -9,6 +9,7 @@ import { HealthEducationSchema } from "../common/http/requestvalidator/HealthEdu
 import { HealthServiceSchema } from "../common/http/requestvalidator/HealthServiceValidator";
 import { schoolEnvironmentSchema } from "../common/http/requestvalidator/SchoolEnvironmentValidator";
 import {
+  addSchoolSchema,
   addStudentSchema,
   connectCategoryOnClassSchema,
   createCategorySchema,
@@ -873,6 +874,23 @@ export class SchoolController {
         message: "Teachers retrieved",
         data: teachers,
       });
+    } catch (err: any) {
+      handleError(err, res);
+    }
+  }
+
+  async addSchool(req: Request, res: Response) {
+    try {
+      validatePayload(addSchoolSchema, req.body);
+      const payload = req.body;
+      const { newSchool } = await this.schoolService.addSchool({
+        ...payload
+      })
+      res.status(201).json({
+        status: "Success",
+        message: "School created",
+        data: newSchool
+      })
     } catch (err: any) {
       handleError(err, res);
     }

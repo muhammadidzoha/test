@@ -555,6 +555,7 @@ export class QuisionerService {
         ...((payload.type === "MULTIPLE_CHOICE" ||
           payload.type === "SCALE") && {
           options: {
+            deleteMany: {},
             create: payload.options?.map((option) => ({
               title: option.title,
               score: option.score ?? 0,

@@ -6,6 +6,11 @@ export const registerPayloadSchema = joi.object({
   password: joi.string().min(6).required(),
   role: joi.number().min(2).max(6),
   isVerified: joi.boolean(),
+  institutionId: joi.when("role", {
+    is: 6,
+    then: joi.number().required(),
+    otherwise: joi.number(),
+  }),
 });
 
 export const institutionRegisterPayloadSchema = joi.object({

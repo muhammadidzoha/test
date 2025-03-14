@@ -34,6 +34,14 @@ schoolRouter.get(
   }
 );
 
+schoolRouter.post(
+  "/",
+  AuthorizationMiddleware(["admin"]),
+  (req: Request, res: Response) => {
+    schoolController.addSchool(req, res);
+  }
+);
+
 schoolRouter.put("/:schoolId", AuthorizationMiddleware([]), (req, res) => {
   schoolController.updateSchool(req, res);
 });

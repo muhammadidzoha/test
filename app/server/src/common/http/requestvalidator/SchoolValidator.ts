@@ -53,3 +53,10 @@ export const enrolledTeacherSchema = joi.object({
   teacherId: joi.number().required(),
   schoolYear: joi.string().required(),
 });
+
+export const addSchoolSchema = joi.object({
+  name: joi.string().required(),
+  address: joi.string().required(),
+  phoneNumber: joi.string().required(),
+  email: joi.string().required(),
+});

@@ -4,6 +4,7 @@ export interface RegisterPayloadType {
   password: string;
   roleId: number;
   isVerified: boolean;
+  institutionId?: number;
 }
 
 export interface IInstitution {

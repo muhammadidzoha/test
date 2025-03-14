@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { PayloadError } from "../common/exception";
+import { InvariantError, PayloadError } from "../common/exception";
 import {
   handleError,
   institutionRegisterPayloadSchema,
@@ -17,13 +17,17 @@ export class AuthController {
   async register(req: Request, res: Response) {
     try {
       validatePayload(registerPayloadSchema, req.body);
-      const { username, password, email, role, isVerified } = req.body;
+      const { username, password, email, role, isVerified, institutionId } =
+        req.body;
       const { newUser } = await this.authService.register({
         username,
         email,
         password,
         roleId: role,
         isVerified: isVerified ?? false,
+        ...(institutionId && {
+          institutionId,
+        }),
       });
 
       res.status(201).json({
@@ -77,7 +81,6 @@ export class AuthController {
         Omit<RegisterPayloadType, "is_verified"> & {
           institutionId: string;
         } = req.body;
-      console.log(req.body);
 
       const { userInstitution } = await this.authService.registerForInstitution(
         {
@@ -99,7 +102,6 @@ export class AuthController {
         data: userInstitution,
       });
     } catch (error: any) {
-      console.log({ error, message: error.message });
       handleError(error, res);
     }
   }

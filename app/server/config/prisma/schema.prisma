@@ -62,8 +62,8 @@ model Institution {
   head_nip         String? @db.VarChar(255)
   license_document String? @db.VarChar(255)
 
-  user_id Int  @unique @db.Int
-  user    User @relation(fields: [user_id], references: [id])
+  user_id Int?  @unique @db.Int
+  user    User? @relation(fields: [user_id], references: [id])
   type    Int  @db.Int
 
   family_member            FamilyMember[]
@@ -695,6 +695,7 @@ model Student {
   full_name String @db.VarChar(255)
   birth_date DateTime 
   gender GENDER
+  nis String @db.VarChar(255) @unique
 
   institution Institution @relation(fields: [school_id], references: [id], onDelete: Cascade)
   family_member FamilyMember @relation(fields: [family_member_id], references: [id], onDelete: Cascade, onUpdate: Cascade)

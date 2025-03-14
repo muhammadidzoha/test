@@ -59,6 +59,7 @@ export interface IFamilyMember {
   classId: number?;
   semester: string?;
   schoolYear: string?;
+  nis: string;
 }
 
 export interface IMember {
@@ -75,4 +76,5 @@ export interface IMember {
   phoneNumber: string?;
   kkNumber: string?;
   description: string?;
+  nis: string;
 }
