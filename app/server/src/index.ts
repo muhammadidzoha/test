@@ -17,6 +17,7 @@ import { quisionerRouter } from "./routes/QuisionerRouter";
 import { uksRouter } from "./routes/UKSRouter";
 import { userRouter } from "./routes/UserRouter";
 import { nutritionRouter } from "./routes/NutritionRouter";
+import locationRouter from "./routes/LocationRouter";
 
 // Middleware
 
@@ -41,6 +42,7 @@ const init = async () => {
   app.use("/interventions", interventionRouter);
   app.use("/quisioners", quisionerRouter);
   app.use("/nutritions", nutritionRouter);
+  app.use("/locations", locationRouter);
 
   app.get("/", (req: Request, res: Response) => {
     res.send("ok");

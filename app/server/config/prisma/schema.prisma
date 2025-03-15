@@ -58,12 +58,12 @@ model Institution {
   address      String @db.Text
   phone_number String @db.VarChar(255)
   email        String @db.VarChar(255)
-  province String? @db.VarChar(255)
-  city String? @db.VarChar(255) 
 
   head_name        String? @db.VarChar(255)
   head_nip         String? @db.VarChar(255)
   license_document String? @db.VarChar(255)
+  city_id Int?
+  province_id Int?
 
   user_id Int?  @unique @db.Int
   user    User? @relation(fields: [user_id], references: [id])
@@ -85,8 +85,31 @@ model Institution {
   class_histories StudentClassHistory[]
   teacher_histories TeacherHistory[]
   class_categories ClassCategoryOnClass[]
+  city City? @relation(fields: [city_id], references: [id])
+  province Province? @relation(fields: [province_id], references: [id])
 
   @@map("institutions")
+}
+
+model Province {
+  id Int @db.Int @default(autoincrement()) @id
+  name String @db.VarChar(255)
+
+  institutions Institution[]
+  cities City[]
+
+  @@map("provinces")
+}
+
+model City {
+  id Int @db.Int @default(autoincrement()) @id
+  name String @db.VarChar(255)
+  province_id Int @db.Int
+
+  institutions Institution[]
+  province Province @relation(fields: [province_id], references: [id], onDelete: Cascade)
+
+  @@map("cities")
 }
 
 model InstitutionType {

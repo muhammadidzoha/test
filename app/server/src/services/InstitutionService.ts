@@ -6,7 +6,12 @@ export class InstitutionService {
   constructor(private prismaClient: PrismaClient) {}
 
   async getInstitutions() {
-    const institutions = await this.prismaClient.institution.findMany({});
+    const institutions = await this.prismaClient.institution.findMany({
+      include: {
+        province: true,
+        city: true,
+      },
+    });
     return { institutions };
   }
 
