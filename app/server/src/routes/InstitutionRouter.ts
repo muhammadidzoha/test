@@ -14,7 +14,7 @@ institutionRouter.use("/schools", schoolRouter);
 
 institutionRouter.get(
   "/",
-  AuthorizationMiddleware(["admin"]),
+  AuthorizationMiddleware([]),
   (req: Request, res: Response) => {
     institutionController.getAllInstitutions(req, res);
   }
@@ -22,8 +22,40 @@ institutionRouter.get(
 
 institutionRouter.get(
   "/health-cares",
-  AuthorizationMiddleware(["admin"]),
+  AuthorizationMiddleware([]),
   (req: Request, res: Response) => {
     institutionController.getAllHealthCares(req, res);
+  }
+);
+
+institutionRouter.get(
+  "/:institutionId",
+  AuthorizationMiddleware([]),
+  (req: Request, res: Response) => {
+    institutionController.getInstitutionById(req, res);
+  }
+);
+
+institutionRouter.post(
+  "/",
+  AuthorizationMiddleware(["admin"]),
+  (req: Request, res: Response) => {
+    institutionController.createInstitution(req, res);
+  }
+);
+
+institutionRouter.put(
+  "/:institutionId",
+  AuthorizationMiddleware(["admin"]),
+  (req: Request, res: Response) => {
+    institutionController.updateInstitution(req, res);
+  }
+);
+
+institutionRouter.delete(
+  "/:institutionId",
+  AuthorizationMiddleware(["admin"]),
+  (req: Request, res: Response) => {
+    institutionController.deleteInstitutionById(req, res);
   }
 );

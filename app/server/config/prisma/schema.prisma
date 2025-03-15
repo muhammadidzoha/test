@@ -58,6 +58,8 @@ model Institution {
   address      String @db.Text
   phone_number String @db.VarChar(255)
   email        String @db.VarChar(255)
+  province String? @db.VarChar(255)
+  city String? @db.VarChar(255) 
 
   head_name        String? @db.VarChar(255)
   head_nip         String? @db.VarChar(255)

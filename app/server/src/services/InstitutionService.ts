@@ -1,4 +1,6 @@
 import { PrismaClient } from "@prisma/client";
+import { IInstitution } from "../types/auth";
+import { NotFoundError } from "../common/exception";
 
 export class InstitutionService {
   constructor(private prismaClient: PrismaClient) {}
@@ -20,5 +22,105 @@ export class InstitutionService {
     return {
       healthCares,
     };
+  }
+
+  async updateInstitution(
+    institutionId: number,
+    institutionType: number,
+    payload: IInstitution & { userId?: number }
+  ) {
+    const { institution } = await this.getInstitutionById(
+      institutionId,
+      institutionType
+    );
+    if (!institution) {
+      throw new NotFoundError(
+        `${
+          institutionId === 1 ? "School" : "Puskesmas"
+        } with id ${institutionId} not found`
+      );
+    }
+    const updatedInstitution = await this.prismaClient.institution.update({
+      where: {
+        id: institutionId,
+        type: institutionType,
+      },
+      data: {
+        ...institution,
+        name: payload.name,
+        address: payload.address,
+        phone_number: payload.phoneNumber,
+        email: payload.email,
+        head_name: payload.headName,
+        head_nip: payload.headNIP,
+        user_id: payload.userId,
+      },
+    });
+
+    return { updatedInstitution };
+  }
+
+  async getInstitutionById(institutionId: number, institutionType: number) {
+    const institution = await this.prismaClient.institution.findUnique({
+      where: {
+        id: institutionId,
+        type: institutionType,
+      },
+    });
+
+    return { institution };
+  }
+
+  async getOnlyInstitutionById(institutionId: number) {
+    const institution = await this.prismaClient.institution.findUnique({
+      where: {
+        id: institutionId,
+      },
+    });
+
+    return { institution };
+  }
+
+  async deleteInstitutionById(institutionId: number) {
+    const { institution } = await this.getOnlyInstitutionById(institutionId);
+    if (!institution) {
+      throw new NotFoundError(`Institution with id ${institutionId} not found`);
+    }
+
+    const deletedInstitution = await this.prismaClient.institution.delete({
+      where: {
+        id: institutionId,
+      },
+    });
+    return { deletedInstitution };
+  }
+
+  async addInstitution(
+    payload: {
+      name: string;
+      address: string;
+      phoneNumber: string;
+      email: string;
+      headName?: string;
+      headNip?: string;
+      userId?: number;
+      type: number;
+    },
+    institutionType: number
+  ) {
+    const newInstitution = await this.prismaClient.institution.create({
+      data: {
+        name: payload.name,
+        address: payload.address,
+        phone_number: payload.phoneNumber,
+        email: payload.email,
+        head_name: payload.headName,
+        head_nip: payload.headNip,
+        type: institutionType,
+        user_id: payload.userId ?? null,
+      },
+    });
+
+    return { newInstitution };
   }
 }
