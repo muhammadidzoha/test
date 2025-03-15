@@ -429,6 +429,7 @@ export class FamilyService {
                   head_phone_number: familyMember.phoneNumber!,
                   kk_number: familyMember.kkNumber,
                   description: familyMember.description,
+                  user_id: createdBy,
                 },
               },
           ...(familyMember.institutionId && {
@@ -827,6 +828,7 @@ export class FamilyService {
         id: memberId,
       },
       data: {
+        ...member,
         full_name: payload.fullName,
         birth_date: new Date(payload.birthDate),
         education: payload.education,
@@ -902,5 +904,44 @@ export class FamilyService {
     if (!member) {
       throw new NotFoundError(`Member with id ${memberId} is not found`);
     }
+  }
+
+  async editAvatar(memberId: number, url: string) {
+    const { member } = await this.getMemberById(memberId);
+    if (!member) {
+      throw new NotFoundError(`member with id ${memberId} is not found`);
+    }
+    const updatedMember = await this.prismaClient.familyMember.update({
+      where: {
+        id: memberId,
+      },
+      data: {
+        avatar: url,
+      },
+    });
+    return {
+      updatedMember,
+    };
+  }
+
+  async getFamilyMemberBelongToUser(userId: number) {
+    const familyMembers = await this.prismaClient.familyMember.findMany({
+      where: {
+        family: {
+          user_id: userId,
+        },
+      },
+    });
+    return { familyMembers };
+  }
+
+  async getFamilyByUserId(userId: number) {
+    const family = await this.prismaClient.family.findUnique({
+      where: {
+        user_id: userId,
+      },
+    });
+
+    return { family };
   }
 }

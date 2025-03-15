@@ -47,6 +47,7 @@ model User {
   approval             UKSActivityApproval[]
   request_intervention RequestIntervention[]
   teacher Teacher?
+  family Family?
 
   @@map("users")
 }
@@ -226,8 +227,10 @@ model Family {
   kk_number         String? @db.VarChar(255)
   head_phone_number String  @db.VarChar(255)
   description       String? @db.Text
+  user_id Int @db.Int @unique
 
   family_member FamilyMember[]
+  user User? @relation(fields: [user_id], references: [id])
 
   @@unique([kk_number, head_phone_number])
   @@map("families")
@@ -268,6 +271,7 @@ model FamilyMember {
   family_id              Int       @db.Int
   institution_id         Int?      @db.Int
   phone_number           String?   @db.VarChar(255)
+  avatar String? @db.VarChar(255)
 
   institution Institution? @relation(fields: [institution_id], references: [id])
 
@@ -349,7 +353,6 @@ model Nutrition {
   created_by       Int      @db.Int
   updated_by       Int      @default(0) @db.Int
   status_id        Int      @default(3) @db.Int
-  avatar String? @db.VarChar(255)
 
   nutrition_status NutritionStatus @relation(fields: [status_id], references: [id])
   user             User            @relation(fields: [created_by], references: [id])

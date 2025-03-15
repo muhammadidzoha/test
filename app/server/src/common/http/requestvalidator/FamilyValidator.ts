@@ -168,6 +168,7 @@ export const addMemberSchemaV2 = joi.object({
     then: joi.string().required(),
     otherwise: joi.string(),
   }),
+  avatar: joi.string(),
 });
 
 export const addMemberSchemaV3 = joi.object({
@@ -276,4 +277,5 @@ export const updateMemberSchema = joi.object({
   gender: joi.valid("L", "P").required(),
   phoneNumber: joi.string(),
   institutionId: joi.number().required(),
+  avatar: joi.string(),
 });

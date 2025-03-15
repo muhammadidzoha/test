@@ -72,7 +72,7 @@ export class FamilyController {
 
   async AddFamilyMemberV2(req: Request, res: Response) {
     try {
-      validatePayload(addMemberSchemaV2, req.body);
+      // validatePayload(addMemberSchemaV2, req.body);
       const { familyId } = req.params;
 
       const user = (req as any).user;
@@ -336,11 +336,37 @@ export class FamilyController {
 
       const { updatedMember } = await this.familyService.updateMember(
         +memberId,
-        payload
+        {
+          ...payload,
+        }
       );
       res.status(200).json({
         status: "Success",
         message: "Member updated",
+        data: updatedMember,
+      });
+    } catch (err: any) {
+      handleError(err, res);
+    }
+  }
+
+  async updateAvatarMember(req: Request, res: Response) {
+    try {
+      const { memberId } = req.params;
+      if (!memberId) {
+        throw new InvariantError("memberId is required in params");
+      }
+      const file = req.file;
+      if (!file) {
+        throw new InvariantError("avatar is required");
+      }
+      const { updatedMember } = await this.familyService.editAvatar(
+        +memberId,
+        file.filename
+      );
+      res.status(200).json({
+        status: "Success",
+        message: "Avatar updated successfully",
         data: updatedMember,
       });
     } catch (err: any) {

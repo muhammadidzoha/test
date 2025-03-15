@@ -60,6 +60,7 @@ export interface IFamilyMember {
   semester: string?;
   schoolYear: string?;
   nis: string;
+  avatar?: string;
 }
 
 export interface IMember {
@@ -77,4 +78,5 @@ export interface IMember {
   kkNumber: string?;
   description: string?;
   nis: string;
+  avatar?: string;
 }

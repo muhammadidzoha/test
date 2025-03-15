@@ -3,6 +3,9 @@ import { AuthorizationMiddleware } from "../middlewares/AuthorizationMiddleware"
 import { FamilyService } from "../services/FamilyService";
 import { prismaDBClient } from "../../config/prisma";
 import { FamilyController } from "../controllers/FamilyController";
+import { multerMiddleware } from "../middlewares/MulterMiddleware";
+import { validateFormDataMiddleware } from "../middlewares/ValidateFormData";
+import { addMemberSchemaV2 } from "../common/http/requestvalidator/FamilyValidator";
 
 const familyService = new FamilyService(prismaDBClient);
 
@@ -20,6 +23,7 @@ familyRouter.put(
 familyRouter.post(
   "/:familyId/members",
   AuthorizationMiddleware([]),
+  multerMiddleware.single("avatar"),
   (req: Request, res: Response) => {
     familyController.addFamilyMember(req, res);
   }
@@ -94,6 +98,7 @@ familyRouter.get(
 familyRouter.put(
   "/v2/members/:familyId?",
   AuthorizationMiddleware([]),
+  multerMiddleware.single("avatar"),
   (req: Request, res: Response) => {
     familyController.AddFamilyMemberV2(req, res);
   }
@@ -112,5 +117,14 @@ familyRouter.put(
   AuthorizationMiddleware([]),
   (req: Request, res: Response) => {
     familyController.updateMember(req, res);
+  }
+);
+
+familyRouter.put(
+  "/v2/members/:memberId/avatar",
+  AuthorizationMiddleware([]),
+  multerMiddleware.single("avatar"),
+  (req: Request, res: Response) => {
+    familyController.updateAvatarMember(req, res);
   }
 );
