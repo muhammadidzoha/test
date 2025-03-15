@@ -59,6 +59,8 @@ export class InstitutionService {
         head_name: payload.headName,
         head_nip: payload.headNIP,
         user_id: payload.userId,
+        province_id: payload.provinceId,
+        city_id: payload.cityId,
       },
     });
 
@@ -110,6 +112,8 @@ export class InstitutionService {
       headNip?: string;
       userId?: number;
       type: number;
+      provinceId?: number;
+      cityId?: number;
     },
     institutionType: number
   ) {
@@ -122,6 +126,8 @@ export class InstitutionService {
         head_name: payload.headName,
         head_nip: payload.headNip,
         type: institutionType,
+        province_id: payload.provinceId,
+        city_id: payload.cityId,
         user_id: payload.userId ?? null,
       },
     });

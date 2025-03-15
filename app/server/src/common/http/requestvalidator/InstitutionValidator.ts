@@ -9,6 +9,8 @@ export const createInstitutionSchema = joi.object({
   headNip: joi.string(),
   userId: joi.number(),
   institutionType: joi.number().required(),
+  provinceId: joi.number(),
+  cityId: joi.number(),
 });
 
 export const updatedInstitutionSchema = joi.object({
@@ -19,4 +21,6 @@ export const updatedInstitutionSchema = joi.object({
   headName: joi.string(),
   headNip: joi.string(),
   userId: joi.number(),
+  provinceId: joi.number(),
+  cityId: joi.number(),
 });

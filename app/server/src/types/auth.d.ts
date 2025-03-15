@@ -15,6 +15,8 @@ export interface IInstitution {
   headName?: string;
   headNIP?: string;
   licenseDocument?: string;
+  provinceId?: number;
+  cityId?: number;
 }
 
 export interface IPayloadToken {

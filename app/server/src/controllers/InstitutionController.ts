@@ -45,6 +45,8 @@ export class InstitutionController {
         headNip,
         userId,
         institutionType,
+        provinceId,
+        cityId,
       } = req.body;
       const { newInstitution } = await this.institutionService.addInstitution(
         {
@@ -55,6 +57,8 @@ export class InstitutionController {
           headName,
           headNip,
           userId,
+          provinceId,
+          cityId,
           type: institutionType,
         },
         institutionType
@@ -86,6 +90,8 @@ export class InstitutionController {
         headNip,
         userId,
         institutionType,
+        provinceId,
+        cityId,
       } = req.body;
       const { updatedInstitution } =
         await this.institutionService.updateInstitution(
@@ -99,6 +105,8 @@ export class InstitutionController {
             headName,
             headNIP: headNip,
             userId,
+            provinceId,
+            cityId,
           }
         );
 
