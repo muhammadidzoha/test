@@ -913,8 +913,31 @@ export class SchoolController {
     try {
       const { statusTypeId } = req.query;
       const { statistic } = await this.nutritionService.getNutritionStatistics(
-        statusTypeId ? +statusTypeId : 3
+        statusTypeId ? +statusTypeId : undefined
       );
+      res.status(201).json({
+        status: "Success",
+        message: "Nutrition Statistic retrieves",
+        data: statistic.map((stat) => ({
+          ...stat,
+          total: +stat.total.toString(),
+        })),
+      });
+    } catch (err: any) {
+      handleError(err, res);
+    }
+  }
+  async getNutritionStatisticsFromFamily(req: Request, res: Response) {
+    try {
+      const { statusTypeId } = req.query;
+      const { schoolId } = req.params;
+      const user = (req as any).user;
+      const { statistic } =
+        await this.nutritionService.getNutritionStatisticsFromFamily(
+          +user.id,
+          +schoolId,
+          statusTypeId ? +statusTypeId : undefined
+        );
       res.status(201).json({
         status: "Success",
         message: "Nutrition Statistic retrieves",

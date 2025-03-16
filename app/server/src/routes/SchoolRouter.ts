@@ -297,10 +297,17 @@ schoolRouter.get(
 );
 
 schoolRouter.get(
-  "/:schoolId/stats/nutritions/:nutritionId",
+  "/stats/nutritions/all",
   AuthorizationMiddleware([]),
   (req: Request, res: Response) => {
     schoolController.getNutritionStatistics(req, res);
+  }
+);
+schoolRouter.get(
+  "/:schoolId/stats/nutritions/families",
+  AuthorizationMiddleware(["parent"]),
+  (req: Request, res: Response) => {
+    schoolController.getNutritionStatisticsFromFamily(req, res);
   }
 );
 

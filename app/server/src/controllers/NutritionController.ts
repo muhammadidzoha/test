@@ -69,4 +69,13 @@ export class NutritionController {
       handleError(err, res);
     }
   }
+
+  async getNutritionCart(req: Request, res: Response) {
+    try {
+      await this.nutritionService.getNutritionStatistics();
+      res.send("ok");
+    } catch (err: any) {
+      handleError(err, res);
+    }
+  }
 }
