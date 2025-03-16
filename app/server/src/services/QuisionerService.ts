@@ -7,9 +7,14 @@ import {
   IResponsePayload,
   QuisionerPayload,
 } from "../types/quisioner";
+import { UserService } from "./UserService";
+import { FamilyService } from "./FamilyService";
 
 export class QuisionerService {
-  constructor(public prismaClient: PrismaClient) {}
+  constructor(
+    public prismaClient: PrismaClient,
+    public familyService: FamilyService
+  ) {}
 
   async createQuisioner(payload: QuisionerPayload) {
     if (payload.stratification) {
@@ -654,5 +659,36 @@ export class QuisionerService {
     );
 
     return { categories };
+  }
+
+  async getUserResponseByQuisionerId(memberId: number, quisionerId: number) {
+    const { member } = await this.familyService.getMemberById(memberId);
+    if (!member) {
+      throw new NotFoundError("member not found");
+    }
+    const { quisioner } = await this.getQuisionerById(quisionerId);
+    if (!quisioner) {
+      throw new NotFoundError("user not found");
+    }
+    const respondedQuisioner = await this.prismaClient.response.findFirst({
+      where: {
+        family_member_id: memberId,
+        quisioner_id: quisionerId,
+      },
+      include: {
+        answers: true,
+        quisioner: {
+          include: {
+            questions: {
+              include: {
+                options: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    return { response: respondedQuisioner };
   }
 }

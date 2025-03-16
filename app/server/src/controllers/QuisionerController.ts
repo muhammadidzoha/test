@@ -463,4 +463,29 @@ export class QuisionerController {
       handleError(err, res);
     }
   }
+
+  async getQuisionerResponse(req: Request, res: Response) {
+    try {
+      const { quisionerId, memberId } = req.params;
+      if (!quisionerId || !memberId) {
+        throw new InvariantError(
+          "quisionerId and memberId is required in params"
+        );
+      }
+
+      const { response } =
+        await this.quisionerService.getUserResponseByQuisionerId(
+          +memberId,
+          +quisionerId
+        );
+
+      res.status(200).json({
+        status: "Success",
+        message: "Response from user is retrieved",
+        data: response,
+      });
+    } catch (err: any) {
+      handleError(err, res);
+    }
+  }
 }

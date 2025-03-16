@@ -3,8 +3,11 @@ import { QuisionerController } from "../controllers/QuisionerController";
 import { AuthorizationMiddleware } from "../middlewares/AuthorizationMiddleware";
 import express, { Request, Response } from "express";
 import { prismaDBClient } from "../../config/prisma";
+import { FamilyService } from "../services/FamilyService";
 
-const quisionerService = new QuisionerService(prismaDBClient);
+const familyService = new FamilyService(prismaDBClient);
+
+const quisionerService = new QuisionerService(prismaDBClient, familyService);
 const quisionerController = new QuisionerController(quisionerService);
 
 export const quisionerRouter = express.Router();
@@ -96,6 +99,14 @@ quisionerRouter.get(
   AuthorizationMiddleware([]),
   (req: Request, res: Response) => {
     quisionerController.getQuisionerResponseById(req, res);
+  }
+);
+
+quisionerRouter.get(
+  "/:quisionerId/members/:memberId/response",
+  AuthorizationMiddleware([]),
+  (req: Request, res: Response) => {
+    quisionerController.getQuisionerResponse(req, res);
   }
 );
 
