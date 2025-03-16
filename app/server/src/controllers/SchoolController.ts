@@ -722,7 +722,7 @@ export class SchoolController {
     }
   }
 
-  async StudentById(req: Request, res: Response) {
+  async deleteStudentById(req: Request, res: Response) {
     try {
       const { studentId, schoolId } = req.params;
       if (!studentId) {
