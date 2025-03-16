@@ -77,6 +77,11 @@ export class UserService {
           },
         },
         institution: true,
+        teacher: {
+          include: {
+            institution: true,
+          },
+        },
       },
     });
 
@@ -140,5 +145,15 @@ export class UserService {
         total_users: +stats.total_users.toString(),
       })),
     };
+  }
+
+  async deleteUser(id: number) {
+    const user = await this.prismaClient.user.delete({
+      where: {
+        id,
+      },
+    });
+
+    return { user };
   }
 }
