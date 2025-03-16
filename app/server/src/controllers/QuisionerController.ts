@@ -328,7 +328,7 @@ export class QuisionerController {
         });
       res.status(200).json({
         status: "Success",
-        message: `Question with id ${question.id} updated successfully`,
+        message: `Question with id ${questionId} updated successfully`,
         data: updatedQuestion,
       });
     } catch (err: any) {

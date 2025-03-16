@@ -736,6 +736,19 @@ export class FamilyService {
           user_id: userId,
         },
       },
+      include: {
+        job: {
+          include: {
+            job_type: true,
+          },
+        },
+        nutrition: {
+          include: {
+            nutrition_status: true,
+          },
+        },
+        residence: true,
+      },
     });
 
     return { familyMembers };
