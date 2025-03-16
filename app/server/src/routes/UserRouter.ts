@@ -58,7 +58,7 @@ userRouter.get(
 );
 
 userRouter.delete(
-  ":id",
+  "/:id",
   AuthorizationMiddleware(["admin"]),
   (req: Request, res: Response) => {
     userController.deleteUser(req, res);
