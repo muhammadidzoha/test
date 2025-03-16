@@ -918,10 +918,31 @@ export class SchoolController {
       res.status(201).json({
         status: "Success",
         message: "Nutrition Statistic retrieves",
-        data: statistic.map((stat) => ({
-          ...stat,
-          total: +stat.total.toString(),
-        })),
+        data: statistic.reduce((acc, item) => {
+          const existingInstitution = acc.find(
+            (inst: any) => inst.institution_name === item.institution_name
+          );
+
+          if (existingInstitution) {
+            existingInstitution.nutrition_statuses.push({
+              status_id: item.status_id,
+              name: item.nutrition_status,
+              total: +item.total.toString(),
+            });
+          } else {
+            acc.push({
+              institution_name: item.institution_name,
+              nutrition_statuses: [
+                {
+                  status_id: item.status_id,
+                  name: item.nutrition_status,
+                  total: +item.total.toString(),
+                },
+              ],
+            });
+          }
+          return acc;
+        }, []),
       });
     } catch (err: any) {
       handleError(err, res);
