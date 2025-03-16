@@ -182,7 +182,9 @@ export class UserService {
         ...user,
         username: payload.username,
         email: payload.email,
-        password: payload.password,
+        ...(payload.password && {
+          password: payload.password,
+        }),
         is_verified: payload.isVerified,
         role_id: payload.roleId,
         updated_at: new Date(

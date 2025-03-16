@@ -168,12 +168,13 @@ export class UserController {
         throw new InvariantError("id is required in params");
       }
       const { username, password, email, isVerified, roleId } = req.body;
-      const newPassword = this.authService.bcrypt.hashSync(password, 10);
       const { user } = await this.userService.updateUser(
         +id,
         {
           username,
-          password: newPassword,
+          password: password
+            ? this.authService.bcrypt.hashSync(password, 10)
+            : undefined,
           email,
           isVerified,
           roleId,

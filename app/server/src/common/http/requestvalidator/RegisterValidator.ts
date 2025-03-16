@@ -29,7 +29,7 @@ export const institutionRegisterPayloadSchema = joi.object({
 export const updateUserSchema = joi.object({
   username: joi.string().required(),
   email: joi.string().email().required(),
-  password: joi.string().required(),
+  password: joi.string(),
   isVerified: joi.boolean().required(),
-  roleId: joi.number().required(),
+  roleId: joi.number(),
 });
