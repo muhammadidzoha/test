@@ -1,10 +1,15 @@
 import { Request, Response } from "express";
 import { UserService } from "../services/UserService";
-import { handleError } from "../common/http";
+import { handleError, validatePayload } from "../common/http";
 import { InvariantError, NotFoundError } from "../common/exception";
+import { AuthService } from "../services";
+import { updateUserSchema } from "../common/http/requestvalidator/RegisterValidator";
 
 export class UserController {
-  constructor(public userService: UserService) {}
+  constructor(
+    public userService: UserService,
+    public authService: AuthService
+  ) {}
 
   async getUserByUniqueIdentity(req: Request, res: Response) {
     try {
@@ -149,6 +154,39 @@ export class UserController {
       res.status(200).json({
         status: "Success",
         message: "User deleted",
+      });
+    } catch (err: any) {
+      handleError(err, res);
+    }
+  }
+
+  async updateUserById(req: Request, res: Response) {
+    try {
+      validatePayload(updateUserSchema, req.body);
+      const { id } = req.params;
+      if (!id) {
+        throw new InvariantError("id is required in params");
+      }
+      const { username, password, email, isVerified, roleId } = req.body;
+      const newPassword = this.authService.bcrypt.hashSync(password, 10);
+      const { user } = await this.userService.updateUser(
+        +id,
+        {
+          username,
+          password: newPassword,
+          email,
+          isVerified,
+          roleId,
+        },
+        async () => {
+          await this.authService.isUserExistsOnDatabase(username, email);
+        }
+      );
+
+      res.status(200).json({
+        status: "Success",
+        message: "User is updated successfully",
+        data: user,
       });
     } catch (err: any) {
       handleError(err, res);

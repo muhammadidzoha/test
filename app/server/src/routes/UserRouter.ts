@@ -3,9 +3,18 @@ import { AuthorizationMiddleware } from "../middlewares/AuthorizationMiddleware"
 import { UserService } from "../services/UserService";
 import { UserController } from "../controllers/UserController";
 import { prismaDBClient } from "../../config/prisma";
+import { AuthService, EmailService } from "../services";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 
 const userService = new UserService(prismaDBClient);
-const userController = new UserController(userService);
+const authService = new AuthService(
+  prismaDBClient,
+  bcrypt,
+  jwt,
+  {} as EmailService
+);
+const userController = new UserController(userService, authService);
 
 export const userRouter = express.Router();
 
@@ -62,5 +71,13 @@ userRouter.delete(
   AuthorizationMiddleware(["admin"]),
   (req: Request, res: Response) => {
     userController.deleteUser(req, res);
+  }
+);
+
+userRouter.put(
+  "/:id",
+  AuthorizationMiddleware(["admin"]),
+  (req: Request, res: Response) => {
+    userController.updateUserById(req, res);
   }
 );

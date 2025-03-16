@@ -156,4 +156,43 @@ export class UserService {
 
     return { user };
   }
+
+  async updateUser(
+    id: number,
+    payload: {
+      username: string;
+      email: string;
+      password: string;
+      isVerified: boolean;
+      roleId: number;
+    },
+    callback: () => any
+  ) {
+    const { user } = await this.getUserById(id);
+    if (!user) {
+      throw new NotFoundError("user is not found");
+    }
+    callback();
+
+    const updatedUser = await this.prismaClient.user.update({
+      where: {
+        id,
+      },
+      data: {
+        ...user,
+        username: payload.username,
+        email: payload.email,
+        password: payload.password,
+        is_verified: payload.isVerified,
+        role_id: payload.roleId,
+        updated_at: new Date(
+          new Date().getTime() + 3_600_000 * 7
+        ).toISOString(),
+      },
+    });
+
+    return {
+      user: updatedUser,
+    };
+  }
 }
