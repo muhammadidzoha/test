@@ -373,4 +373,21 @@ export class FamilyController {
       handleError(err, res);
     }
   }
+
+  async getFamilyMembersBelongToUser(req: Request, res: Response) {
+    try {
+      const user = (req as any).user;
+
+      const { familyMembers } =
+        await this.familyService.getFamilyMemberBelongToUser(user.id);
+
+      res.status(200).json({
+        status: "Success",
+        message: "Family members retrieved",
+        data: familyMembers,
+      });
+    } catch (err: any) {
+      handleError(err, res);
+    }
+  }
 }

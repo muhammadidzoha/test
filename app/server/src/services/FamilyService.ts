@@ -729,6 +729,18 @@ export class FamilyService {
     };
   }
 
+  async getFamilyMembersBelongToUser(userId: number) {
+    const familyMembers = await this.prismaClient.familyMember.findMany({
+      where: {
+        family: {
+          user_id: userId,
+        },
+      },
+    });
+
+    return { familyMembers };
+  }
+
   async getFamilyMemberByHeadPhoneNumber(phoneNumber: string) {
     const familyMembers = await this.prismaClient.familyMember.findMany({
       where: {

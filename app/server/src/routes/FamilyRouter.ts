@@ -38,6 +38,14 @@ familyRouter.post(
 );
 
 familyRouter.get(
+  "/members",
+  AuthorizationMiddleware(["parent"]),
+  (req: Request, res: Response) => {
+    familyController.getFamilyMembersBelongToUser(req, res);
+  }
+);
+
+familyRouter.get(
   "/:familyId/wages",
   AuthorizationMiddleware([]),
   (req: Request, res: Response) => {

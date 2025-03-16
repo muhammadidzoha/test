@@ -51,7 +51,7 @@ schoolRouter.put("/:schoolId", AuthorizationMiddleware([]), (req, res) => {
 // CLASSES
 schoolRouter.post(
   "/classes/",
-  AuthorizationMiddleware(["admin", "school", "teacher"]),
+  AuthorizationMiddleware([]),
   (req: Request, res: Response) => {
     schoolController.createClass(req, res);
   }
@@ -76,7 +76,7 @@ schoolRouter.delete(
 // Class Categories
 schoolRouter.post(
   "/categories",
-  AuthorizationMiddleware(["admin", "teacher", "school"]),
+  AuthorizationMiddleware([]),
   (req: Request, res: Response) => {
     schoolController.createCategories(req, res);
   }
@@ -110,7 +110,7 @@ schoolRouter.get(
 
 schoolRouter.post(
   "/:schoolId/classes/:classId/categories",
-  AuthorizationMiddleware(["admin", "school", "teacher"]),
+  AuthorizationMiddleware([]),
   (req: Request, res: Response) => {
     schoolController.connectCategoryToClass(req, res);
   }
