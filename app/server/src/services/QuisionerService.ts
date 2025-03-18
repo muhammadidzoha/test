@@ -557,8 +557,6 @@ export class QuisionerService {
         question: payload.question,
         type: payload.type,
         is_required: payload.isRequired,
-        ...((payload.type === "MULTIPLE_CHOICE" ||
-          payload.type === "SCALE") && {
           options: {
             deleteMany: {},
             create: payload.options?.map((option) => ({
@@ -566,18 +564,13 @@ export class QuisionerService {
               score: option.score ?? 0,
             })),
           },
-        }),
-        ...((isQuestionExist.type === "MULTIPLE_CHOICE" ||
-          isQuestionExist.type === "SCALE") &&
-          (payload.type == "BOOLEAN" || payload.type === "TEXT") && {
-            options: {
-              deleteMany: {},
-            },
-          }),
       },
       where: {
         id: questionId,
       },
+      include: {
+        options: true
+      }
     });
 
     return { question };

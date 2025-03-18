@@ -308,7 +308,7 @@ export class QuisionerController {
         throw new InvariantError("Question id is required");
       }
       const { question, type, options, isRequired } = req.body;
-      if (!question || !isRequired || !type) {
+      if (!question || !type) {
         throw new InvariantError("question, isRequired and type is required");
       }
       if (type === "MULTIPLE_CHOICE" && (!options || options.length === 0)) {
