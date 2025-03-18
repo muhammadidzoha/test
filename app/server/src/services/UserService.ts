@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { AuthorizationError, NotFoundError } from "../common/exception";
+import { AuthorizationError, InvariantError, NotFoundError } from "../common/exception";
 
 export class UserService {
   constructor(public prismaClient: PrismaClient) {}
@@ -148,6 +148,9 @@ export class UserService {
   }
 
   async deleteUser(id: number) {
+    if(id === 1) {
+      throw new InvariantError("Cannot delete this user");
+    }
     const user = await this.prismaClient.user.delete({
       where: {
         id,

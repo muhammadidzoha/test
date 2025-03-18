@@ -389,7 +389,7 @@ export class QuisionerService {
         description: payload.description,
         for: payload.for,
         stratification: payload.stratification,
-      },
+      }
     });
 
     return {
