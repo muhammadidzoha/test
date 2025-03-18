@@ -180,8 +180,8 @@ export const schoolQuisionerQuestions = [
     },
 
     {
-        title: "Pembinaan Lingkungan Sehat",
-        description: "Quisioner Tentang Pembinaan Lingkungan Sehat Untuk Stratifikasi Standar",
+        title: "Manajemen UKS",
+        description: "Quisioner Tentang Manajemen UKS Untuk Stratifikasi Standar",
         stratification: "UKS_MANAGEMENT_STANDAR",
         for: "SCHOOL",
         questions: [
@@ -191,8 +191,8 @@ export const schoolQuisionerQuestions = [
     },
 
     {
-        title: "Pembinaan Lingkungan Sehat",
-        description: "Quisioner Tentang Pembinaan Lingkungan Sehat Untuk Stratifikasi Optimal",
+        title: "Manajemen UKS",
+        description: "Quisioner Tentang Manajemen UKS Untuk Stratifikasi Optimal",
         stratification: "UKS_MANAGEMENT_OPTIMAL",
         for: "SCHOOL",
         questions: [
@@ -202,8 +202,8 @@ export const schoolQuisionerQuestions = [
     },
 
     {
-        title: "Pembinaan Lingkungan Sehat",
-        description: "Quisioner Tentang Pembinaan Lingkungan Sehat Untuk Stratifikasi Paripurna",
+        title: "Manajemen UKS",
+        description: "Quisioner Tentang Manajemen UKS Untuk Stratifikasi Paripurna",
         stratification: "UKS_MANAGEMENT_PARIPURNA",
         for: "SCHOOL",
         questions: [
