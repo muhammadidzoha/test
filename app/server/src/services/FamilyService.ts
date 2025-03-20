@@ -956,8 +956,33 @@ export class FamilyService {
           user_id: userId,
         },
       },
+      include: {
+        residence: true,
+        family: {
+          include: {
+            user: true
+          }
+        },
+        job: {
+          include: {
+            job_type: true
+          }
+        },
+        institution: true,
+        nutrition: {
+          include: {
+            nutrition_status: true
+          }
+        },
+      },
     });
-    return { familyMembers };
+    return { familyMembers: familyMembers.map(member => ({
+      ...member,
+      job: {
+        ...member.job,
+        income: +member.job.income.toString()
+      }
+    })) };
   }
 
   async getFamilyByUserId(userId: number) {
@@ -968,5 +993,16 @@ export class FamilyService {
     });
 
     return { family };
+  }
+
+  async getMemberLogin(userId: number) {
+    const member = await this.prismaClient.familyMember.findFirst({
+      where: {
+        family: {
+          user_id: userId,
+        }
+      }
+    });
+    return {member}
   }
 }

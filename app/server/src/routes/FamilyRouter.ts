@@ -136,3 +136,7 @@ familyRouter.put(
     familyController.updateAvatarMember(req, res);
   }
 );
+familyRouter.get("/v2/members/whoose/login", AuthorizationMiddleware([]), (req: Request, res: Response) => {
+  familyController.getMemberLogin(req, res);
+})
+
