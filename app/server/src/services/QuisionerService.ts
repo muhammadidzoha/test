@@ -236,7 +236,7 @@ export class QuisionerService {
         quisioner_id: responsePayload.response.quisionerId,
         family_member_id: responsePayload.response.familyMemberId,
         institution_id: responsePayload.response.institutionId,
-        total_score: responsePayload.response.totalScore,
+        total_score: responsePayload.answers.reduce((acc, answer) => (acc + (answer.score ?? 0)), 0),
         answers: {
           create: responsePayload.answers.map((answer) => ({
             question_id: answer.questionId,
