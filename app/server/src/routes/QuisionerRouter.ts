@@ -85,6 +85,10 @@ quisionerRouter.delete(
   }
 );
 
+quisionerRouter.get("/:id/response", AuthorizationMiddleware([]), (req: Request, res: Response) => {
+  quisionerController.getResponseBelongToUser(req, res);
+})
+
 // Responses / Answers
 quisionerRouter.post(
   "/:quisionerId/responses",
@@ -133,6 +137,7 @@ quisionerRouter.get(
     quisionerController.getAllResponses(req, res);
   }
 );
+
 
 // Question
 quisionerRouter.put(

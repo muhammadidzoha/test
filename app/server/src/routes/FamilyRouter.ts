@@ -113,6 +113,14 @@ familyRouter.put(
 );
 
 familyRouter.put(
+  "/:familyId/members/v2",
+  AuthorizationMiddleware([]),
+  (req: Request, res: Response) => {
+    familyController.AddFamilyMembersV2(req, res);
+  }
+);
+
+familyRouter.put(
   "/v2/members/:memberId/schools/:schoolId/enroll",
   AuthorizationMiddleware([]),
   (req: Request, res: Response) => {
@@ -136,7 +144,10 @@ familyRouter.put(
     familyController.updateAvatarMember(req, res);
   }
 );
-familyRouter.get("/v2/members/whoose/login", AuthorizationMiddleware([]), (req: Request, res: Response) => {
-  familyController.getMemberLogin(req, res);
-})
-
+familyRouter.get(
+  "/v2/members/whoose/login",
+  AuthorizationMiddleware([]),
+  (req: Request, res: Response) => {
+    familyController.getMemberLogin(req, res);
+  }
+);

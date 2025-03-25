@@ -256,6 +256,114 @@ export const addMemberSchemaV3 = joi.object({
     .required(),
 });
 
+export const addManyMembersSchema = joi.object({
+  members: joi
+    .array()
+    .items(
+      joi.object({
+        fullName: joi.string().required(),
+        birthDate: joi.date().required(),
+        education: joi
+          .string()
+          .required()
+          .custom((value, helpers) => {
+            if (!["SD", "SMP", "SMA", "D3", "S1", "S2", "S3"].includes(value)) {
+              return helpers.error("Only allowed SD, SMP, SMA, D3, S1, S2, S3");
+            }
+            return value;
+          }),
+        job: joi
+          .object({
+            id: joi.number(),
+            jobTypeId: joi.number().required(),
+            income: joi.number().required(),
+          })
+          .required(),
+        residenceId: joi.number(),
+        residence: joi.when("residenceId", {
+          is: joi.exist(),
+          then: joi.object({
+            id: joi.number(),
+            address: joi.string(),
+            description: joi.string().optional().allow(""),
+            status: joi.string().custom((value, helpers) => {
+              if (!["OWN", "RENT", "OTHER"].includes(value)) {
+                return helpers.error("Only allowed OWN, RENT, OTHER");
+              }
+              return value;
+            }),
+          }),
+          otherwise: joi.object({
+            id: joi.number(),
+            address: joi.string().required(),
+            description: joi.string().optional().allow(""),
+            status: joi
+              .string()
+              .custom((value, helpers) => {
+                if (!["OWN", "RENT", "OTHER"].includes(value)) {
+                  return helpers.error("Only allowed OWN, RENT, OTHER");
+                }
+                return value;
+              })
+              .required(),
+          }),
+        }),
+        gender: joi
+          .string()
+          .required()
+          .custom((value, helpers) => {
+            if (!["L", "P"].includes(value)) {
+              return helpers.error("Only allowed L, P");
+            }
+            return value;
+          }),
+        relation: joi
+          .string()
+          .required()
+          .custom((value, helpers) => {
+            if (!["AYAH", "IBU", "ANAK", "LAINNYA"].includes(value)) {
+              return helpers.error("Only allowed AYAH, IBU, ANAK, LAINNYA");
+            }
+            return value;
+          }),
+        institutionId: joi.number(),
+        nutrition: joi
+          .object({
+            height: joi.number().required(),
+            weight: joi.number().required(),
+            bmi: joi.number(),
+            birth_weight: joi.number(),
+          })
+          .required(),
+        phoneNumber: joi.when("relation", {
+          is: joi.valid("AYAH", "IBU"),
+          then: joi.string().required(),
+          otherwise: joi.string(),
+        }),
+        classId: joi.when("relation", {
+          is: "ANAK",
+          then: joi.number().required(),
+          otherwise: joi.number(),
+        }),
+        semester: joi.when("relation", {
+          is: "ANAK",
+          then: joi.valid("1", "2").required(),
+          otherwise: joi.number(),
+        }),
+        kkNumber: joi.string(),
+        schoolYear: joi.string(),
+        nis: joi.when("relation", {
+          is: "ANAK",
+          then: joi.string().required(),
+          otherwise: joi.string(),
+        }),
+        avatar: joi.string(),
+      })
+    )
+    .min(1)
+    .required(),
+});
+
 export const updateMemberSchema = joi.object({
   fullName: joi.string().required(),
   birthDate: joi.string().required(),
@@ -276,6 +384,10 @@ export const updateMemberSchema = joi.object({
     .required(),
   gender: joi.valid("L", "P").required(),
   phoneNumber: joi.string(),
-  institutionId: joi.number().required(),
+  institutionId: joi.when("relation", {
+    is: "ANAK",
+    then: joi.number().required(),
+    otherwise: joi.number(),
+  }),
   avatar: joi.string(),
 });

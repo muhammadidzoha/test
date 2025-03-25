@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { InvariantError } from "../common/exception";
 import { handleError, validatePayload } from "../common/http";
 import {
+  addManyMembersSchema,
   addMemberSchema,
   addMemberSchemaV2,
   addMemberSchemaV3,
@@ -394,19 +395,58 @@ export class FamilyController {
   async getMemberLogin(req: Request, res: Response) {
     try {
       const user = (req as any).user;
-      console.log({user})
+      console.log({ user });
 
-      const { member }  = await this.familyService.getMemberLogin(user.id);
+      const { member } = await this.familyService.getMemberLogin(user.id);
 
       res.status(200).json({
         status: "Success",
         message: "Family members retrieved",
         data: member,
       });
-    
     } catch (err: any) {
       handleError(err, res);
     }
-    
+  }
+
+  async AddFamilyMembersV2(req: Request, res: Response) {
+    try {
+      console.log("Called");
+      console.log({ body: req.body });
+      validatePayload(addManyMembersSchema, req.body);
+      const { familyId } = req.params;
+      if (!familyId) {
+        throw new InvariantError("familyId is required in params");
+      }
+      const user = (req as any).user;
+      const payload: { members: (IFamilyMember & { residenceId?: number })[] } =
+        req.body;
+      const members = await this.familyService.addFamilyMembers(
+        +familyId,
+        payload.members.map((member) => ({
+          ...member,
+          birthDate: new Date(member.birthDate),
+        })),
+        user.id
+      );
+
+      res.status(201).json({
+        status: "Success",
+        message: familyId
+          ? "Family member updated successfully"
+          : "Family member added successfully",
+        data: {
+          members: members.map((member) => ({
+            ...member,
+            job: {
+              ...member.job,
+              income: +member.job.income.toString(),
+            },
+          })),
+        },
+      });
+    } catch (err: any) {
+      handleError(err, res);
+    }
   }
 }

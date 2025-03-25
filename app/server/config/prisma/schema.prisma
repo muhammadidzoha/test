@@ -250,7 +250,7 @@ model Family {
   id                Int     @id @default(autoincrement()) @db.Int
   head_family       String  @db.VarChar(255)
   kk_number         String? @db.VarChar(255)
-  head_phone_number String  @db.VarChar(255)
+  head_phone_number String?  @db.VarChar(255)
   description       String? @db.Text
   user_id Int @db.Int @unique
 

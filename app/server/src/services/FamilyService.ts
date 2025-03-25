@@ -361,12 +361,12 @@ export class FamilyService {
           "Family not found, please provide correct familyId"
         );
       }
-      const isHeadFamilyExist = await this.checkIfHeadFamilyExist(familyId);
-      if (isHeadFamilyExist && familyMember.relation === "AYAH") {
-        throw new InvariantError(
-          "Cannot add this user as a head family because head family already exists"
-        );
-      }
+      // const isHeadFamilyExist = await this.checkIfHeadFamilyExist(familyId);
+      // if (isHeadFamilyExist && familyMember.relation === "AYAH") {
+      //   throw new InvariantError(
+      //     "Cannot add this user as a head family because head family already exists"
+      //   );
+      // }
       const isMotherExist = await this.checkIfMotherExist(familyId);
       if (isMotherExist && familyMember.relation === "IBU") {
         throw new InvariantError(
@@ -495,6 +495,150 @@ export class FamilyService {
     });
 
     return { familyMember: newMember };
+  }
+
+  async addFamilyMembers(
+    familyId: number | undefined,
+    familyMembers: IFamilyMember[],
+    createdBy: number
+  ) {
+    const members = await this.prismaClient.$transaction(async (trx) => {
+      return familyMembers.map(async (familyMember) => {
+        console.log({ familyMember });
+        if (familyId) {
+          if (!(await this.checkFamilyExist(familyId))) {
+            throw new NotFoundError(
+              "Family not found, please provide correct familyId"
+            );
+          }
+
+          const isMotherExist = await this.checkIfMotherExist(familyId);
+          if (isMotherExist && familyMember.relation === "IBU") {
+            throw new InvariantError(
+              "Cannot add this user as a mother because mother already exists"
+            );
+          }
+        }
+
+        if (familyMember.phoneNumber) {
+          const isPhoneNumberExist = await this.checkIfPhoneNumberExist(
+            familyMember.phoneNumber
+          );
+          if (isPhoneNumberExist) {
+            throw new InvariantError("Phone number already exist");
+          }
+        }
+        const bmi = calculateBMI(
+          familyMember.nutrition.height,
+          familyMember.nutrition.weight
+        );
+
+        const determinedNutritionStatus = determineNutritionStatus(bmi);
+        const newMember = await trx.familyMember.create({
+          data: {
+            full_name: familyMember.fullName,
+            birth_date: familyMember.birthDate.toISOString(),
+            education: familyMember.education,
+            gender: familyMember.gender,
+            relation: familyMember.relation,
+            phone_number: familyMember.phoneNumber,
+            job: {
+              create: {
+                income: familyMember?.job?.income ?? 0,
+                job_type_id: familyMember.job.jobTypeId,
+              },
+            },
+            residence: familyMember.residence?.id
+              ? {
+                  connect: {
+                    id: familyMember.residence.id,
+                  },
+                }
+              : {
+                  create: {
+                    status: familyMember.residence.status,
+                    address: familyMember.residence.address,
+                    description: familyMember.residence.description,
+                  },
+                },
+            family: familyId
+              ? {
+                  connect: {
+                    id: familyId,
+                  },
+                }
+              : {
+                  create: {
+                    head_family: familyMember.fullName,
+                    head_phone_number: familyMember.phoneNumber!,
+                    kk_number: familyMember.kkNumber,
+                    description: familyMember.description,
+                    user_id: createdBy,
+                  },
+                },
+            ...(familyMember.institutionId && {
+              institution: {
+                connect: {
+                  id: familyMember.institutionId,
+                },
+              },
+            }),
+            nutrition: {
+              create: {
+                height: familyMember.nutrition.height,
+                weight: familyMember.nutrition.weight,
+                created_by: createdBy,
+                updated_by: createdBy,
+                ...(familyMember.nutrition.birth_weight && {
+                  birth_weight: familyMember.nutrition.birth_weight,
+                }),
+                bmi: familyMember.nutrition.bmi ?? bmi,
+                status_id: determinedNutritionStatus.statusId,
+              },
+            },
+          },
+          include: {
+            residence: true,
+            family: true,
+            job: true,
+            knowledge_nutrition: true,
+            institution: true,
+            behaviour: true,
+            nutrition: {
+              include: {
+                nutrition_status: true,
+              },
+            },
+          },
+        });
+        if (familyMember.relation === "ANAK") {
+          const schoolYear = new Date().getFullYear();
+          const student = await trx.student.create({
+            data: {
+              school_id: familyMember.institutionId!,
+              family_member_id: newMember.id,
+              full_name: familyMember.fullName,
+              birth_date: familyMember.birthDate,
+              gender: familyMember.gender,
+              nis: familyMember.nis,
+            },
+          });
+          const studentClassHistory = await trx.studentClassHistory.create({
+            data: {
+              school_year:
+                familyMember.schoolYear ?? `${schoolYear}/${schoolYear + 1}`,
+              semester: familyMember.semester!,
+              school_id: familyMember.institutionId!,
+              class_category_on_class_id: familyMember.classId!,
+              student_id: student.id,
+            },
+          });
+        }
+
+        return newMember;
+      });
+    });
+    return members;
   }
 
   async checkFamilyExist(familyId: number) {
@@ -848,12 +992,12 @@ export class FamilyService {
     if (!member) {
       throw new InvariantError(`Member with id ${memberId} is not found`);
     }
+    delete member.id;
     const updatedMember = await this.prismaClient.familyMember.update({
       where: {
         id: memberId,
       },
       data: {
-        ...member,
         full_name: payload.fullName,
         birth_date: new Date(payload.birthDate),
         education: payload.education,
@@ -886,32 +1030,34 @@ export class FamilyService {
               id: payload.institutionId,
             },
           },
-          student: {
-            ...(member.student &&
-              member.student.id && {
-                update: {
-                  where: {
-                    id: member.student.id,
+          ...(payload.relation === "ANAK" && {
+            student: {
+              ...(member.student &&
+                member.student.id && {
+                  update: {
+                    where: {
+                      id: member.student.id,
+                    },
+                    data: {
+                      school_id: payload.institutionId,
+                      birth_date: new Date(payload.birthDate).toISOString(),
+                      full_name: payload.fullName,
+                      gender: payload.gender,
+                      nis: payload.nis,
+                    },
                   },
-                  data: {
-                    school_id: payload.institutionId,
-                    birth_date: new Date(payload.birthDate).toISOString(),
-                    full_name: payload.fullName,
-                    gender: payload.gender,
-                    nis: payload.nis,
-                  },
+                }),
+              ...(!member.student && {
+                create: {
+                  school_id: payload.institutionId,
+                  birth_date: new Date(payload.birthDate).toISOString(),
+                  full_name: payload.fullName,
+                  gender: payload.gender,
+                  nis: payload.nis,
                 },
               }),
-            ...(!member.student && {
-              create: {
-                school_id: payload.institutionId,
-                birth_date: new Date(payload.birthDate).toISOString(),
-                full_name: payload.fullName,
-                gender: payload.gender,
-                nis: payload.nis,
-              },
-            }),
-          },
+            },
+          }),
         }),
       },
     });
@@ -960,29 +1106,31 @@ export class FamilyService {
         residence: true,
         family: {
           include: {
-            user: true
-          }
+            user: true,
+          },
         },
         job: {
           include: {
-            job_type: true
-          }
+            job_type: true,
+          },
         },
         institution: true,
         nutrition: {
           include: {
-            nutrition_status: true
-          }
+            nutrition_status: true,
+          },
         },
       },
     });
-    return { familyMembers: familyMembers.map(member => ({
-      ...member,
-      job: {
-        ...member.job,
-        income: +member.job.income.toString()
-      }
-    })) };
+    return {
+      familyMembers: familyMembers.map((member) => ({
+        ...member,
+        job: {
+          ...member.job,
+          income: +member.job.income.toString(),
+        },
+      })),
+    };
   }
 
   async getFamilyByUserId(userId: number) {
@@ -1000,9 +1148,23 @@ export class FamilyService {
       where: {
         family: {
           user_id: userId,
-        }
-      }
+        },
+      },
+      include: {
+        family: {
+          include: { user: true },
+        },
+        nutrition: {
+          include: {
+            nutrition_status: true,
+          },
+        },
+        residence: true,
+        job: {
+          include: { job_type: true },
+        },
+      },
     });
-    return {member}
+    return { member };
   }
 }

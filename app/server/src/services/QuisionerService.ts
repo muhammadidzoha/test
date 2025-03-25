@@ -684,4 +684,22 @@ export class QuisionerService {
 
     return { response: respondedQuisioner };
   }
+
+  async getUserResponseOnQuisioner(userId: number, quisionerId: number) {
+    const { member } = await this.familyService.getMemberLogin(userId);
+    if(!member){
+      throw new NotFoundError("Member not found");
+    }
+    const response = await this.prismaClient.response.findFirst({
+      where: {
+        family_member_id: member.id,
+        quisioner_id: quisionerId
+      },
+      include: {
+        answers: true
+      }
+    });
+
+    return {response}
+  }
 }

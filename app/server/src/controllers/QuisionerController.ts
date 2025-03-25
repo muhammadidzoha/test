@@ -488,4 +488,24 @@ export class QuisionerController {
       handleError(err, res);
     }
   }
+
+  async getResponseBelongToUser(req: Request, res: Response) {
+    try{
+      const user = (req as any).user;
+      const {id} = req.params;
+      if(!id) {
+        throw new InvariantError("id is required in params")
+      }
+
+      const { response } = await this.quisionerService.getUserResponseOnQuisioner(user.id, +id);
+
+      res.status(200).json({
+        status: "Sucecss",
+        message: "Response retrieved",
+        data: response
+      })
+    }catch(err: any) {
+      handleError(err, res);
+    }
+  }
 }
