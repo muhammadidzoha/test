@@ -16,7 +16,7 @@ export class AuthService {
     public bcrypt: any,
     public jwt: any,
     public emailService: EmailService
-  ) {}
+  ) { }
 
   async register({
     username,
@@ -175,9 +175,8 @@ export class AuthService {
       to: email,
       subject: "Email Verification",
       html: `
-                        <p>Click this link before <strong>${generatedDate}</strong> to verify your email: <a href="${
-        process.env.API_BASE_URL ?? "http://localhost:5000"
-      }/auth/email/verify?token=${generatedToken}">Verify Email</a></p>
+                        <p>Click this link before <strong>${generatedDate}</strong> to verify your email: <a href="${process.env.API_BASE_URL ?? "http://localhost:5000"
+        }/auth/email/verify?token=${generatedToken}">Verify Email</a></p>
                         `,
     };
 
@@ -376,5 +375,32 @@ export class AuthService {
     return {
       healthCareMember: newHealthCaremember,
     };
+  }
+
+  async registerForTeacher(payload: { username: string, email: string, password: string, userId: number }) {
+    const user = await this.prismaClient.user.findUnique({
+      where: {
+        id: payload.userId
+      },
+      include: {
+        institution: true
+      }
+    });
+
+    if (!user) {
+      throw new NotFoundError("user is not found");
+    }
+    if (!user.institution?.id) {
+      throw new NotFoundError("user is not school");
+    }
+    return await this.register({
+      username: payload.username,
+      email: payload.email,
+      password: payload.password,
+      isVerified: true,
+      roleId: 6,
+      institutionId: user.institution.id
+    });
+
   }
 }

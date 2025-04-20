@@ -32,7 +32,7 @@ export class SchoolController {
   constructor(
     public schoolService: SchoolService,
     public nutritionService: NutritionService
-  ) {}
+  ) { }
 
   async createOrUpdateHealthEducation(req: Request, res: Response) {
     try {

@@ -10,9 +10,10 @@ import {
 import { CompleteRegistrationSchema } from "../common/http/requestvalidator/CompleteRegistrationValidator";
 import { AuthService } from "../services";
 import { IInstitution, RegisterPayloadType } from "../types/auth";
+import { registerForTeacherSchema } from "../common/http/requestvalidator/RegisterValidator";
 
 export class AuthController {
-  constructor(public authService: AuthService) {}
+  constructor(public authService: AuthService) { }
 
   async register(req: Request, res: Response) {
     try {
@@ -214,6 +215,27 @@ export class AuthController {
         message: `User Registered Successfully as Health Care Member`,
         data: healthCareMember,
       });
+    } catch (err: any) {
+      handleError(err, res);
+    }
+  }
+
+  async addTeacherAccount(req: Request, res: Response) {
+    try {
+      validatePayload(registerForTeacherSchema, req.body);
+      const { username, email, password } = req.body;
+      const user = (req as any).user;
+      const { newUser } = await this.authService.registerForTeacher({
+        username,
+        email,
+        password,
+        userId: user.id
+      });
+      res.status(201).json({
+        status: "Success",
+        message: "teacher added successfully",
+        data: newUser
+      })
     } catch (err: any) {
       handleError(err, res);
     }
