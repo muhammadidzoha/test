@@ -71,6 +71,9 @@ export class AuthService {
           },
         }),
       },
+      include: {
+        institution: true
+      }
     });
 
     return {
