@@ -399,7 +399,6 @@ export class AuthService {
       password: payload.password,
       isVerified: true,
       roleId: 6,
-      institutionId: user.institution.id
     });
 
   }
