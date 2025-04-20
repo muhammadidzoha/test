@@ -638,7 +638,7 @@ export class FamilyService {
         return newMember;
       });
     });
-    return members;
+    return await Promise.all(members);
   }
 
   async checkFamilyExist(familyId: number) {

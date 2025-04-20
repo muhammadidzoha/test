@@ -59,3 +59,11 @@ institutionRouter.delete(
     institutionController.deleteInstitutionById(req, res);
   }
 );
+
+institutionRouter.post(
+  "/without-account",
+  AuthorizationMiddleware(["admin"]),
+  (req: Request, res: Response) => {
+    institutionController.addInstitution(req, res);
+  }
+);

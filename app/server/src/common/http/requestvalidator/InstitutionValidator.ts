@@ -24,3 +24,10 @@ export const updatedInstitutionSchema = joi.object({
   provinceId: joi.number(),
   cityId: joi.number(),
 });
+
+export const addInstitutionSchema = joi.object({
+  name: joi.string().required(),
+  address: joi.string().required(),
+  phoneNumber: joi.string().required(),
+  email: joi.string().required(),
+});

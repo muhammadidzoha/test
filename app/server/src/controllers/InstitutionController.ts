@@ -1,6 +1,9 @@
 import { InvariantError } from "../common/exception";
 import { handleError, validatePayload } from "../common/http";
-import { createInstitutionSchema } from "../common/http/requestvalidator/InstitutionValidator";
+import {
+  addInstitutionSchema,
+  createInstitutionSchema,
+} from "../common/http/requestvalidator/InstitutionValidator";
 import { InstitutionService } from "../services/InstitutionService";
 import { Request, Response } from "express";
 
@@ -153,6 +156,28 @@ export class InstitutionController {
         message: "Institution deleted",
         data: deletedInstitution,
       });
+    } catch (err: any) {
+      handleError(err, res);
+    }
+  }
+
+  async addInstitution(req: Request, res: Response) {
+    try {
+      validatePayload(addInstitutionSchema, req.body);
+      const { name, email, address, phoneNumber } = req.body;
+      const { institution } =
+        await this.institutionService.addInstitutioWithoutAccount({
+          name,
+          email,
+          address,
+          phoneNumber,
+        });
+
+        res.status(201).json({
+          status: "Success",
+          message: "Institution created",
+          data: institution
+        })
     } catch (err: any) {
       handleError(err, res);
     }

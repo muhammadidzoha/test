@@ -218,6 +218,7 @@ export class AuthController {
       handleError(err, res);
     }
   }
+
   // decodeJWT(req: Request, res: Response) {
   //     try {
   //         const { accessToken } = req.body;

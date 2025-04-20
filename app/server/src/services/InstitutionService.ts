@@ -134,4 +134,22 @@ export class InstitutionService {
 
     return { newInstitution };
   }
+
+  async addInstitutioWithoutAccount(payload: {
+    name: string;
+    address: string;
+    phoneNumber: string;
+    email: string;
+  }) {
+    const institution = await this.prismaClient.institution.create({
+      data: {
+        name: payload.name,
+        address: payload.address,
+        phone_number: payload.phoneNumber,
+        email: payload.email,
+        type: 2,
+      },
+    });
+    return { institution };
+  }
 }
